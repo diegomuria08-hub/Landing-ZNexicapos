@@ -29,9 +29,9 @@ class ProvisioningValidationError(ProvisioningError):
 def get_provisioning_credentials() -> Tuple[str, str, str, str]:
     """Obtener y validar las variables de entorno para la API externa."""
     url = os.getenv("PROVISIONING_API_URL", "https://mini-pos-api.vercel.app/api/provisioning/tenant")
-    user = os.getenv("PROVISIONING_API_USER", "miniPosContractor")
-    password = os.getenv("PROVISIONING_API_PASSWORD", "key_OMAfdBOAZgZzzCEU5BmvycoCVqMBuUjKHJbyjbqmI5rHuCEqQQotIZI3f8CUjXLD")
-    origin = os.getenv("APP_BASE_URL", "https://billing.minipos.com")
+    user = os.getenv("PROVISIONING_API_USER", "")
+    password = os.getenv("PROVISIONING_API_PASSWORD", "")
+    origin = os.getenv("APP_BASE_URL", "https://landing-znexicapos.onrender.com")
     return url, user, password, origin
 
 

@@ -182,7 +182,7 @@ Accede a la landing page en: `http://localhost:8000`
 | `PROVISIONING_API_USER` | Usuario de autenticación básica API externa | `miniPosContractor` |
 | `PROVISIONING_API_PASSWORD` | Clave secreta de la API externa | `token_secreto` |
 | `PORT` | Puerto asignado por el hosting | `8000` |
-| `APP_BASE_URL` | URL pública de la aplicación | `https://landing-minipos.onrender.com` |
+| `APP_BASE_URL` | URL pública de la aplicación | `https://landing-znexicapos.onrender.com` |
 
 ---
 
