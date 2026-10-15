@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: minipos-landing
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PROVISIONING_API_URL
+        value: https://mini-pos-api.vercel.app/api/provisioning/tenant
+      - key: PROVISIONING_API_USER
+        sync: false
+      - key: PROVISIONING_API_PASSWORD
+        sync: false
+      - key: PROVISIONING_ALLOWED_ORIGINS
+        sync: false
+      - key: APP_BASE_URL
+        sync: false

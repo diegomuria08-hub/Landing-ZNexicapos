@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>miniPOS — Sistema de Punto de Venta e Inventario para tu Negocio</title>
+  <meta name="description" content="Gestiona ventas, inventario y caja de tu tienda con miniPOS. Sistema de facturación offline-first para móvil. Planes desde $0 gratis por 30 días.">
+  <meta name="keywords" content="punto de venta, POS, inventario, facturación, sistema de ventas, miniPOS, tienda, negocio, control de stock">
+  <meta name="author" content="miniPOS - Solucionistas TI">
+  <link rel="icon" type="image/jpeg" href="/static/images/logo.jpg">
+  <link rel="stylesheet" href="/static/css/styles.css?v=4.0">
+</head>
+<body>
+
+  <!-- ======================================================================
+       NAVBAR — Light Glassmorphic
+       ====================================================================== -->
+  <header class="navbar" id="mainNavbar">
+    <div class="container navbar-inner">
+      <a href="#" class="logo-brand">
+        <img src="/static/images/logo.jpg" alt="Logo miniPOS" class="logo-img">
+        <div class="logo-text">
+          mini<span>POS</span>
+          <span class="logo-subtitle">Vende • Controla • Crece</span>
+        </div>
+      </a>
+
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir Menú">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="nav-menu" id="navMenu">
+        <a href="#inicio" class="nav-link active">Inicio</a>
+        <a href="#funciones" class="nav-link">Funciones</a>
+        <a href="#quienes-somos" class="nav-link">Quiénes Somos</a>
+        <a href="#planes" class="nav-link">Planes</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+        <a href="#planes" class="nav-cta-btn">🚀 Probar Gratis</a>
+      </nav>
+
+      <div class="navbar-crown-badge" title="Tecnología de Grado Empresarial">
+        <div class="crown-icon">👑</div>
+        <div class="crown-stars">⭐⭐⭐</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       HERO SECTION — Clean & Powerful
+       ====================================================================== -->
+  <section class="hero" id="inicio">
+    <div class="container">
+      <div class="hero-badge">
+        ✨ Sistema de Facturación e Inventario Móvil
+      </div>
+      <h1 class="hero-title">
+        Controla tu Negocio <br><highlight>— Resultados Reales</highlight>
+      </h1>
+      <p class="hero-description">
+        Transforma tu teléfono en un potente Punto de Venta. Maneja stock en tiempo real, registra ventas en divisas, controla caja y haz crecer tu negocio sin complicaciones.
+      </p>
+      <div class="hero-actions">
+        <a href="#planes" class="btn-primary">
+          🚀 Probar 30 Días Gratis
+        </a>
+        <a href="#funciones" class="btn-secondary">
+          📱 Ver Capturas y Funciones
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       TRUST BAR — Social Proof Strip
+       ====================================================================== -->
+  <section class="trust-bar reveal">
+    <div class="container">
+      <div class="trust-grid">
+        <div class="trust-item">
+          <div class="trust-icon">📡</div>
+          <div class="trust-text">
+            Funciona Sin Internet
+            <span>Modo offline-first integrado</span>
+          </div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">💱</div>
+          <div class="trust-text">
+            Multi-Moneda
+            <span>USD, EUR y Bolívares</span>
+          </div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">📊</div>
+          <div class="trust-text">
+            Reportes al Instante
+            <span>Resúmenes y cortes de caja</span>
+          </div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">🛡️</div>
+          <div class="trust-text">
+            Seguridad Empresarial
+            <span>Cifrado y protección de datos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       FEATURES SHOWCASE — Dynamic Tabs with Real Screenshots
+       ====================================================================== -->
+  <section class="showcase-section" id="funciones">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-subtitle">Demostración en Vivo</span>
+        <h2 class="section-title">Diseñado para Operar sin Esfuerzo</h2>
+        <p class="section-description">Explora cada módulo de miniPOS con capturas reales de la aplicación.</p>
+      </div>
+
+      <!-- Tabs de Funcionalidades (9 Módulos Reales de la Aplicación) -->
+      <div class="tab-pills reveal" id="showcasePills">
+        <button class="tab-btn active" data-target="tab-login">📱 Acceso Móvil</button>
+        <button class="tab-btn" data-target="tab-pos">🛒 Punto de Venta</button>
+        <button class="tab-btn" data-target="tab-productos">🏷️ Productos & SKU</button>
+        <button class="tab-btn" data-target="tab-alertas">⚠️ Alertas de Stock</button>
+        <button class="tab-btn" data-target="tab-clientes">👥 Clientes</button>
+        <button class="tab-btn" data-target="tab-entradas">📥 Entradas</button>
+        <button class="tab-btn" data-target="tab-salidas">📤 Salidas</button>
+        <button class="tab-btn" data-target="tab-proveedores">🚚 Proveedores</button>
+        <button class="tab-btn" data-target="tab-reportes">📊 Reportes</button>
+      </div>
+
+      <!-- Tarjeta Dinámica con Mockup Interactivo y Animado -->
+      <div class="mockup-display-card reveal" id="tabContent">
+        <!-- Barra de Control de Navegación de la Galería -->
+        <div class="showcase-controls">
+          <button type="button" class="showcase-nav-btn" id="showcasePrevBtn" onclick="navigateShowcase(-1)" aria-label="Anterior captura">
+            ❮ Anterior
+          </button>
+          <span class="showcase-counter" id="showcaseCounter">📱 Captura 1 de 9</span>
+          <button type="button" class="showcase-nav-btn" id="showcaseNextBtn" onclick="navigateShowcase(1)" aria-label="Siguiente captura">
+            Siguiente ❯
+          </button>
+        </div>
+
+        <div class="showcase-body-grid">
+          <!-- LADO IZQUIERDO: Marco de Imagen Mockup con las capturas reales de la App -->
+          <div class="mockup-frame">
+            <img src="/static/images/app_mobile_initial.jpg" alt="Demostración de miniPOS" class="mockup-img" id="displayImg">
+          </div>
+
+          <!-- LADO DERECHO: Descripción y Beneficios del Módulo (Lo que hace la app) -->
+          <div class="tab-info">
+            <span class="module-tag" id="displayTag">Seguridad & Acceso</span>
+            <h3 id="displayTitle">📱 Acceso Seguro Móvil & Multi-Inquilino</h3>
+            <p id="displayDesc">
+              Ingreso optimizado y blindado desde cualquier teléfono inteligente, tablet o navegador. Permite alternar entre modo claro y modo oscuro para cuidar tu vista durante largas jornadas, con sesiones encriptadas y autenticación segura.
+            </p>
+
+            <div class="feature-bullets" id="displayBullets">
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Acceso rápido desde tu celular</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Modo Oscuro / Claro integrado</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Arquitectura multi-inquilino blindada</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Sesiones seguras de alto cifrado</div>
+            </div>
+
+            <div class="showcase-action-wrap">
+              <button type="button" onclick="openCheckoutModal('FREE', 'Plan Prueba Gratis', 0)" class="btn-primary" style="max-width: 280px; font-size: 0.92rem; padding: 0.75rem 1.5rem; cursor: pointer; border: none;">
+                🚀 Probar Esta Función Gratis
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       FEATURES CHECKLIST — "¿Qué incluye miniPOS?"
+       ====================================================================== -->
+  <section class="checklist-section" id="que-incluye">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-subtitle">Todo en una Sola App</span>
+        <h2 class="section-title">¿Qué incluye miniPOS?</h2>
+      </div>
+
+      <div class="checklist-grid reveal">
+        <div class="checklist-item">
+          <div class="checklist-icon">✓</div>
+          <div class="checklist-content">
+            <h4>Módulo de Ventas y Caja</h4>
+            <p>Registra ventas rápidas con buscador de productos, cobro multimoneda y arqueo de caja.</p>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="checklist-icon">✓</div>
+          <div class="checklist-content">
+            <h4>Control de Inventario</h4>
+            <p>Entradas y salidas de mercancía en tiempo real con alertas de stock bajo.</p>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="checklist-icon">✓</div>
+          <div class="checklist-content">
+            <h4>Catálogo de Productos & SKU</h4>
+            <p>Organiza por categorías, asigna códigos SKU y gestiona precios de costo y PVP.</p>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="checklist-icon">✓</div>
+          <div class="checklist-content">
+            <h4>Reportes Financieros</h4>
+            <p>Cortes de caja, valoración de inventario y resumen de ventas por fecha.</p>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="checklist-icon">✓</div>
+          <div class="checklist-content">
+            <h4>Escaneo de Código de Barras</h4>
+            <p>Agrega productos al carrito escaneando con la cámara de tu teléfono.</p>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="checklist-icon">✓</div>
+          <div class="checklist-content">
+            <h4>Modo Offline-First</h4>
+            <p>Trabaja sin conexión a internet. Los datos se sincronizan automáticamente.</p>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="checklist-icon">✓</div>
+          <div class="checklist-content">
+            <h4>Multi-Moneda (USD/EUR/Bs)</h4>
+            <p>Configura precios y cobra en la divisa que prefieras o tu cliente necesite.</p>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="checklist-icon">✓</div>
+          <div class="checklist-content">
+            <h4>Tienda Web Integrada</h4>
+            <p>Conecta tu catálogo con una tienda web para que tus clientes compren en línea.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       QUIÉNES SOMOS — Adapted Light Mode
+       ====================================================================== -->
+  <section class="about-section" id="quienes-somos">
+    <div class="container">
+      <div class="about-card reveal">
+        <span class="about-badge">🚀 Creadores e Ingenieros de Software TI</span>
+        <h2 class="about-title">Quiénes Somos</h2>
+        
+        <p class="about-lead">
+          Somos un equipo de ingenieros de software y emprendedores tecnológicos con una visión clara: impulsar el crecimiento de los negocios a través de tecnología accesible, segura y de primer nivel.
+        </p>
+
+        <div class="about-text-body">
+          <p>
+            Nacimos al observar una necesidad real en el mercado comercial. Vimos cómo cientos de negocios con un potencial increíble —desde bodegones y tiendas de ropa hasta minimercados— se veían frenados por el caos del inventario manual, las pérdidas invisibles y la falta de control en sus ventas. Nos dimos cuenta de que el software de gestión empresarial no debía ser un lujo exclusivo de las grandes corporaciones, sino una herramienta fundamental para cualquier emprendedor que quiera proteger y multiplicar su dinero.
+          </p>
+          <p>
+            No somos simples distribuidores de aplicaciones de terceros; somos los creadores de nuestro propio ecosistema de software. Diseñamos, desarrollamos y respaldamos cada línea de código de nuestros productos, lo que nos permite ofrecer soluciones reales, sin intermediarios y totalmente adaptadas a las dinámicas del comercio actual.
+          </p>
+        </div>
+
+        <!-- Nuestra Misión -->
+        <div class="about-block mission-box">
+          <h3 class="about-subtitle">🎯 Nuestra Misión</h3>
+          <p>
+            Transformar el dispositivo móvil de cualquier comerciante en un centro de mando profesional. Queremos automatizar los procesos tediosos, blindar la seguridad de tus datos y darte la claridad financiera que necesitas para que dejes de preocuparte por los descuadres y te enfoques en lo verdaderamente importante: hacer crecer tu negocio.
+          </p>
+        </div>
+
+        <!-- ¿Qué nos hace diferentes? -->
+        <div class="about-block diff-section">
+          <h3 class="about-subtitle">✨ ¿Qué nos hace diferentes?</h3>
+          <div class="diff-grid">
+            <div class="diff-card">
+              <div class="diff-header">
+                <span class="diff-icon">💡</span>
+                <h4>Ingeniería con Propósito</h4>
+              </div>
+              <p>
+                Detrás de cada uno de nuestros sistemas hay una arquitectura de software robusta, pensada bajo los más altos estándares de TI y ciberseguridad industrial.
+              </p>
+            </div>
+
+            <div class="diff-card">
+              <div class="diff-header">
+                <span class="diff-icon">🚀</span>
+                <h4>Soluciones Escalables</h4>
+              </div>
+              <p>
+                Hoy optimizamos tu control de ventas con miniPOS, pero nuestro desarrollo no se detiene. Construimos tecnología capaz de escalar y adaptarse a nichos exigentes, preparándonos para revolucionar sectores como el farmacéutico, ferretero y de la salud.
+              </p>
+            </div>
+
+            <div class="diff-card">
+              <div class="diff-header">
+                <span class="diff-icon">🤝</span>
+                <h4>Acompañamiento Real</h4>
+              </div>
+              <p>
+                Al ser los desarrolladores directos, garantizamos un soporte técnico genuino. Hablamos el mismo idioma que nuestros clientes y entendemos los retos del mercado, porque somos emprendedores trabajando para el éxito de otros emprendedores.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       PLANES Y PRECIOS — Kept Identical (Functionality Intact)
+       ====================================================================== -->
+  <section class="pricing-section" id="planes">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-subtitle">Suscripciones Mensuales</span>
+        <h2 class="section-title">Elige el Plan Perfecto para tu Negocio</h2>
+      </div>
+
+      <!-- Banner Informativo Importante sobre Dominio Web -->
+      <div class="web-disclaimer-banner reveal">
+        <div>⚠️</div>
+        <div>
+          <strong>SUMAMENTE IMPORTANTE:</strong> Los planes que incluyen integración web requieren que el cliente adquiera y mantenga su propio <strong>dominio personal</strong> (ej. <em>mitienda.com</em>). El cliente decide libremente si desea operar utilizando únicamente la App Móvil o integrar la plataforma Web.
+        </div>
+      </div>
+
+      <!-- Rejilla de Planes -->
+      <div class="plans-grid reveal">
+
+        <!-- Plan 1: FREE / TRIAL -->
+        <div class="plan-card">
+          <div class="plan-header">
+            <h3 class="plan-name">PRUEBA GRATIS</h3>
+            <div class="plan-price-box">
+              <span class="plan-price">$0</span>
+              <span class="plan-period">/ 30 días</span>
+            </div>
+            <p class="plan-desc">Prueba todas las funcionalidades de miniPOS durante 1 mes sin costo ni tarjeta.</p>
+          </div>
+          <ul class="plan-features">
+            <li><span class="check-icon">✓</span> Aprovisionamiento Desatendido Inmediato</li>
+            <li><span class="check-icon">✓</span> Acceso Completo App Móvil miniPOS</li>
+            <li><span class="check-icon">✓</span> Control de Inventario y Stock en Tiempo Real</li>
+            <li><span class="check-icon">✓</span> Módulo de Ventas y Caja Multimoneda</li>
+            <li><span class="check-icon">✓</span> 30 Días de Prueba Sin Compromiso</li>
+          </ul>
+          <button class="btn-select-plan" onclick="openCheckoutModal('FREE', 'Plan Prueba Gratis', 0)">
+            🎁 Activar Prueba Gratis
+          </button>
+        </div>
+
+        <!-- Plan 2: BÁSICO ($8/mes) -->
+        <div class="plan-card">
+          <div class="plan-header">
+            <h3 class="plan-name">PLAN BÁSICO</h3>
+            <div class="plan-price-box">
+              <span class="plan-price">$8</span>
+              <span class="plan-period">/ mes</span>
+            </div>
+            <p class="plan-desc">Ideal para pequeños negocios que buscan controlar inventario y facturación móvil.</p>
+          </div>
+          <ul class="plan-features">
+            <li><span class="check-icon">✓</span> Tenant y Empresa Aprovisionada</li>
+            <li><span class="check-icon">✓</span> Control de Inventario (Entradas/Salidas/SKU)</li>
+            <li><span class="check-icon">✓</span> App Móvil miniPOS Completa</li>
+            <li><span class="check-icon">✓</span> Soporte Estándar Continuo</li>
+            <li><span class="check-icon">✓</span> Modo Offline-First sin internet</li>
+          </ul>
+          <button class="btn-select-plan" onclick="openCheckoutModal('BASIC', 'Plan Básico ($8/mes)', 8)">
+            🛒 Seleccionar Plan Básico
+          </button>
+        </div>
+
+        <!-- Plan 3: PROFESIONAL ($10/mes) -->
+        <div class="plan-card featured">
+          <div class="plan-badge">MÁS POPULAR</div>
+          <div class="plan-header">
+            <h3 class="plan-name">PLAN PROFESIONAL</h3>
+            <div class="plan-price-box">
+              <span class="plan-price">$10</span>
+              <span class="plan-period">/ mes</span>
+            </div>
+            <p class="plan-desc">La suite total para negocios: App Móvil + Web + Inventario + Caja + Reportes.</p>
+          </div>
+          <ul class="plan-features">
+            <li><span class="check-icon">✓</span> Todas las funciones del Plan Básico</li>
+            <li><span class="check-icon">✓</span> Módulo Completo de Caja y Ventas (USD/EUR/Bs)</li>
+            <li><span class="check-icon">✓</span> Integración con Tienda Web miniPOS</li>
+            <li><span class="check-icon">✓</span> Reportes Avanzados y Cierres de Turno</li>
+            <li><span class="check-icon">✓</span> Soporte Prioritario 24/7</li>
+          </ul>
+          <button class="btn-select-plan" style="background:var(--green-primary); color:#fff;" onclick="openCheckoutModal('PRO', 'Plan Profesional ($10/mes)', 10)">
+            👑 Seleccionar Plan Profesional
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       FAQ SECTION — Accordion
+       ====================================================================== -->
+  <section class="faq-section" id="faq">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-subtitle">Preguntas Frecuentes</span>
+        <h2 class="section-title">¿Tienes Dudas? Te Respondemos</h2>
+      </div>
+
+      <div class="faq-list reveal">
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            ¿Necesito internet para usar miniPOS?
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p>No necesariamente. miniPOS funciona en modo offline-first, lo que significa que puedes registrar ventas, gestionar inventario y operar tu caja sin conexión a internet. Cuando te conectes, los datos se sincronizan automáticamente con la nube.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            ¿En qué dispositivos funciona la aplicación?
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p>miniPOS está optimizado para funcionar en teléfonos Android y también se puede acceder desde cualquier navegador web si tu plan incluye la integración web. La interfaz es completamente responsive y táctil.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            ¿Puedo cambiar de plan en cualquier momento?
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p>¡Sí! Puedes escalar tu plan en cualquier momento. Si empiezas con el plan Básico y luego necesitas el módulo de ventas o la tienda web, simplemente contactas al equipo de soporte para actualizar tu suscripción.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            ¿Qué monedas acepta el sistema para cobrar?
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p>miniPOS soporta múltiples monedas: Dólares (USD), Euros (EUR) y Bolívares (Bs). Puedes configurar los precios de tus productos en cualquier divisa y cobrar según las necesidades de tu cliente.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            ¿Cómo se realiza el pago de la suscripción?
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p>Aceptamos Pago Móvil, Binance Pay (USDT) y transferencias bancarias. Selecciona tu plan, elige el método de pago, realiza la transferencia y adjunta tu comprobante. Nuestro equipo verificará el pago y activará tu acceso inmediatamente.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" aria-expanded="false">
+            ¿Mis datos están seguros en miniPOS?
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p>Absolutamente. miniPOS implementa estándares de ciberseguridad de grado empresarial. Tus datos están cifrados, las contraseñas se almacenan con hashing seguro y la comunicación se protege con protocolos HTTPS. Tu información comercial está completamente blindada.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       CTA BANNER — Final Call to Action
+       ====================================================================== -->
+  <section class="cta-banner reveal">
+    <div class="container">
+      <h2>¿Listo para transformar tu negocio?</h2>
+      <p>Empieza hoy con 30 días gratis. Sin tarjeta de crédito, sin compromisos.</p>
+      <a href="#planes" class="btn-cta-white">
+        🚀 Comenzar Ahora — Es Gratis
+      </a>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       MODAL DE IDENTIFICACIÓN / LOGIN DEL CLIENTE (Solo se solicita al pagar)
+       ====================================================================== -->
+  <div class="modal-overlay" id="clientAuthModal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeClientAuthModal()" aria-label="Cerrar modal">&times;</button>
+      
+      <div class="auth-modal-header" style="text-align: center; margin-bottom: 1.2rem;">
+        <div style="font-size: 2.2rem; margin-bottom: 0.3rem;">🔐</div>
+        <h3 class="modal-title" style="margin: 0; font-size: 1.4rem;">Acceso de Cliente miniPOS</h3>
+        <p class="modal-subtitle" style="margin: 0.35rem 0 0; font-size: 0.88rem; color: var(--text-muted);">
+          Para activar tu suscripción, ingresa con tu cuenta o regístrate. Solo te lo pediremos la primera vez.
+        </p>
+      </div>
+
+      <!-- Pestañas Registro / Iniciar Sesión -->
+      <div class="client-auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tabClientRegister" onclick="switchClientAuthTab('register')">
+          ✨ Crear Cuenta Nueva
+        </button>
+        <button type="button" class="auth-tab-btn" id="tabClientLogin" onclick="switchClientAuthTab('login')">
+          🔑 Ya Tengo Cuenta
+        </button>
+      </div>
+
+      <!-- Alerta de Error Dinámica -->
+      <div id="clientAuthError" style="display: none; background: #fee2e2; border: 1px solid #f87171; color: #991b1b; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; text-align: center;">
+      </div>
+
+      <!-- Formulario de Registro -->
+      <form id="clientRegisterForm" onsubmit="handleClientRegisterSubmit(event)" autocomplete="off">
+        <!-- Anti-autofill para evitar que el navegador inyecte credenciales guardadas del administrador -->
+        <input type="text" name="fake_username_trap" style="display:none!important;" tabindex="-1" autocomplete="off">
+        <input type="password" name="fake_password_trap" style="display:none!important;" tabindex="-1" autocomplete="new-password">
+
+        <div class="app-credential-warning-banner" style="margin-bottom: 1rem; padding: 0.75rem 0.9rem;">
+          <div class="warning-icon">💡</div>
+          <div class="warning-text" style="font-size: 0.8rem;">
+            <strong>Nota importante:</strong> Tu <strong>Teléfono</strong> y <strong>Contraseña</strong> serán los mismos datos con los que iniciarás sesión en la aplicación móvil de tu teléfono.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="regFullName">Nombre y Apellido del Titular</label>
+          <input type="text" id="regFullName" class="form-input" placeholder="Ej. Carlos Mendoza" autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+          <label for="regCompanyName">Nombre de la Empresa o Negocio</label>
+          <input type="text" id="regCompanyName" class="form-input" placeholder="Ej. Inversiones El Roble C.A." autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+          <label for="regEmail">Correo Electrónico (Administrador)</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="Ej. carlos.mendoza@elroble.com" autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+          <label for="regPhone">Número de Teléfono (WhatsApp / Usuario de la App)</label>
+          <input type="tel" id="regPhone" class="form-input" placeholder="Ej. 04121234567" autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+          <label for="regPassword">Contraseña de Acceso para miniPOS</label>
+          <div style="position: relative;">
+            <input type="password" id="regPassword" class="form-input" placeholder="Mínimo 8 caracteres (letras y números)" style="padding-right: 2.6rem;" minlength="8" autocomplete="new-password" required>
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)" aria-label="Mostrar contraseña">👁️</button>
+          </div>
+          <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; display: block;">
+            🔒 Debe contener al menos 8 caracteres, con letras y números.
+          </small>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width:100%; margin-top: 1rem; padding: 0.85rem 1.2rem; font-size: 1rem;">
+          Crear Cuenta y Continuar ➔
+        </button>
+      </form>
+
+      <!-- Formulario de Login -->
+      <form id="clientLoginForm" onsubmit="handleClientLoginSubmit(event)" autocomplete="off">
+        <div class="form-group">
+          <label for="loginPhone">Número de Teléfono (WhatsApp / Usuario)</label>
+          <input type="tel" id="loginPhone" class="form-input" placeholder="Ej. 04121234567" autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Contraseña</label>
+          <div style="position: relative;">
+            <input type="password" id="loginPassword" class="form-input" placeholder="Tu contraseña" style="padding-right: 2.6rem;" autocomplete="current-password" required>
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Mostrar contraseña">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width:100%; margin-top: 1rem; padding: 0.85rem 1.2rem; font-size: 1rem;">
+          Iniciar Sesión y Continuar al Pago ➔
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL DE CHECKOUT & REGISTRO DE PAGO (Paso Directo con Sesión Activa)
+       ====================================================================== -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeCheckoutModal()" aria-label="Cerrar modal">&times;</button>
+      
+      <!-- Ficha de Sesión del Cliente -->
+      <div class="checkout-user-badge">
+        <div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">Sesión Verificada</div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem; margin-top: 2px;">
+            👤 <span id="checkoutUserDisplay">Cliente</span> (<span id="checkoutPhoneDisplay">0412...</span>)
+          </div>
+        </div>
+        <button type="button" class="btn-text-change" onclick="logoutClientAndReauth()">Cambiar Cuenta</button>
+      </div>
+
+      <!-- Resumen del Plan -->
+      <div class="checkout-plan-summary">
+        <div>
+          <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">Plan Seleccionado</span>
+          <h4 id="modalPlanTitle" style="margin: 2px 0 0; font-size: 1.15rem; color: var(--text-primary); font-weight: 800;">Plan miniPOS</h4>
+        </div>
+        <div style="text-align: right;">
+          <div id="modalPlanPrice" style="font-size: 1.3rem; font-weight: 900; color: var(--green-primary);">$0</div>
+          <span id="modalPlanStatusBadge" class="status-badge status-pending" style="font-size: 0.72rem;">Pendiente de Pago</span>
+        </div>
+      </div>
+
+      <!-- Aviso recordatorio de credenciales para la app móvil -->
+      <div class="app-credential-warning-banner" id="checkoutPhoneNotice" style="margin-bottom: 1.2rem; font-size: 0.82rem; padding: 0.75rem 1rem;">
+        <div class="warning-icon" style="font-size: 1.2rem;">📱</div>
+        <div class="warning-text">
+          <strong>Acceso a la App miniPOS:</strong> Tu cuenta móvil está vinculada al número <strong id="warnPhoneDisplay">0412...</strong>. Una vez confirmado tu pago por el administrador, tu acceso quedará activo de forma inmediata.
+        </div>
+      </div>
+
+      <!-- Formulario de Pago y Registro de Comprobante -->
+      <form id="paymentForm" onsubmit="handlePaymentSubmit(event)">
+        <input type="hidden" id="selectedPlanCode" name="plan_code">
+
+        <!-- Contenedor B: Formulario e Instrucciones de Pago Comercial -->
+        <div id="paidPlanInstructionsBox">
+          <div class="form-group" id="paymentMethodGroup">
+            <label for="paymentMethodSelect">Selecciona el Método de Pago</label>
+            <select id="paymentMethodSelect" class="form-input" onchange="onPaymentMethodSelectedChange()" required>
+              <!-- Cargado dinámicamente desde el backend -->
+            </select>
+          </div>
+
+          <!-- Recuadro con Datos Oficiales Dinámicos de Pago -->
+          <div class="payment-details-box" id="paymentDetailsDisplay">
+            <h4 id="pmDisplayTitle">💳 Datos Oficiales para Realizar el Pago</h4>
+            <div id="pmDynamicDetails">
+              <!-- Cargado dinámicamente según el método seleccionado -->
+            </div>
+          </div>
+
+          <!-- Contenedor de Inputs Dinámicos para Validación Condicional -->
+          <div id="dynamicClientInputs">
+            <!-- Se inyectan campos de formulario desde JS -->
+          </div>
+        </div>
+
+        <!-- Contenedor A: Aviso Exclusivo de Activación Gratuita Inmediata -->
+        <div id="freePlanNoticeBox" style="display: none; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 1.25rem 1rem; color: #065f46; text-align: center; margin-bottom: 1.25rem;">
+          <div style="font-size: 2rem; margin-bottom: 0.35rem;">🎉</div>
+          <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.25rem;">Activación Gratuita Inmediata</strong>
+          <p style="margin: 0; font-size: 0.9rem; color: #047857; line-height: 1.45;">
+            Este plan no requiere datos bancarios ni comprobante. Al confirmar, tu empresa quedará aprovisionada de inmediato en miniPOS con 30 días de acceso total.
+          </p>
+        </div>
+
+        <button type="submit" id="submitPaymentBtn" class="btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.9rem 1.5rem; font-size: 1rem;">
+          📲 Registrar Pago y Notificar por WhatsApp
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       FOOTER
+       ====================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-brand">miniPOS</div>
+      <p>© 2026 miniPOS Inc. Todos los derechos reservados. Tecnología desarrollada por Solucionistas TI.</p>
+    </div>
+  </footer>
+
+  <script>
+    window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone }}";
+  </script>
+  <script src="/static/js/main.js?v=8.1"></script>
+
+  <!-- ANTI-CACHE: Forzando la nueva UI de Métodos de Pago aquí mismo -->
+  <style>
+    .pm-inst-card {
+      background: #eafff5 !important;
+      border: 1px solid #cbf4dd !important;
+      border-radius: 12px !important;
+      padding: 1.25rem !important;
+      margin-bottom: 1.25rem !important;
+      box-shadow: inset 0 2px 4px rgba(16, 185, 129, 0.03) !important;
+    }
+    .pm-inst-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      margin-bottom: 1rem !important;
+      color: #059669 !important;
+    }
+    .pm-inst-header h4 {
+      font-size: 1.05rem !important;
+      font-weight: 800 !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.4rem !important;
+    }
+    .pm-data-row {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      background: #fdfdfd !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 8px !important;
+      padding: 0.65rem 0.85rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+    .pm-data-label {
+      font-size: 0.85rem !important;
+      color: #64748b !important;
+      font-weight: 500 !important;
+      margin-right: 0.5rem !important;
+    }
+    .pm-data-value-group {
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.75rem !important;
+    }
+    .pm-data-value {
+      font-size: 0.95rem !important;
+      font-weight: 800 !important;
+      color: #0f172a !important;
+    }
+    .btn-copy-nice {
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 8px !important;
+      background: #e0f2fe !important;
+      color: #0284c7 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: none !important;
+      cursor: pointer !important;
+    }
+    .btn-copy-nice.copied {
+      background: #dcfce7 !important;
+      color: #16a34a !important;
+    }
+    .pm-inst-footer {
+      text-align: center !important;
+      margin-top: 1rem !important;
+      font-size: 0.8rem !important;
+      color: #64748b !important;
+    }
+  </style>
+  <script>
+    window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone or '584243580005' }}";
+
+    window.onPaymentMethodSelectedChange = function() {
+      const select = document.getElementById('paymentMethodSelect');
+      const container = document.getElementById('pmDynamicDetails');
+      const titleHeading = document.getElementById('pmDisplayTitle');
+      const dynamicInputsContainer = document.getElementById('dynamicClientInputs');
+
+      if (!select || !container || !dynamicInputsContainer) return;
+
+      const methodId = parseInt(select.value);
+      const selected = typeof availablePaymentMethods !== 'undefined' ? availablePaymentMethods.find(m => m.id === methodId) : null;
+
+      if (!selected) {
+        container.innerHTML = '<p style="color:#64748b;">Selecciona un método de pago válido.</p>';
+        dynamicInputsContainer.innerHTML = '';
+        if (titleHeading) titleHeading.style.display = 'block';
+        return;
+      }
+
+      // 1. Generar campos dinámicos para el usuario (Validación Condicional del PDF)
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const todayDate = `${yyyy}-${mm}-${dd}`;
+
+      let clientInputsHtml = '';
+      const t = selected.tipo_metodo;
+
+      if (t === 'pago_movil') {
+        clientInputsHtml = `
+          <div class="form-group"><label>Referencia (Últimos 4 o 6 dígitos)</label><input type="text" id="dynRef" class="form-input dyn-input" placeholder="Ej. 123456" required></div>
+          <div class="form-group"><label>Banco Origen</label><input type="text" id="dynBank" class="form-input dyn-input" placeholder="Ej. Banesco, Mercantil" required></div>
+          <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
+          <div class="form-group"><label>Monto Exacto Enviado (Bs)</label><input type="number" step="0.01" id="dynAmount" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Adjuntar Foto / Captura del Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        `;
+      } else if (t === 'transferencia') {
+        clientInputsHtml = `
+          <div class="form-group"><label>Número de Referencia Completo</label><input type="text" id="dynRef" class="form-input dyn-input" placeholder="Ej. 0012345678" required></div>
+          <div class="form-group"><label>Banco Origen</label><input type="text" id="dynBank" class="form-input dyn-input" placeholder="Ej. Banesco, Provincial" required></div>
+          <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
+          <div class="form-group"><label>Cédula/RIF del titular origen (Opcional)</label><input type="text" id="dynIdCard" class="form-input dyn-input"></div>
+          <div class="form-group"><label>Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        `;
+      } else if (t === 'binance') {
+        clientInputsHtml = `
+          <div class="form-group"><label>Pay ID / Order ID</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Nombre de Usuario Binance</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Monto Enviado (USDT)</label><input type="number" step="0.01" id="dynAmount" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        `;
+      } else if (t === 'zelle') {
+        clientInputsHtml = `
+          <div class="form-group"><label>Nombre Titular Cuenta Origen</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Número de Confirmación</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
+          <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        `;
+      } else if (t === 'zinli' || t === 'paypal') {
+        clientInputsHtml = `
+          <div class="form-group"><label>Correo / Teléfono de Origen</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Número de Referencia</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        `;
+      } else if (t === 'efectivo') {
+        clientInputsHtml = `
+          <div class="form-group"><label>Persona que Entregará (Nombre y Apellido)</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Denominación / Billetes (Ej. 2 de $20)</label><input type="text" id="dynDetails" class="form-input dyn-input" required></div>
+          <div class="form-group"><label>Fecha Estimada de Entrega</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" required></div>
+          <input type="file" id="proofFile" class="dyn-input" style="display:none;">
+        `;
+      } else {
+        clientInputsHtml = `
+          <div class="form-group"><label>Detalles del Pago</label><textarea id="dynDetails" class="form-input dyn-input" required></textarea></div>
+          <div class="form-group"><label>Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        `;
+      }
+      
+      dynamicInputsContainer.innerHTML = clientInputsHtml;
+
+      // Ocultamos el heading original porque usaremos el nuevo header dentro del recuadro
+      if (titleHeading) {
+        titleHeading.style.display = 'none';
+      }
+
+      const createRow = (label, value) => {
+        // Inyectamos el valor directamente sin escapeHtml que estaba dando fallos
+        const val = value || '';
+        return `
+          <div class="pm-data-row">
+            <span class="pm-data-label">${label}</span>
+            <div class="pm-data-value-group">
+              <span class="pm-data-value">${val}</span>
+              <button type="button" class="btn-copy-nice" onclick="copyToClipboard('${val}', this)" title="Copiar al portapapeles">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      };
+
+      let rows = '';
+      let telLabel = 'Teléfono';
+      if (selected.tipo_metodo === 'zelle' || selected.tipo_metodo === 'zinli' || selected.tipo_metodo === 'paypal') {
+        telLabel = 'Correo / ID';
+      } else if (selected.tipo_metodo === 'transferencia') {
+        telLabel = 'Número de Cuenta';
+      }
+
+      if (selected.telefono) rows += createRow(telLabel, selected.telefono);
+      if (selected.cedula) rows += createRow('Cédula/RIF', selected.cedula);
+      if (selected.nombre_banco) rows += createRow('Banco/Plataforma', selected.nombre_banco);
+      if (selected.binance_id) rows += createRow('Billetera/ID', selected.binance_id);
+      if (selected.titular_cuenta) rows += createRow('Titular', selected.titular_cuenta);
+
+      if (!rows) {
+        rows = createRow('Información', selected.titulo);
+      }
+
+      const html = `
+        <div class="pm-inst-card">
+          <div class="pm-inst-header">
+            <h4>Instrucciones de ${selected.titulo}</h4>
+            <span class="pm-icon">💸</span>
+          </div>
+          <div class="pm-inst-body">
+            ${rows}
+          </div>
+          <div class="pm-inst-footer">
+            Realice la transferencia exacta y registre el comprobante.
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    };
+
+    window.copyToClipboard = function(text, btnElement) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalHTML = btnElement.innerHTML;
+        btnElement.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        btnElement.classList.add('copied');
+        setTimeout(() => {
+          btnElement.innerHTML = originalHTML;
+          btnElement.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Error al copiar al portapapeles: ', err);
+      });
+    };
+
+    // Override handlePaymentSubmit to gather dynamic fields without modifying DB
+    window.handlePaymentSubmit = async function(event) {
+      event.preventDefault();
+
+      const session = getClientSession();
+      if (!session) {
+        alert('Tu sesión ha expirado o no estás autenticado. Por favor identifícate.');
+        closeCheckoutModal();
+        openClientAuthModal();
+        return;
+      }
+
+      const planCode = document.getElementById('selectedPlanCode').value;
+      const isFree = (planCode === 'FREE' || (typeof currentPlanInfo !== 'undefined' && currentPlanInfo.price === 0));
+
+      let paymentMethodText = 'Plan Gratuito (Prueba 30 Días)';
+      let referenceLast4 = 'FREE-TRIAL';
+      let proofFile = null;
+
+      if (!isFree) {
+        const select = document.getElementById('paymentMethodSelect');
+        const methodId = parseInt(select ? select.value : 0);
+        
+        const availableMethods = typeof availablePaymentMethods !== 'undefined' ? availablePaymentMethods : [];
+        const selectedMethodObj = availableMethods.find(m => m.id === methodId);
+        paymentMethodText = selectedMethodObj ? selectedMethodObj.titulo : 'Pago Móvil';
+
+        // RECOLECCION DE DATOS DINÁMICOS
+        const dynInputs = document.querySelectorAll('.dyn-input');
+        let referenceArray = [];
+
+        dynInputs.forEach(input => {
+          if (input.type === 'file') {
+            if (input.files.length > 0) proofFile = input.files[0];
+          } else if (input.value) {
+            // Extraer la etiqueta para formar el string ("Banco Origen: Banesco")
+            const labelEl = input.previousElementSibling;
+            let labelText = labelEl ? labelEl.textContent.split('(')[0].trim() : input.id;
+            referenceArray.push(`${labelText}: ${input.value.trim()}`);
+          }
+        });
+
+        referenceLast4 = referenceArray.join(' | ');
+
+        if (!referenceLast4 && referenceArray.length === 0 && selectedMethodObj && selectedMethodObj.tipo_metodo !== 'efectivo') {
+          alert('Por favor completa todos los campos de pago requeridos.');
+          return;
+        }
+
+        const requiresProof = ['pago_movil', 'transferencia', 'binance', 'zelle', 'zinli', 'paypal', 'otro'].includes(selectedMethodObj ? selectedMethodObj.tipo_metodo : '');
+        
+        if (!proofFile && requiresProof && selectedMethodObj && selectedMethodObj.tipo_metodo !== 'efectivo') {
+          alert('Por favor adjunta el comprobante de pago. Es obligatorio para este método.');
+          return;
+        }
+      }
+
+      const fullName = session.user.full_name || 'Cliente';
+      const phone = session.user.phone || '';
+      const companyName = session.user.company_name || '';
+      const email = session.user.email || '';
+      const password = session.user.temp_password || '';
+
+      const formData = new FormData();
+      formData.append('plan_code', planCode);
+      formData.append('full_name', fullName);
+      formData.append('phone', phone);
+      if (companyName) formData.append('company_name', companyName);
+      if (email) formData.append('email', email);
+      if (password) formData.append('password', password);
+      formData.append('payment_method', paymentMethodText);
+      formData.append('reference_last4', referenceLast4);
+      if (proofFile) formData.append('proof_file', proofFile);
+
+      const submitBtn = document.querySelector('#paymentForm button[type="submit"]') || event.target.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = isFree ? '⏳ Aprovisionando tu cuenta gratis...' : '⏳ Registrando pago...';
+      }
+
+      try {
+        const res = await fetch('/api/suscripciones/submit', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.token}`
+          },
+          body: formData
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert(`⚠️ ${data.detail || 'Ocurrió un error en el servidor al procesar la suscripción.'}`);
+          return;
+        }
+
+        closeCheckoutModal();
+
+        let cleanSellerPhone = (window.ADMIN_WHATSAPP_PHONE || "584243580005").toString().replace(/[^0-9]/g, '');
+        if (cleanSellerPhone.startsWith('0')) cleanSellerPhone = '58' + cleanSellerPhone.substring(1);
+        if (!cleanSellerPhone.startsWith('58')) cleanSellerPhone = '58' + cleanSellerPhone;
+
+        if (isFree) {
+          const waMsg = encodeURIComponent(
+            `👋 ¡Hola equipo de miniPOS!\n\n` +
+            `Acabo de registrarme y activar mi suscripción de prueba gratis (30 días) en miniPOS.\n` +
+            `👤 *Cliente:* ${fullName}\n` +
+            `📱 *Teléfono / Usuario:* ${phone}\n` +
+            `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
+            `🚀 *Plan:* Plan Prueba Gratis (30 Días)\n\n` +
+            `¡Por favor asístanme para comenzar a configurar mi app miniPOS!`
+          );
+          const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
+
+          alert(
+            `🎉 ¡Bienvenido a miniPOS, ${fullName}!\n\n` +
+            `Tu periodo de prueba de 30 días ha sido activado con éxito.\n\n` +
+            `Tus credenciales para ingresar a la App Móvil miniPOS son:\n` +
+            `📱 Usuario / Teléfono: ${phone}\n` +
+            `🔑 Contraseña: La que definiste al registrar tu cuenta.\n\n` +
+            `Se abrirá WhatsApp para que notifiques al equipo de soporte.`
+          );
+          window.open(waUrl, '_blank');
+        } else {
+          const waMsg = encodeURIComponent(
+            `👋 ¡Hola equipo de miniPOS!\n\n` +
+            `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan miniPOS'}*.\n` +
+            `👤 *Cliente:* ${fullName}\n` +
+            `📱 *Teléfono / Usuario:* ${phone}\n` +
+            `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
+            `💳 *Método:* ${paymentMethodText}\n` +
+            `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +
+            `Por favor verifiquen mi pago para activar mi acceso a la app miniPOS.`
+          );
+
+          const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
+
+          alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app miniPOS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
+          window.open(waUrl, '_blank');
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert('Error de conexión o comunicación con el servidor al registrar el pago.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
+        }
+      }
+    };
+  </script>
+</body>
+</html>

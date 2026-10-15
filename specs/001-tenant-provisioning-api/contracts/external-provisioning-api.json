@@ -1,0 +1,152 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API Externa de Aprovisionamiento de Tenants miniPOS",
+    "version": "1.0.0",
+    "description": "Especificación del contrato del endpoint externo de aprovisionamiento de tenants y usuarios administradores."
+  },
+  "servers": [
+    {
+      "url": "https://mini-pos-api.vercel.app",
+      "description": "Servidor de Producción / Staging"
+    }
+  ],
+  "paths": {
+    "/api/provisioning/tenant": {
+      "post": {
+        "summary": "Aprovisionar nueva empresa, administrador y asignar plan",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "https://billing.minipos.com"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["companyName", "adminName", "adminEmail", "adminPassword"],
+                "properties": {
+                  "companyName": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "example": "Inversiones El Roble C.A."
+                  },
+                  "adminName": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "example": "Carlos Mendoza"
+                  },
+                  "adminEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "carlos.mendoza@elroble.com"
+                  },
+                  "adminPassword": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 64,
+                    "description": "Mínimo 8 caracteres, al menos una letra y un dígito",
+                    "example": "SuperSecretPass2026!"
+                  },
+                  "planCode": {
+                    "type": "string",
+                    "enum": ["FREE", "BASIC", "PRO"],
+                    "default": "BASIC",
+                    "example": "PRO"
+                  },
+                  "planId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "UUID alternativo al planCode"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tenant y administrador aprovisionados con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "company": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "name": { "type": "string" },
+                            "createdAt": { "type": "string", "format": "date-time" }
+                          }
+                        },
+                        "admin": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "name": { "type": "string" },
+                            "email": { "type": "string" },
+                            "role": { "type": "string", "example": "ADMIN" }
+                          }
+                        },
+                        "plan": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "code": { "type": "string" },
+                            "name": { "type": "string" },
+                            "assignedAt": { "type": "string", "format": "date-time" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o contraseña fuera de política"
+          },
+          "401": {
+            "description": "Credenciales HTTP Basic Auth inválidas o ausentes"
+          },
+          "403": {
+            "description": "Origen o IP no autorizada"
+          },
+          "409": {
+            "description": "Usuario ya registrado con ese correo electrónico"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
+  }
+}

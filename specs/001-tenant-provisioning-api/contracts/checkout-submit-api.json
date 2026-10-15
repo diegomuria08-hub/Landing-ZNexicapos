@@ -1,0 +1,69 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "miniPOS Landing - Checkout & Subscripción Endpoint",
+    "version": "2.0.0"
+  },
+  "paths": {
+    "/api/suscripciones/submit": {
+      "post": {
+        "summary": "Registrar suscripción de cliente y disparar aprovisionamiento si corresponde",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["plan_code", "payment_method", "reference_last4", "full_name", "company_name", "email", "phone"],
+                "properties": {
+                  "plan_code": {
+                    "type": "string",
+                    "enum": ["FREE", "BASIC", "PRO"]
+                  },
+                  "payment_method": {
+                    "type": "string"
+                  },
+                  "reference_last4": {
+                    "type": "string"
+                  },
+                  "full_name": {
+                    "type": "string"
+                  },
+                  "company_name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8
+                  },
+                  "proof_file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Suscripción registrada y/o aprovisionada exitosamente"
+          },
+          "400": {
+            "description": "Error de validación en los campos o contraseña"
+          },
+          "409": {
+            "description": "Correo ya registrado"
+          }
+        }
+      }
+    }
+  }
+}

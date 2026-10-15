@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración — miniPOS</title>
+  <meta name="description" content="Panel de administración y gestión de suscripciones y pagos de miniPOS.">
+  <link rel="icon" type="image/jpeg" href="/static/images/logo.jpg">
+  <link rel="stylesheet" href="/static/css/styles.css?v=2.1">
+  <style>
+    /* Estilos específicos para armonizar el dashboard en light-mode */
+    .admin-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .admin-title-wrap h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      margin: 0;
+    }
+    .admin-title-wrap p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-top: 0.25rem;
+    }
+    .admin-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .admin-section-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin: 0;
+    }
+    .admin-section-subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    .admin-actions-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .login-container-card {
+      max-width: 440px;
+      margin: 3.5rem auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      padding: 2.25rem;
+      box-shadow: var(--shadow-md);
+      text-align: left;
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .login-badge-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      background: var(--green-light);
+      color: var(--green-primary);
+      border-radius: var(--radius-full);
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .login-header h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      margin-bottom: 0.35rem;
+    }
+    .login-header p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin: 0;
+    }
+    .table-link {
+      color: var(--green-dark);
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .table-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="bg-soft">
+
+  <!-- Header / Barra de Navegación Admin -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="/" class="logo-brand">
+        <img src="/static/images/logo.jpg" alt="Logo miniPOS" class="logo-img">
+        <div class="logo-text">
+          mini<span>POS</span>
+          <span class="logo-subtitle">Panel Administrativo</span>
+        </div>
+      </a>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <a href="/" class="btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;">
+          ← Volver al Sitio
+        </a>
+        <button id="logoutBtn" class="btn-secondary" style="display:none; padding: 0.45rem 1rem; font-size: 0.85rem; color: #dc2626; border-color: #fca5a5;" onclick="handleAdminLogout()">
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container admin-container">
+
+    <!-- Vista 1: Login de Administrador -->
+    <div id="adminLoginView" class="login-container-card">
+      <div class="login-header">
+        <div class="login-badge-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h2>Acceso de Seguridad</h2>
+        <p>Ingresa tus credenciales autorizadas para gestionar el sistema.</p>
+      </div>
+
+      <div id="adminLoginError" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.84rem; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; line-height: 1.4;"></div>
+      <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+        <div class="form-group" style="margin-bottom: 1.15rem;">
+          <label class="form-label" for="adminUser">Usuario</label>
+          <input type="text" id="adminUser" class="form-input" placeholder="Usuario administrador" autocomplete="username" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label class="form-label" for="adminPass">Contraseña</label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="adminPass" class="form-input" placeholder="••••••••••••" autocomplete="current-password" required style="padding-right: 2.75rem;">
+            <button type="button" onclick="toggleAdminPassVisibility()" style="position: absolute; right: 0.75rem; background: none; border: none; cursor: pointer; color: #64748b; padding: 0.25rem; display: flex; align-items: center;" title="Mostrar / Ocultar contraseña">
+              <svg id="adminPassEyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="saas-btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 0.92rem;">
+          Iniciar Sesión
+        </button>
+      </form>
+    </div>
+
+    <!-- Vista 2: Dashboard Principal de Administración (Estilo Parclgo) -->
+    <div id="adminDashboardView" style="display: none; width: 100%;">
+
+      <div class="parclgo-layout">
+        <!-- Sidebar Izquierda Parclgo -->
+        <aside class="parclgo-sidebar">
+          <div>
+            <a href="/admin" class="parclgo-brand-box">
+              <div class="parclgo-brand-icon">⚡</div>
+              <div>
+                <div class="parclgo-brand-title">mini<span>POS</span></div>
+                <div class="parclgo-brand-sub">SaaS Management</div>
+              </div>
+            </a>
+
+            <nav class="parclgo-nav">
+              <button type="button" class="parclgo-nav-link active" onclick="switchAdminView('all')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Dashboard
+              </button>
+              <button type="button" class="parclgo-nav-link" id="navLinkSubs" onclick="switchAdminView('subs')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Historial de Pagos
+              </button>
+              <button type="button" class="parclgo-nav-link" id="navLinkClients" onclick="switchAdminView('clients')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Clientes & Licencias
+              </button>
+              <button type="button" class="parclgo-nav-link" id="navLinkPm" onclick="switchAdminView('pm')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Métodos de Pago
+              </button>
+              <button type="button" class="parclgo-nav-link" id="navLinkProfile" onclick="switchAdminView('profile')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Mi Perfil
+              </button>
+              <a href="/" target="_blank" class="parclgo-nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Ver Sitio Público ↗
+              </a>
+            </nav>
+          </div>
+
+          <div class="parclgo-sidebar-promo">
+            <div class="parclgo-promo-icon">👑</div>
+            <div class="parclgo-promo-title">miniPOS Enterprise</div>
+            <div class="parclgo-promo-desc">Sistema activo y sincronizado con la app móvil.</div>
+          </div>
+        </aside>
+
+        <!-- Área de Contenido Principal -->
+        <main class="parclgo-main">
+
+          <!-- Barra de Navegación Móvil (Mobile-First Touch) -->
+          <nav class="parclgo-mobile-nav" aria-label="Navegación Móvil Administrador">
+            <button type="button" class="parclgo-mobile-nav-btn active" id="mobNavAll" onclick="switchAdminView('all')">
+              ⚡ Dashboard
+            </button>
+            <button type="button" class="parclgo-mobile-nav-btn" id="mobNavSubs" onclick="switchAdminView('subs')">
+              💳 Historial Pagos
+            </button>
+            <button type="button" class="parclgo-mobile-nav-btn" id="mobNavClients" onclick="switchAdminView('clients')">
+              👥 Clientes & Licencias
+            </button>
+            <button type="button" class="parclgo-mobile-nav-btn" id="mobNavPm" onclick="switchAdminView('pm')">
+              💸 Métodos Pago
+            </button>
+            <button type="button" class="parclgo-mobile-nav-btn" id="mobNavProfile" onclick="switchAdminView('profile')">
+              👤 Mi Perfil
+            </button>
+            <a href="/" target="_blank" class="parclgo-mobile-nav-btn">
+              🌐 Web ↗
+            </a>
+          </nav>
+
+          <!-- Topbar Parclgo -->
+          <div class="parclgo-topbar">
+            <div>
+              <h1 class="parclgo-page-title" id="parclgoViewTitle">Suscripciones y Pagos</h1>
+              <p style="margin: 0.25rem 0 0; font-size: 0.82rem; color: #64748b;">Panel ejecutivo de control de pagos, licencias y activación de la app miniPOS.</p>
+            </div>
+
+            <div class="parclgo-search-pill" id="globalSearchContainer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="globalSearchInput" placeholder="Buscar cliente, teléfono, referencia..." oninput="handleGlobalSearch(this.value)">
+            </div>
+
+            <div class="parclgo-topbar-actions">
+              <div class="parclgo-notif-btn" onclick="handleAdminNotifications()" style="cursor: pointer;" title="Notificaciones de pagos pendientes">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <div class="parclgo-notif-dot" id="adminNotifDot"></div>
+              </div>
+
+              <div class="parclgo-user-badge" onclick="switchAdminView('profile')" style="cursor: pointer;" title="Configurar Mi Perfil">
+                <div class="parclgo-avatar-circle" id="adminUserAvatar">A</div>
+                <span style="font-weight: 700; font-size: 0.82rem; color: #0f172a;" id="adminUserBadgeName">Administrador</span>
+              </div>
+
+              <button type="button" class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.82rem; color: #dc2626; border-color: #fca5a5;" onclick="handleAdminLogout()">
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+
+          <!-- 5 Tarjetas Oscuras KPI (Fieles al diseño Parclgo) -->
+          <div class="parclgo-kpi-grid">
+            <div class="parclgo-kpi-card">
+              <div class="parclgo-kpi-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="parclgo-kpi-content">
+                <div class="parclgo-kpi-label">Total Transacciones</div>
+                <div class="parclgo-kpi-number-row">
+                  <span class="parclgo-kpi-val" id="kpiTotalSubs">0</span>
+                  <span class="parclgo-kpi-trend">▲ 100%</span>
+                </div>
+                <div class="parclgo-kpi-sub">Histórico registrado</div>
+              </div>
+            </div>
+
+            <div class="parclgo-kpi-card">
+              <div class="parclgo-kpi-icon" style="color: #34d399;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div class="parclgo-kpi-content">
+                <div class="parclgo-kpi-label">Pagos Aprobados</div>
+                <div class="parclgo-kpi-number-row">
+                  <span class="parclgo-kpi-val" id="kpiApprovedSubs">0</span>
+                  <span class="parclgo-kpi-trend">● Activo</span>
+                </div>
+                <div class="parclgo-kpi-sub">Acceso concedido</div>
+              </div>
+            </div>
+
+            <div class="parclgo-kpi-card">
+              <div class="parclgo-kpi-icon" style="color: #fbbf24;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="parclgo-kpi-content">
+                <div class="parclgo-kpi-label">Por Verificar</div>
+                <div class="parclgo-kpi-number-row">
+                  <span class="parclgo-kpi-val" id="kpiPendingSubs">0</span>
+                  <span class="parclgo-kpi-trend" style="color: #fbbf24;">● Pendiente</span>
+                </div>
+                <div class="parclgo-kpi-sub">Comprobantes por revisar</div>
+              </div>
+            </div>
+
+            <div class="parclgo-kpi-card">
+              <div class="parclgo-kpi-icon" style="color: #60a5fa;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </div>
+              <div class="parclgo-kpi-content">
+                <div class="parclgo-kpi-label">Métodos de Pago</div>
+                <div class="parclgo-kpi-number-row">
+                  <span class="parclgo-kpi-val" id="kpiActiveMethods">0</span>
+                  <span class="parclgo-kpi-trend" style="color: #60a5fa;">En Checkout</span>
+                </div>
+                <div class="parclgo-kpi-sub">Sincronizados en la web</div>
+              </div>
+            </div>
+
+            <div class="parclgo-kpi-card">
+              <div class="parclgo-kpi-icon" style="color: #10b981;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div class="parclgo-kpi-content">
+                <div class="parclgo-kpi-label">Recaudación Aprobada</div>
+                <div class="parclgo-kpi-number-row">
+                  <span class="parclgo-kpi-val" id="kpiTotalAmount">$0</span>
+                  <span class="parclgo-kpi-trend">USD</span>
+                </div>
+                <div class="parclgo-kpi-sub">Total verificado</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 1: TABLA PRINCIPAL DE PAGOS Y SUSCRIPCIONES (Estilo Parclgo) -->
+          <div id="sectionSubscriptions" class="parclgo-card">
+            <!-- Toolbar de Filtros Parclgo -->
+            <div class="parclgo-toolbar" style="padding: 1.25rem 1.25rem 0.75rem;">
+              <div class="parclgo-filter-row">
+                <div class="parclgo-search-input-box">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="subSearchInput" placeholder="Filtrar clientes o ref..." oninput="filterSubscriptions()">
+                </div>
+
+                <select id="subStatusFilter" class="parclgo-select" onchange="filterSubscriptions()">
+                  <option value="all">All Status (Todos)</option>
+                  <option value="pendiente">Pendientes</option>
+                  <option value="aprobado">Aprobados</option>
+                  <option value="rechazado">Rechazados</option>
+                </select>
+
+                <select id="subPlanFilter" class="parclgo-select" onchange="filterSubscriptions()">
+                  <option value="all">All Plans (Todos los planes)</option>
+                  <option value="free_trial">Prueba Gratis</option>
+                  <option value="basico">Plan Básico</option>
+                  <option value="medium">Plan Medium</option>
+                  <option value="premium">Plan Premium</option>
+                </select>
+              </div>
+
+              <div class="parclgo-filter-row">
+                <button class="saas-btn-secondary" onclick="triggerAutoCleanup7Days()" title="Eliminar registros de más de 7 días o rechazados" style="padding: 0.45rem 0.9rem; font-size: 0.8rem;">
+                  🧹 Limpieza (>7 Días)
+                </button>
+                <button class="saas-btn-danger" onclick="triggerPurgeAllSubscriptions()" title="Vaciar todo el historial" style="padding: 0.45rem 0.9rem; font-size: 0.8rem;">
+                  Vaciar Historial
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de Suscripciones estilo Parclgo -->
+            <div style="overflow-x: auto;">
+              <table class="parclgo-table">
+                <thead>
+                  <tr>
+                    <th style="width: 44px; text-align: center;"><input type="checkbox" class="saas-checkbox" id="selectAllSubs" onchange="toggleSelectAllSubs(this.checked)" title="Seleccionar todos los registros"></th>
+                    <th>Cliente</th>
+                    <th>Contacto</th>
+                    <th>Plan / Licencia</th>
+                    <th>Monto</th>
+                    <th>Método & Referencia</th>
+                    <th>Comprobante</th>
+                    <th>Estado de Acceso</th>
+                    <th style="text-align: right;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="subscriptionsTableBody">
+                  <!-- Cargado dinámicamente con admin.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Paginación Footer Parclgo -->
+            <div class="parclgo-pagination-bar">
+              <div id="subTableInfo">Mostrando 0 de 0 transacciones</div>
+              <div class="parclgo-pagination-controls" id="subPaginationControls">
+                <!-- Generado dinámicamente por admin.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 2: TABLA DE MÉTODOS DE PAGO (Sincronizada con la Web Pública) -->
+          <div id="sectionPaymentMethods" class="parclgo-card">
+            <!-- Header y Toolbar -->
+            <div class="parclgo-toolbar" style="padding: 1.25rem 1.25rem 0.75rem;">
+              <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a;">Métodos de Pago Activos</h3>
+                <p style="margin: 0.2rem 0 0; font-size: 0.78rem; color: #64748b;">
+                  ⚡ Sincronización en vivo: Lo que agregues, edites o desactives aquí se refleja al instante en el checkout público de miniPOS.
+                </p>
+              </div>
+
+              <div class="parclgo-filter-row">
+                <div class="parclgo-search-input-box">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="pmSearchInput" placeholder="Buscar método o titular..." oninput="filterPaymentMethods()">
+                </div>
+
+                <select id="pmTypeFilter" class="parclgo-select" onchange="filterPaymentMethods()">
+                  <option value="all">All Types (Todos)</option>
+                  <option value="pago_movil">Pago Móvil</option>
+                  <option value="transferencia">Transferencia Bancaria</option>
+                  <option value="binance">Binance Pay</option>
+                  <option value="zelle">Zelle</option>
+                  <option value="zinli">Zinli / Otros</option>
+                </select>
+
+                <button type="button" class="parclgo-btn-add" onclick="openAddPaymentMethodModal()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  + Add Método
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de Métodos de Pago estilo Parclgo -->
+            <div style="overflow-x: auto;">
+              <table class="parclgo-table">
+                <thead>
+                  <tr>
+                    <th style="width: 44px; text-align: center;"><input type="checkbox" class="saas-checkbox" id="selectAllPm" onchange="toggleSelectAllPm(this.checked)" title="Seleccionar todos los métodos"></th>
+                    <th>Plataforma & Método</th>
+                    <th>Datos de Transferencia / Cuenta</th>
+                    <th>Titular Autorizado</th>
+                    <th>Estado en la Web</th>
+                    <th style="text-align: right;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentMethodsTableBody">
+                  <!-- Cargado dinámicamente con admin.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Paginación Footer -->
+            <div class="parclgo-pagination-bar">
+              <div id="pmTableInfo">Mostrando 0 de 0 métodos</div>
+              <div class="parclgo-pagination-controls" id="pmPaginationControls">
+                <!-- Generado dinámicamente por admin.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN CLIENTES Y LICENCIAS: DIRECTORIO Y CORTE DE SERVICIO -->
+          <div id="sectionClients" class="parclgo-card" style="display: none;">
+            <div class="parclgo-toolbar" style="padding: 1.25rem 1.25rem 0.75rem;">
+              <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
+                  👥 Directorio de Clientes & Control de Licencias
+                </h3>
+                <p style="margin: 0.2rem 0 0; font-size: 0.78rem; color: #64748b;">
+                  Control de mensualidades y estado de licencias. Gestione la suspensión o reactivación preventiva de acceso a la app móvil miniPOS ante la falta o regularización de pagos.
+                </p>
+              </div>
+
+              <div class="parclgo-filter-row">
+                <div class="parclgo-search-input-box">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="clientSearchInput" placeholder="Buscar cliente, empresa o teléfono..." oninput="filterClients()">
+                </div>
+
+                <select id="clientStatusFilter" class="parclgo-select" onchange="filterClients()">
+                  <option value="all">Todos los clientes</option>
+                  <option value="activo">Servicio Activo</option>
+                  <option value="suspendido">Servicio Suspendido</option>
+                  <option value="por_vencer">Por vencer (≤ 5 días)</option>
+                </select>
+
+                <button type="button" class="saas-btn-secondary" onclick="loadAdminClients()" title="Recargar lista" style="padding: 0.45rem 0.85rem; font-size: 0.82rem;">
+                  🔄 Actualizar
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de Clientes -->
+            <div style="overflow-x: auto;">
+              <table class="parclgo-table">
+                <thead>
+                  <tr>
+                    <th>Cliente & Empresa</th>
+                    <th>Teléfono (Login App)</th>
+                    <th>Plan Actual</th>
+                    <th>Ciclo Mensual & Vencimiento</th>
+                    <th>Estado en la App</th>
+                    <th style="text-align: right;">Acciones de Servicio</th>
+                  </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                  <!-- Renderizado dinámico desde admin.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer Paginación Clientes -->
+            <div class="parclgo-pagination-bar">
+              <div id="clientsTableInfo">Mostrando 0 de 0 clientes</div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 3: PERFIL DE ADMINISTRADOR Y MANTENIMIENTO DEL SISTEMA -->
+          <div id="sectionAdminProfile" class="parclgo-card" style="display: none; padding: 1.5rem;">
+            <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+              <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="background: #eef2ff; color: #4f46e5; width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem;">👤</span>
+                Mi Perfil Administrativo
+              </h3>
+              <p style="margin: 0.35rem 0 0; font-size: 0.85rem; color: #64748b;">
+                Gestiona tus credenciales de acceso de forma segura. Al guardar, se ejecuta una actualización directa (UPDATE) en la base de datos sin requerir consola ni reiniciar el servidor.
+              </p>
+            </div>
+
+            <!-- Alertas dinámicas de éxito / error -->
+            <div id="adminProfileSuccessAlert" style="display: none; margin-bottom: 1.25rem; padding: 0.85rem 1rem; border-radius: 10px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-size: 0.88rem; font-weight: 600;"></div>
+            <div id="adminProfileErrorAlert" style="display: none; margin-bottom: 1.25rem; padding: 0.85rem 1rem; border-radius: 10px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.88rem;"></div>
+
+            <!-- Formulario de Actualización de Perfil -->
+            <form id="adminProfileForm" onsubmit="handleAdminProfileSubmit(event)" style="max-width: 800px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                
+                <!-- Tarjeta 1: Información de Usuario -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;">
+                  <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.4rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Datos de la Cuenta
+                  </h4>
+
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="profileFullName">Nombre Completo</label>
+                    <input type="text" id="profileFullName" class="form-input" placeholder="Ej. Administrador Principal" required>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="profileUsername">Nombre de Usuario (Login)</label>
+                    <input type="text" id="profileUsername" class="form-input" placeholder="Nombre de usuario administrador" autocomplete="username" required>
+                    <small style="color: #64748b; font-size: 0.76rem; display: block; margin-top: 0.25rem;">
+                      Este es el usuario con el que inicias sesión en el panel de seguridad.
+                    </small>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Rol del Sistema</label>
+                    <input type="text" id="profileRoleBadge" class="form-input" value="Administrador (Superuser)" disabled style="background: #e2e8f0; color: #475569; font-weight: 700;">
+                  </div>
+                </div>
+
+                <!-- Tarjeta 2: Cambio de Contraseña -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;">
+                  <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.4rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Seguridad y Contraseña
+                  </h4>
+
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="profileCurrentPass">Contraseña Actual <span style="color: #dc2626;">*</span></label>
+                    <input type="password" id="profileCurrentPass" class="form-input" placeholder="Ingresa tu contraseña actual" autocomplete="current-password" required>
+                    <small style="color: #64748b; font-size: 0.76rem; display: block; margin-top: 0.25rem;">
+                      Obligatoria para validar tu identidad antes de aplicar cualquier cambio.
+                    </small>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="profileNewPass">Nueva Contraseña (Opcional)</label>
+                    <input type="password" id="profileNewPass" class="form-input" placeholder="Dejar en blanco si no deseas cambiarla" autocomplete="new-password">
+                    <small style="color: #64748b; font-size: 0.76rem; display: block; margin-top: 0.25rem;">
+                      Mínimo 6 caracteres con cifrado seguro bcrypt.
+                    </small>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="profileConfirmPass">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="profileConfirmPass" class="form-input" placeholder="Repite la nueva contraseña" autocomplete="new-password">
+                  </div>
+                </div>
+
+              </div>
+
+              <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <button type="submit" id="saveProfileBtn" class="saas-btn-primary" style="padding: 0.75rem 1.75rem; font-size: 0.92rem; font-weight: 700;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Guardar Cambios de Perfil
+                </button>
+                <button type="button" class="saas-btn-secondary" onclick="loadAdminProfile()" style="padding: 0.75rem 1.25rem; font-size: 0.88rem;">
+                  Descartar Cambios
+                </button>
+              </div>
+            </form>
+
+            <!-- SECCIÓN EXTRA: MANTENIMIENTO Y PURGA DE BASE DE DATOS -->
+            <div style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px dashed #e2e8f0;">
+              <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 1.5rem;">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;">
+                  <div>
+                    <h4 style="margin: 0 0 0.35rem 0; font-size: 1.05rem; font-weight: 800; color: #92400e; display: flex; align-items: center; gap: 0.5rem;">
+                      🧹 Mantenimiento del Sistema y Limpieza de Datos
+                    </h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: #78350f; max-width: 600px; line-height: 1.5;">
+                      Elimina de forma segura todos los datos de prueba, suscripciones ficticias y clientes de ensayo acumulados. 
+                      <strong>Las 3 cuentas de administrador y los métodos de pago bancarios configurados se preservan intactos.</strong>
+                    </p>
+                  </div>
+                  <button type="button" class="saas-btn-danger" onclick="handlePurgeTestData()" style="padding: 0.75rem 1.25rem; font-size: 0.88rem; font-weight: 700; white-space: nowrap;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    Limpiar Datos de Prueba de la BD
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal Lightbox para Ver Comprobante de Pago -->
+  <div class="modal-overlay" id="proofModal">
+    <div class="modal-card" style="max-width: 580px; text-align: center;">
+      <button class="modal-close" onclick="closeProofModal()">&times;</button>
+      <h3 class="modal-title" style="margin-bottom: 0.35rem;">Comprobante de Transferencia</h3>
+      <p class="saas-page-subtitle" id="proofModalSubtitle" style="margin-bottom: 1.25rem;">Validación del soporte de pago adjunto por el cliente.</p>
+      
+      <div class="saas-proof-img-container">
+        <img id="proofModalImage" src="" alt="Comprobante de Pago" class="saas-proof-large-img">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+        <a id="proofModalDownload" href="" target="_blank" download class="saas-btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Abrir Original
+        </a>
+        <button class="saas-btn-primary" onclick="closeProofModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Agregar / Editar Método de Pago Dinámico (100% personalizable) -->
+  <div class="modal-overlay" id="pmModal">
+    <div class="modal-card" style="max-width: 480px;">
+      <button class="modal-close" onclick="closePmModal()">&times;</button>
+      <h3 class="modal-title" id="pmModalTitle">Nuevo Método de Pago</h3>
+      <p style="font-size: 0.78rem; color: #64748b; margin: -0.25rem 0 1rem;">
+        ⚡ Personalizable: Todos los datos que ingreses se guardan en la base de datos y se reflejan al instante en la pantalla de pago de los clientes.
+      </p>
+      <form id="pmForm" onsubmit="handleSavePaymentMethod(event)">
+        <input type="hidden" id="pmId">
+
+        <div class="form-group">
+          <label class="form-label" for="pmType">Tipo de Método de Pago</label>
+          <select id="pmType" class="form-input" onchange="togglePmTypeFields()" required>
+            <option value="pago_movil">📱 Pago Móvil</option>
+            <option value="transferencia">🏦 Transferencia Bancaria</option>
+            <option value="binance">🟡 Binance Pay (USDT)</option>
+            <option value="zelle">💵 Zelle</option>
+            <option value="zinli">💳 Zinli / Wally</option>
+            <option value="paypal">🌐 PayPal</option>
+            <option value="efectivo">💶 Efectivo / Divisas</option>
+            <option value="otro">✨ Otro Método Personalizado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pmTitle">Título Visible para el Cliente</label>
+          <input type="text" id="pmTitle" class="form-input" placeholder="Ej. Pago Móvil Banco de Venezuela o Zelle Empresa" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pmBankName">Banco o Plataforma (Opcional)</label>
+          <input type="text" id="pmBankName" class="form-input" placeholder="Ej. Banco de Venezuela (0102), Banesco, Binance, Zinli">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pmPhone">Teléfono / Correo / ID de Cuenta (Opcional)</label>
+          <input type="text" id="pmPhone" class="form-input" placeholder="Ej. 0412-123-4567, pagos@empresa.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pmIdCard">Cédula / RIF / ID Fiscal (Opcional)</label>
+          <input type="text" id="pmIdCard" class="form-input" placeholder="Ej. V-12345678, J-12345678-9">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pmBinanceId">Binance Pay ID / Billetera USDT (Opcional)</label>
+          <input type="text" id="pmBinanceId" class="form-input" placeholder="Ej. 284910381 o código de billetera">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pmHolder">Nombre del Titular o Beneficiario</label>
+          <input type="text" id="pmHolder" class="form-input" placeholder="Nombre completo o razón social del receptor" required>
+        </div>
+
+        <button type="submit" class="saas-btn-primary" style="width: 100%; justify-content: center; margin-top: 1.25rem; padding: 0.8rem 1rem; font-size: 0.9rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar Método en Base de Datos
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/admin.js?v=5.1"></script>
+  <script>
+    // Sobrescribir togglePmTypeFields directamente en el HTML para evitar caché agresivo
+    window.togglePmTypeFields = function() {
+      const typeSelect = document.getElementById('pmType');
+      if (!typeSelect) return;
+      const type = typeSelect.value;
+
+      const grpBank = document.getElementById('pmBankName')?.parentElement;
+      const lblBank = document.querySelector('label[for="pmBankName"]');
+      
+      const grpPhone = document.getElementById('pmPhone')?.parentElement;
+      const lblPhone = document.querySelector('label[for="pmPhone"]');
+      
+      const grpIdCard = document.getElementById('pmIdCard')?.parentElement;
+      const lblIdCard = document.querySelector('label[for="pmIdCard"]');
+      
+      const grpBinance = document.getElementById('pmBinanceId')?.parentElement;
+      const lblBinance = document.querySelector('label[for="pmBinanceId"]');
+      
+      const grpHolder = document.getElementById('pmHolder')?.parentElement;
+      const lblHolder = document.querySelector('label[for="pmHolder"]');
+
+      if (!grpBank || !grpPhone || !grpIdCard || !grpBinance || !grpHolder) return;
+
+      // Reset all to visible initially
+      grpBank.style.display = 'block';
+      grpPhone.style.display = 'block';
+      grpIdCard.style.display = 'block';
+      grpBinance.style.display = 'block';
+      grpHolder.style.display = 'block';
+
+      // Customize based on type
+      if (type === 'pago_movil') {
+        lblBank.textContent = 'Banco (Opcional)';
+        lblPhone.textContent = 'Teléfono (Opcional)';
+        lblIdCard.textContent = 'Cédula / RIF (Opcional)';
+        grpBinance.style.display = 'none';
+      } else if (type === 'transferencia') {
+        lblBank.textContent = 'Banco (Opcional)';
+        lblPhone.textContent = 'Número de Cuenta (Opcional)';
+        lblIdCard.textContent = 'Cédula / RIF (Opcional)';
+        grpBinance.style.display = 'none';
+      } else if (type === 'zelle') {
+        grpBank.style.display = 'none';
+        grpIdCard.style.display = 'none';
+        grpBinance.style.display = 'none';
+        lblPhone.textContent = 'Correo Electrónico de Zelle (Opcional)';
+      } else if (type === 'zinli' || type === 'paypal') {
+        grpBank.style.display = 'none';
+        grpIdCard.style.display = 'none';
+        grpBinance.style.display = 'none';
+        lblPhone.textContent = 'Correo Electrónico (Opcional)';
+      } else if (type === 'binance') {
+        grpBank.style.display = 'none';
+        grpPhone.style.display = 'none';
+        grpIdCard.style.display = 'none';
+        lblBinance.textContent = 'Binance Pay ID / Correo / Billetera USDT (Opcional)';
+      } else if (type === 'efectivo') {
+        grpBank.style.display = 'none';
+        grpPhone.style.display = 'none';
+        grpIdCard.style.display = 'none';
+        grpBinance.style.display = 'none';
+        grpHolder.style.display = 'none';
+      } else {
+        // otro
+        lblBank.textContent = 'Plataforma / Medio (Opcional)';
+        lblPhone.textContent = 'Dato Principal (Teléfono/Correo/Cuenta) (Opcional)';
+        lblIdCard.textContent = 'Documento de Identidad (Opcional)';
+      }
+    };
+  </script>
+</body>
+</html>
