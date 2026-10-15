@@ -171,12 +171,14 @@ img {
 }
 
 .logo-img {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-sm);
-  object-fit: cover;
-  border: 2px solid var(--green-primary);
-  box-shadow: 0 0 10px var(--green-glow);
+  object-fit: contain;
+  background: #ffffff;
+  padding: 3px;
+  border: 1.5px solid #00afc7;
+  box-shadow: 0 2px 10px rgba(0, 175, 199, 0.2);
 }
 
 .logo-text {
