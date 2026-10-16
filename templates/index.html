@@ -119,20 +119,32 @@
       <div class="section-header reveal">
         <span class="section-subtitle">Demostración en Vivo</span>
         <h2 class="section-title">Diseñado para Operar sin Esfuerzo</h2>
-        <p class="section-description">Explora cada módulo de miniPOS con capturas reales de la aplicación.</p>
+        <p class="section-description">Explora cada módulo de ZNexica POS con capturas reales y actualizadas del sistema en vivo.</p>
       </div>
 
-      <!-- Tabs de Funcionalidades (9 Módulos Reales de la Aplicación) -->
+      <!-- Selector de Vista: Sistema Completo / Vista Celular Mobile-First -->
+      <div class="showcase-view-switch reveal" id="showcaseViewSwitch">
+        <button type="button" class="view-switch-btn active" id="viewModeDesktop" onclick="switchShowcaseDevice('desktop')">
+          🖥️ Vista Plataforma Web
+        </button>
+        <button type="button" class="view-switch-btn" id="viewModeMobile" onclick="switchShowcaseDevice('mobile')">
+          📱 Vista Móvil Táctil
+        </button>
+      </div>
+
+      <!-- Tabs de Funcionalidades (11 Módulos Reales de la Aplicación) -->
       <div class="tab-pills reveal" id="showcasePills">
-        <button class="tab-btn active" data-target="tab-login">📱 Acceso Móvil</button>
+        <button class="tab-btn active" data-target="tab-login">📱 Acceso Seguro</button>
+        <button class="tab-btn" data-target="tab-dashboard">⚡ Panel de Control</button>
         <button class="tab-btn" data-target="tab-pos">🛒 Punto de Venta</button>
-        <button class="tab-btn" data-target="tab-productos">🏷️ Productos & SKU</button>
-        <button class="tab-btn" data-target="tab-alertas">⚠️ Alertas de Stock</button>
-        <button class="tab-btn" data-target="tab-clientes">👥 Clientes</button>
+        <button class="tab-btn" data-target="tab-onboarding">💡 Asistente Táctil</button>
+        <button class="tab-btn" data-target="tab-productos">🏷️ Catálogo & SKU</button>
         <button class="tab-btn" data-target="tab-entradas">📥 Entradas</button>
-        <button class="tab-btn" data-target="tab-salidas">📤 Salidas</button>
+        <button class="tab-btn" data-target="tab-salidas">📤 Salidas & Mermas</button>
         <button class="tab-btn" data-target="tab-proveedores">🚚 Proveedores</button>
-        <button class="tab-btn" data-target="tab-reportes">📊 Reportes</button>
+        <button class="tab-btn" data-target="tab-clientes">👥 Clientes</button>
+        <button class="tab-btn" data-target="tab-cuentas">💳 Cuentas por Cobrar</button>
+        <button class="tab-btn" data-target="tab-usuarios">👤 Usuarios & Roles</button>
       </div>
 
       <!-- Tarjeta Dinámica con Mockup Interactivo y Animado -->
@@ -142,7 +154,7 @@
           <button type="button" class="showcase-nav-btn" id="showcasePrevBtn" onclick="navigateShowcase(-1)" aria-label="Anterior captura">
             ❮ Anterior
           </button>
-          <span class="showcase-counter" id="showcaseCounter">📱 Captura 1 de 9</span>
+          <span class="showcase-counter" id="showcaseCounter">📱 Captura 1 de 11</span>
           <button type="button" class="showcase-nav-btn" id="showcaseNextBtn" onclick="navigateShowcase(1)" aria-label="Siguiente captura">
             Siguiente ❯
           </button>
@@ -150,8 +162,21 @@
 
         <div class="showcase-body-grid">
           <!-- LADO IZQUIERDO: Marco de Imagen Mockup con las capturas reales de la App -->
-          <div class="mockup-frame">
-            <img src="/static/images/app_mobile_initial.jpg" alt="Demostración de miniPOS" class="mockup-img" id="displayImg">
+          <div class="mockup-frame" id="mockupFrame">
+            <div class="mockup-window-header" id="mockupWindowHeader">
+              <div class="mockup-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+              </div>
+              <div class="mockup-address-bar">
+                <span class="mockup-lock">🔒</span> https://mini-pos-web.vercel.app/
+              </div>
+              <span class="mockup-live-badge">ZNexica POS</span>
+            </div>
+            <div class="mockup-viewport">
+              <img src="/static/images/app_screens/01_acceso_login.png" alt="Demostración de ZNexica POS" class="mockup-img" id="displayImg">
+            </div>
           </div>
 
           <!-- LADO DERECHO: Descripción y Beneficios del Módulo (Lo que hace la app) -->
@@ -159,14 +184,14 @@
             <span class="module-tag" id="displayTag">Seguridad & Acceso</span>
             <h3 id="displayTitle">📱 Acceso Seguro Móvil & Multi-Inquilino</h3>
             <p id="displayDesc">
-              Ingreso optimizado y blindado desde cualquier teléfono inteligente, tablet o navegador. Permite alternar entre modo claro y modo oscuro para cuidar tu vista durante largas jornadas, con sesiones encriptadas y autenticación segura.
+              Ingreso optimizado y blindado desde cualquier teléfono inteligente, tablet o computador. Conexión cifrada de grado empresarial, arquitectura multi-inquilino y soporte nativo para alternar entre temas Oscuro, Claro Office y Vibrante según tu preferencia de trabajo.
             </p>
 
             <div class="feature-bullets" id="displayBullets">
-              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Acceso rápido desde tu celular</div>
-              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Modo Oscuro / Claro integrado</div>
-              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Arquitectura multi-inquilino blindada</div>
-              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Sesiones seguras de alto cifrado</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Inicio de sesión ágil con correo y contraseña</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Soporte de 3 temas visuales: Oscuro, Claro y Vibrante</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Aislamiento seguro multi-tenant y sesiones cifradas</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Diseño 100% responsivo para teléfonos y pantallas táctiles</div>
             </div>
 
             <div class="showcase-action-wrap">
@@ -181,13 +206,13 @@
   </section>
 
   <!-- ======================================================================
-       FEATURES CHECKLIST — "¿Qué incluye miniPOS?"
+       FEATURES CHECKLIST — "¿Qué incluye ZNexica POS?"
        ====================================================================== -->
   <section class="checklist-section" id="que-incluye">
     <div class="container">
       <div class="section-header reveal">
         <span class="section-subtitle">Todo en una Sola App</span>
-        <h2 class="section-title">¿Qué incluye miniPOS?</h2>
+        <h2 class="section-title">¿Qué incluye ZNexica POS?</h2>
       </div>
 
       <div class="checklist-grid reveal">
@@ -308,7 +333,7 @@
                 <h4>Soluciones Escalables</h4>
               </div>
               <p>
-                Hoy optimizamos tu control de ventas con miniPOS, pero nuestro desarrollo no se detiene. Construimos tecnología capaz de escalar y adaptarse a nichos exigentes, preparándonos para revolucionar sectores como el farmacéutico, ferretero y de la salud.
+                Hoy optimizamos tu control de ventas con ZNexica POS, pero nuestro desarrollo no se detiene. Construimos tecnología capaz de escalar y adaptarse a nichos exigentes, preparándonos para revolucionar sectores como el farmacéutico, ferretero y de la salud.
               </p>
             </div>
 
@@ -357,11 +382,11 @@
               <span class="plan-price">$0</span>
               <span class="plan-period">/ 30 días</span>
             </div>
-            <p class="plan-desc">Prueba todas las funcionalidades de miniPOS durante 1 mes sin costo ni tarjeta.</p>
+            <p class="plan-desc">Prueba todas las funcionalidades de ZNexica POS durante 1 mes sin costo ni tarjeta.</p>
           </div>
           <ul class="plan-features">
             <li><span class="check-icon">✓</span> Aprovisionamiento Desatendido Inmediato</li>
-            <li><span class="check-icon">✓</span> Acceso Completo App Móvil miniPOS</li>
+            <li><span class="check-icon">✓</span> Acceso Completo App Móvil ZNexica POS</li>
             <li><span class="check-icon">✓</span> Control de Inventario y Stock en Tiempo Real</li>
             <li><span class="check-icon">✓</span> Módulo de Ventas y Caja Multimoneda</li>
             <li><span class="check-icon">✓</span> 30 Días de Prueba Sin Compromiso</li>
@@ -384,7 +409,7 @@
           <ul class="plan-features">
             <li><span class="check-icon">✓</span> Tenant y Empresa Aprovisionada</li>
             <li><span class="check-icon">✓</span> Control de Inventario (Entradas/Salidas/SKU)</li>
-            <li><span class="check-icon">✓</span> App Móvil miniPOS Completa</li>
+            <li><span class="check-icon">✓</span> App Móvil ZNexica POS Completa</li>
             <li><span class="check-icon">✓</span> Soporte Estándar Continuo</li>
             <li><span class="check-icon">✓</span> Modo Offline-First sin internet</li>
           </ul>
@@ -407,7 +432,7 @@
           <ul class="plan-features">
             <li><span class="check-icon">✓</span> Todas las funciones del Plan Básico</li>
             <li><span class="check-icon">✓</span> Módulo Completo de Caja y Ventas (USD/EUR/Bs)</li>
-            <li><span class="check-icon">✓</span> Integración con Tienda Web miniPOS</li>
+            <li><span class="check-icon">✓</span> Integración con Plataforma Web ZNexica POS</li>
             <li><span class="check-icon">✓</span> Reportes Avanzados y Cierres de Turno</li>
             <li><span class="check-icon">✓</span> Soporte Prioritario 24/7</li>
           </ul>
@@ -433,11 +458,11 @@
       <div class="faq-list reveal">
         <div class="faq-item">
           <button class="faq-question" aria-expanded="false">
-            ¿Necesito internet para usar miniPOS?
+            ¿Necesito internet para usar ZNexica POS?
             <span class="faq-chevron">▼</span>
           </button>
           <div class="faq-answer">
-            <p>No necesariamente. miniPOS funciona en modo offline-first, lo que significa que puedes registrar ventas, gestionar inventario y operar tu caja sin conexión a internet. Cuando te conectes, los datos se sincronizan automáticamente con la nube.</p>
+            <p>No necesariamente. ZNexica POS funciona en modo offline-first, lo que significa que puedes registrar ventas, gestionar inventario y operar tu caja sin conexión a internet. Cuando te conectes, los datos se sincronizan automáticamente con la nube.</p>
           </div>
         </div>
 
@@ -447,7 +472,7 @@
             <span class="faq-chevron">▼</span>
           </button>
           <div class="faq-answer">
-            <p>miniPOS está optimizado para funcionar en teléfonos Android y también se puede acceder desde cualquier navegador web si tu plan incluye la integración web. La interfaz es completamente responsive y táctil.</p>
+            <p>ZNexica POS está optimizado para funcionar en teléfonos móviles y también se puede acceder desde cualquier navegador web en computadoras y tablets. La interfaz es completamente responsive y táctil.</p>
           </div>
         </div>
 
@@ -457,7 +482,7 @@
             <span class="faq-chevron">▼</span>
           </button>
           <div class="faq-answer">
-            <p>¡Sí! Puedes escalar tu plan en cualquier momento. Si empiezas con el plan Básico y luego necesitas el módulo de ventas o la tienda web, simplemente contactas al equipo de soporte para actualizar tu suscripción.</p>
+            <p>¡Sí! Puedes escalar tu plan en cualquier momento. Si empiezas con el plan Básico y luego necesitas el módulo de ventas o la integración web, simplemente contactas al equipo de soporte para actualizar tu suscripción.</p>
           </div>
         </div>
 
@@ -467,7 +492,7 @@
             <span class="faq-chevron">▼</span>
           </button>
           <div class="faq-answer">
-            <p>miniPOS soporta múltiples monedas: Dólares (USD), Euros (EUR) y Bolívares (Bs). Puedes configurar los precios de tus productos en cualquier divisa y cobrar según las necesidades de tu cliente.</p>
+            <p>ZNexica POS soporta múltiples monedas: Dólares (USD), Euros (EUR) y Bolívares (Bs). Puedes configurar los precios de tus productos en cualquier divisa y cobrar según las necesidades de tu cliente.</p>
           </div>
         </div>
 
@@ -483,11 +508,11 @@
 
         <div class="faq-item">
           <button class="faq-question" aria-expanded="false">
-            ¿Mis datos están seguros en miniPOS?
+            ¿Mis datos están seguros en ZNexica POS?
             <span class="faq-chevron">▼</span>
           </button>
           <div class="faq-answer">
-            <p>Absolutamente. miniPOS implementa estándares de ciberseguridad de grado empresarial. Tus datos están cifrados, las contraseñas se almacenan con hashing seguro y la comunicación se protege con protocolos HTTPS. Tu información comercial está completamente blindada.</p>
+            <p>Absolutamente. ZNexica POS implementa estándares de ciberseguridad de grado empresarial. Tus datos están cifrados, las contraseñas se almacenan con hashing seguro y la comunicación se protege con protocolos HTTPS. Tu información comercial está completamente blindada.</p>
           </div>
         </div>
       </div>
@@ -516,7 +541,7 @@
       
       <div class="auth-modal-header" style="text-align: center; margin-bottom: 1.2rem;">
         <div style="font-size: 2.2rem; margin-bottom: 0.3rem;">🔐</div>
-        <h3 class="modal-title" style="margin: 0; font-size: 1.4rem;">Acceso de Cliente miniPOS</h3>
+        <h3 class="modal-title" style="margin: 0; font-size: 1.4rem;">Acceso de Cliente ZNexica POS</h3>
         <p class="modal-subtitle" style="margin: 0.35rem 0 0; font-size: 0.88rem; color: var(--text-muted);">
           Para activar tu suscripción, ingresa con tu cuenta o regístrate. Solo te lo pediremos la primera vez.
         </p>
@@ -570,7 +595,7 @@
         </div>
 
         <div class="form-group">
-          <label for="regPassword">Contraseña de Acceso para miniPOS</label>
+          <label for="regPassword">Contraseña de Acceso para ZNexica POS</label>
           <div style="position: relative;">
             <input type="password" id="regPassword" class="form-input" placeholder="Mínimo 8 caracteres (letras y números)" style="padding-right: 2.6rem;" minlength="8" autocomplete="new-password" required>
             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)" aria-label="Mostrar contraseña">👁️</button>
@@ -630,7 +655,7 @@
       <div class="checkout-plan-summary">
         <div>
           <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">Plan Seleccionado</span>
-          <h4 id="modalPlanTitle" style="margin: 2px 0 0; font-size: 1.15rem; color: var(--text-primary); font-weight: 800;">Plan miniPOS</h4>
+          <h4 id="modalPlanTitle" style="margin: 2px 0 0; font-size: 1.15rem; color: var(--text-primary); font-weight: 800;">Plan ZNexica POS</h4>
         </div>
         <div style="text-align: right;">
           <div id="modalPlanPrice" style="font-size: 1.3rem; font-weight: 900; color: var(--green-primary);">$0</div>
@@ -642,7 +667,7 @@
       <div class="app-credential-warning-banner" id="checkoutPhoneNotice" style="margin-bottom: 1.2rem; font-size: 0.82rem; padding: 0.75rem 1rem;">
         <div class="warning-icon" style="font-size: 1.2rem;">📱</div>
         <div class="warning-text">
-          <strong>Acceso a la App miniPOS:</strong> Tu cuenta móvil está vinculada al número <strong id="warnPhoneDisplay">0412...</strong>. Una vez confirmado tu pago por el administrador, tu acceso quedará activo de forma inmediata.
+          <strong>Acceso a la App ZNexica POS:</strong> Tu cuenta móvil está vinculada al número <strong id="warnPhoneDisplay">0412...</strong>. Una vez confirmado tu pago por el administrador, tu acceso quedará activo de forma inmediata.
         </div>
       </div>
 
@@ -678,7 +703,7 @@
           <div style="font-size: 2rem; margin-bottom: 0.35rem;">🎉</div>
           <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.25rem;">Activación Gratuita Inmediata</strong>
           <p style="margin: 0; font-size: 0.9rem; color: #047857; line-height: 1.45;">
-            Este plan no requiere datos bancarios ni comprobante. Al confirmar, tu empresa quedará aprovisionada de inmediato en miniPOS con 30 días de acceso total.
+            Este plan no requiere datos bancarios ni comprobante. Al confirmar, tu empresa quedará aprovisionada de inmediato en ZNexica POS con 30 días de acceso total.
           </p>
         </div>
 
@@ -694,8 +719,8 @@
        ====================================================================== -->
   <footer class="footer">
     <div class="container">
-      <div class="footer-brand">miniPOS</div>
-      <p>© 2026 miniPOS Inc. Todos los derechos reservados. Tecnología desarrollada por Solucionistas TI.</p>
+      <div class="footer-brand">ZNexica POS</div>
+      <p>© 2026 ZNexica POS Inc. Todos los derechos reservados. Tecnología desarrollada por Solucionistas TI.</p>
     </div>
   </footer>
 
@@ -1039,20 +1064,20 @@
 
         if (isFree) {
           const waMsg = encodeURIComponent(
-            `👋 ¡Hola equipo de miniPOS!\n\n` +
-            `Acabo de registrarme y activar mi suscripción de prueba gratis (30 días) en miniPOS.\n` +
+            `👋 ¡Hola equipo de ZNexica POS!\n\n` +
+            `Acabo de registrarme y activar mi suscripción de prueba gratis (30 días) en ZNexica POS.\n` +
             `👤 *Cliente:* ${fullName}\n` +
             `📱 *Teléfono / Usuario:* ${phone}\n` +
             `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
             `🚀 *Plan:* Plan Prueba Gratis (30 Días)\n\n` +
-            `¡Por favor asístanme para comenzar a configurar mi app miniPOS!`
+            `¡Por favor asístanme para comenzar a configurar mi app ZNexica POS!`
           );
           const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
           alert(
-            `🎉 ¡Bienvenido a miniPOS, ${fullName}!\n\n` +
+            `🎉 ¡Bienvenido a ZNexica POS, ${fullName}!\n\n` +
             `Tu periodo de prueba de 30 días ha sido activado con éxito.\n\n` +
-            `Tus credenciales para ingresar a la App Móvil miniPOS son:\n` +
+            `Tus credenciales para ingresar a la App ZNexica POS son:\n` +
             `📱 Usuario / Teléfono: ${phone}\n` +
             `🔑 Contraseña: La que definiste al registrar tu cuenta.\n\n` +
             `Se abrirá WhatsApp para que notifiques al equipo de soporte.`
@@ -1060,19 +1085,19 @@
           window.open(waUrl, '_blank');
         } else {
           const waMsg = encodeURIComponent(
-            `👋 ¡Hola equipo de miniPOS!\n\n` +
-            `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan miniPOS'}*.\n` +
+            `👋 ¡Hola equipo de ZNexica POS!\n\n` +
+            `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan ZNexica POS'}*.\n` +
             `👤 *Cliente:* ${fullName}\n` +
             `📱 *Teléfono / Usuario:* ${phone}\n` +
             `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
             `💳 *Método:* ${paymentMethodText}\n` +
             `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +
-            `Por favor verifiquen mi pago para activar mi acceso a la app miniPOS.`
+            `Por favor verifiquen mi pago para activar mi acceso a la app ZNexica POS.`
           );
 
           const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
-          alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app miniPOS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
+          alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app ZNexica POS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
           window.open(waUrl, '_blank');
         }
 

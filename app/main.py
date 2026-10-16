@@ -19,9 +19,9 @@ Base.metadata.create_all(bind=engine)
 print("[OK] Tablas verificadas en la base de datos activa.")
 
 app = FastAPI(
-    title="miniPOS - Landing Page & Sistema de Suscripciones",
-    description="Plataforma SaaS para venta de suscripciones del sistema miniPOS para pequeños negocios.",
-    version="2.1.0"
+    title="ZNexica POS - Landing Page & Sistema de Suscripciones",
+    description="Plataforma SaaS para venta de suscripciones del sistema ZNexica POS para pequeños negocios y comercios.",
+    version="2.2.0"
 )
 
 # Configuración dinámica de CORS

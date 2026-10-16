@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MINIPOS LANDING PAGE - FRONTEND JAVASCRIPT LOGIC
+   ZNEXICA POS LANDING PAGE - FRONTEND JAVASCRIPT LOGIC
    Features: Mobile Menu, Dynamic Tabs, FAQ Accordion, Scroll-Spy,
              Reveal Animations, Checkout Modal & Payments
    ========================================================================== */
@@ -41,128 +41,187 @@ function initMobileMenu() {
    ========================================================================== */
 const TAB_ORDER = [
   'tab-login',
+  'tab-dashboard',
   'tab-pos',
+  'tab-onboarding',
   'tab-productos',
-  'tab-alertas',
-  'tab-clientes',
   'tab-entradas',
   'tab-salidas',
   'tab-proveedores',
-  'tab-reportes'
+  'tab-clientes',
+  'tab-cuentas',
+  'tab-usuarios'
 ];
 
 let currentTabIndex = 0;
+let showcaseDeviceMode = 'desktop'; // 'desktop' | 'mobile'
 
 const TAB_DATA = {
   'tab-login': {
     title: '📱 Acceso Seguro Móvil & Multi-Inquilino',
     tag: 'Seguridad & Acceso',
-    desc: 'Ingreso optimizado y blindado desde cualquier teléfono inteligente, tablet o navegador. Permite alternar entre modo claro y modo oscuro para cuidar tu vista durante largas jornadas, con sesiones encriptadas y autenticación segura.',
-    img: '/static/images/app_mobile_initial.jpg',
+    desc: 'Ingreso optimizado y blindado desde cualquier teléfono celular, tablet o computador. Conexión cifrada de grado empresarial, arquitectura multi-inquilino y soporte nativo para alternar entre temas Oscuro, Claro Office y Vibrante según tu preferencia de trabajo.',
+    img: '/static/images/app_screens/01_acceso_login.png',
+    mobileImg: '/static/images/app_screens/mobile_01_login.png',
     bullets: [
-      'Acceso rápido desde tu celular o tablet',
-      'Modo Oscuro / Modo Claro integrado',
-      'Arquitectura multi-inquilino blindada',
-      'Sesiones seguras con cifrado robusto'
+      'Inicio de sesión ágil con correo y contraseña',
+      'Soporte de 3 temas visuales: Oscuro, Claro y Vibrante',
+      'Aislamiento seguro multi-tenant y sesiones cifradas',
+      'Diseño 100% responsivo para teléfonos y pantallas táctiles'
+    ]
+  },
+  'tab-dashboard': {
+    title: '⚡ Panel de Inicio & Métricas en Vivo',
+    tag: 'Visión General del Negocio',
+    desc: 'Visualiza de un vistazo la salud financiera de tu comercio. Monitorea ventas del día, balance acumulado en divisas (USD, EUR, Bs) con cotización oficial en tiempo real, accesos rápidos a cajas y estado del personal en un panel ejecutivo dinámico.',
+    img: '/static/images/app_screens/02_panel_inicio.png',
+    mobileImg: '/static/images/app_screens/mobile_02_dashboard.png',
+    bullets: [
+      'Resumen financiero inmediato de ingresos y ventas',
+      'Monitoreo de tasas de cambio oficiales en vivo',
+      'Botón de acceso directo para aperturar o entrar a la caja',
+      'Indicadores de rendimiento por turno de trabajo'
     ]
   },
   'tab-pos': {
     title: '🛒 Punto de Venta (POS) & Cobro Multi-Moneda',
-    tag: 'Facturación Rápida',
-    desc: 'Agiliza tus ventas al máximo. Navega por categorías visuales (Limpieza, Bebidas, Víveres, Cárnicos), escanea códigos de barras con la cámara o busca por SKU. Registra ventas al instante en Dólares, Euros o Bolívares con tasa de cambio en vivo.',
-    img: '/static/images/app_pos_catalogo.jpg',
+    tag: 'Facturación & Caja Rápida',
+    desc: 'Agiliza tus cobros al máximo. Catálogo visual interactivo con navegación rápida por categorías, lector de códigos de barras, tickets en espera para atender a varios clientes en paralelo y conversión automática de divisas al instante.',
+    img: '/static/images/app_screens/04_punto_de_venta.png',
+    mobileImg: '/static/images/app_screens/mobile_03_pos.png',
     bullets: [
-      'Buscador instantáneo y lector de código de barras',
-      'Referente cambiario USD, EUR y Bs en tiempo real',
-      'Tickets en espera y carrito inteligente',
-      'Cobro rápido en efectivo, pago móvil o divisas'
+      'Buscador predictivo instantáneo y escáner de códigos',
+      'Conversión automática USD, EUR y Bs en tiempo real',
+      'Manejo simultáneo de tickets en espera',
+      'Modo Offline-First: factura sin interrupciones aun sin internet'
+    ]
+  },
+  'tab-onboarding': {
+    title: '💡 Asistente Táctil de Ventas Paso a Paso',
+    tag: 'Capacitación Inmediata',
+    desc: 'Facilita la incorporación de tus cajeros y empleados. ZNexica POS integra guías interactivas directamente en la pantalla de cobro que enseñan con 1 clic cómo añadir productos, modificar cantidades y registrar abonos sin necesidad de entrenamientos complejos.',
+    img: '/static/images/app_screens/03_pos_guia_onboarding.png',
+    mobileImg: '/static/images/app_screens/03_pos_guia_onboarding.png',
+    bullets: [
+      'Guía visual paso a paso en el primer inicio de caja',
+      'Interacción rápida con 1 solo clic para sumar productos',
+      'Consejos de atajos de teclado y escaneo de barras',
+      'Curva de aprendizaje reducida a minutos'
     ]
   },
   'tab-productos': {
     title: '🏷️ Catálogo Completo de Productos & SKU',
-    tag: 'Gestión de Productos',
-    desc: 'Organiza todo el inventario de tu negocio con código SKU, unidad de medida (Unidad, Litros, Kilos), categoría, precios de costo y PVP en divisas. Modifica o crea artículos en segundos sin interrumpir las ventas.',
-    img: '/static/images/app_catalogo_productos.jpg',
+    tag: 'Gestión de Catálogo',
+    desc: 'Control integral de todo tu surtido comercial. Asigna códigos SKU y barras, define unidades de medida (Unidad, Kilos, Litros, etc.), costos de compra a proveedores, márgenes de utilidad y PVP en divisas con cálculo automático de IVA.',
+    img: '/static/images/app_screens/05_catalogo_productos.png',
+    mobileImg: '/static/images/app_screens/05_catalogo_productos.png',
     bullets: [
-      'Control de precios y márgenes de ganancia',
-      'Clasificación por categorías y unidades de entrada',
-      'Edición rápida de datos y códigos de barra',
-      'Buscador predictivo por nombre o código'
-    ]
-  },
-  'tab-alertas': {
-    title: '⚠️ Alertas Inteligentes de Stock Crítico',
-    tag: 'Control de Inventario',
-    desc: 'Detecta a primera vista qué productos se están agotando. El sistema marca automáticamente en rojo intenso las existencias en cero o bajo stock para evitar quiebres y permitirte realizar pedidos oportunos a tus distribuidores.',
-    img: '/static/images/app_stock_alertas.jpg',
-    bullets: [
-      'Avisos visuales inmediatos de stock en cero',
-      'Prevención de pérdidas por falta de mercancía',
-      'Monitoreo de existencias en tiempo real',
-      'Filtro rápido de productos por reponer'
-    ]
-  },
-  'tab-clientes': {
-    title: '👥 Cartera de Clientes & Cuentas por Cobrar',
-    tag: 'Fidelización y Créditos',
-    desc: 'Mantén una base de datos organizada de tus clientes habituales: cédula, teléfono para WhatsApp, correo y estado de actividad. Gestiona ventas a crédito con total control y realiza seguimiento a los cobros pendientes.',
-    img: '/static/images/app_clientes.jpg',
-    bullets: [
-      'Directorio completo con datos de contacto',
-      'Control estricto de cuentas por cobrar',
-      'Historial individual de consumos del cliente',
-      'Búsqueda por nombre, documento o teléfono'
+      'Control preciso de márgenes y precios de venta al público',
+      'Clasificación organizada por departamentos y categorías',
+      'Alertas visuales de existencias mínimas y stock bajo',
+      'Modificación y creación de productos sin detener la venta'
     ]
   },
   'tab-entradas': {
     title: '📥 Historial de Entradas & Lotes de Mercancía',
-    tag: 'Recepción y Costos',
-    desc: 'Lleva el registro exacto de cada lote de mercancía que entra a tu negocio. Asocia número de factura o documento del proveedor, costo unitario, cantidad adquirida y cálculo automático del PVP con IVA.',
-    img: '/static/images/app_inventario_entradas.jpg',
+    tag: 'Recepción & Costos',
+    desc: 'Lleva el registro exacto de cada lote que ingresa a tu depósito. Asocia el número de factura fiscal del proveedor, costo unitario, cantidad adquirida y fecha de recepción para mantener una auditoría contable impecable.',
+    img: '/static/images/app_screens/10_inventario_entradas.png',
+    mobileImg: '/static/images/app_screens/10_inventario_entradas.png',
     bullets: [
-      'Trazabilidad de lotes y fechas de recepción',
-      'Asociación directa al proveedor y factura',
-      'Cálculo automático de costos y precio de venta',
-      'Auditoría precisa para arqueo contable'
+      'Trazabilidad de lotes y fechas de recepción física',
+      'Asociación directa al proveedor y número de factura',
+      'Cálculo automático de costo promedio e impacto en PVP',
+      'Auditoría y conciliación transparente para arqueo'
     ]
   },
   'tab-salidas': {
     title: '📤 Control de Salidas, Mermas & Ajustes',
-    tag: 'Auditoría y Mermas',
-    desc: 'Evita pérdidas invisibles en tu establecimiento. Registra retiros de mercancía por mermas, productos vencidos, consumo interno, donaciones o ajustes de inventario, sincronizado en tiempo real con las ventas del POS.',
-    img: '/static/images/app_inventario_salidas.jpg',
+    tag: 'Auditoría & Mermas',
+    desc: 'Elimina las pérdidas invisibles en tu establecimiento. Registra retiros de mercancía por mermas, productos dañados o vencidos, consumo interno de personal o ajustes de inventario físico sincronizado al instante con la base de datos.',
+    img: '/static/images/app_screens/11_inventario_salidas.png',
+    mobileImg: '/static/images/app_screens/11_inventario_salidas.png',
     bullets: [
-      'Registro tipificado: merma, vencimiento, ajuste',
-      'Historial auditado de ventas y deducciones',
-      'Control de stock físico contra sistema',
-      'Transparencia absoluta en los movimientos'
+      'Tipificación clara del retiro: merma, vencimiento o ajuste',
+      'Historial auditado con fecha y usuario responsable',
+      'Control estricto entre el conteo físico y el sistema',
+      'Prevención activa de pérdidas de mercancía'
     ]
   },
   'tab-proveedores': {
-    title: '🚚 Directorio y Gestión de Proveedores',
+    title: '🚚 Directorio & Gestión de Proveedores',
     tag: 'Cadena de Suministro',
-    desc: 'Centraliza el directorio comercial de tus distribuidores: datos fiscales, razón social, contactos y condiciones de crédito. Mantén siempre a mano los contactos para reponer inventario rápidamente y negociar mejores acuerdos.',
-    img: '/static/images/app_proveedores.jpg',
+    desc: 'Centraliza la información de tus distribuidores comerciales. Ten a la mano números de contacto telefónico, RIF o cédula fiscal, términos y plazos de crédito comercial para negociar mejores condiciones de compra y reposición.',
+    img: '/static/images/app_screens/12_directorio_proveedores.png',
+    mobileImg: '/static/images/app_screens/12_directorio_proveedores.png',
     bullets: [
       'Ficha comercial completa del proveedor',
-      'Condiciones de pago y crédito asignado',
-      'Directorio de contacto telefónico y despacho',
-      'Vinculación a entradas y compras registradas'
+      'Control de plazos de pago y líneas de crédito',
+      'Directorio de contacto para pedidos rápidos',
+      'Historial de compras y pedidos recibidos'
     ]
   },
-  'tab-reportes': {
-    title: '📊 Reportes Gerenciales & Cierres de Caja',
-    tag: 'Analítica Financiera',
-    desc: 'Toma decisiones con información financiera precisa y clara: cierres de caja diarios con desglose por cada método de pago, ventas por rangos de fechas, movimientos de stock y valoración económica total de tu inventario.',
-    img: '/static/images/app_reportes_gerenciales.jpg',
+  'tab-clientes': {
+    title: '👥 Cartera de Clientes & CRM Comercial',
+    tag: 'Fidelización de Clientes',
+    desc: 'Registra a tus clientes recurrentes con cédula, teléfono de contacto con enlace directo a WhatsApp y dirección. Registra compras a crédito y mantén un historial de ventas personalizado para cada comprador.',
+    img: '/static/images/app_screens/07_cartera_clientes.png',
+    mobileImg: '/static/images/app_screens/07_cartera_clientes.png',
     bullets: [
-      'Cierres de caja diarios y arqueo transparente',
-      'Ventas por rango (semanal, mensual o anual)',
-      'Valoración total del stock a costo y venta',
-      'Márgenes de ganancia calculados al instante'
+      'Directorio comercial completo con enlace a WhatsApp',
+      'Búsqueda predictiva por nombre, cédula o teléfono',
+      'Historial de consumo individual por cliente',
+      'Base para cobranzas y programas de fidelidad'
+    ]
+  },
+  'tab-cuentas': {
+    title: '💳 Cuentas por Cobrar & Control de Créditos',
+    tag: 'Finanzas & Cobranzas',
+    desc: 'Monitorea de forma rigurosa los saldos pendientes por cobrar. Registra compras a crédito, lleva el historial de abonos parciales y visualiza en tiempo real cuánto dinero tienes en la calle para asegurar la liquidez de tu negocio.',
+    img: '/static/images/app_screens/09_cuentas_por_cobrar.png',
+    mobileImg: '/static/images/app_screens/09_cuentas_por_cobrar.png',
+    bullets: [
+      'Control de saldos vencidos y facturas a crédito',
+      'Registro rápido de abonos parciales y cancelaciones',
+      'Alertas de cobros pendientes por cliente',
+      'Transparencia total en el flujo de caja'
+    ]
+  },
+  'tab-usuarios': {
+    title: '👤 Usuarios, Roles & Control de Acceso',
+    tag: 'Seguridad Operativa',
+    desc: 'Gestiona los accesos de tu equipo con perfiles de seguridad: Administrador, Cajero o Supervisor. Cada empleado cuenta con credenciales cifradas y permisos acotados para evitar modificaciones no autorizadas.',
+    img: '/static/images/app_screens/13_usuarios_y_roles.png',
+    mobileImg: '/static/images/app_screens/13_usuarios_y_roles.png',
+    bullets: [
+      'Roles asignables: ADMIN, CAJERO y SUPER_ADMIN',
+      'Restricción de anulación de ventas y descuentos sensibles',
+      'Sesiones individuales con auditoría de movimientos',
+      'Protección y blindaje de la información financiera'
     ]
   }
 };
+
+function switchShowcaseDevice(mode) {
+  showcaseDeviceMode = mode;
+  const desktopBtn = document.getElementById('viewModeDesktop');
+  const mobileBtn = document.getElementById('viewModeMobile');
+  const mockupFrame = document.getElementById('mockupFrame');
+
+  if (mode === 'mobile') {
+    if (mobileBtn) mobileBtn.classList.add('active');
+    if (desktopBtn) desktopBtn.classList.remove('active');
+    if (mockupFrame) mockupFrame.classList.add('mobile-mode');
+  } else {
+    if (desktopBtn) desktopBtn.classList.add('active');
+    if (mobileBtn) mobileBtn.classList.remove('active');
+    if (mockupFrame) mockupFrame.classList.remove('mobile-mode');
+  }
+
+  // Volver a renderizar la pestaña activa con el modo seleccionado
+  const currentKey = TAB_ORDER[currentTabIndex] || 'tab-login';
+  renderShowcase(currentKey);
+}
 
 function renderShowcase(targetKey) {
   const data = TAB_DATA[targetKey];
@@ -193,13 +252,16 @@ function renderShowcase(targetKey) {
     showcaseCounter.textContent = `📱 Captura ${currentTabIndex + 1} de ${TAB_ORDER.length}`;
   }
 
+  // Seleccionar imagen adecuada según modo dispositivo
+  const targetImgSrc = (showcaseDeviceMode === 'mobile' && data.mobileImg) ? data.mobileImg : data.img;
+
   // Animación fluida de imagen
   if (displayImg) {
     displayImg.classList.add('fade-out');
     displayImg.classList.remove('fade-in');
 
     setTimeout(() => {
-      displayImg.src = data.img;
+      displayImg.src = targetImgSrc;
       displayImg.alt = data.title;
       displayImg.classList.remove('fade-out');
       displayImg.classList.add('fade-in');
@@ -847,7 +909,7 @@ function proceedToCheckout(planCode, planName, planPrice) {
     if (freeBox) freeBox.style.display = 'block';
     if (dynamicInputs) dynamicInputs.innerHTML = '';
     if (submitBtn) {
-      submitBtn.innerHTML = '🚀 Activar Prueba Gratis en miniPOS Ahora';
+      submitBtn.innerHTML = '🚀 Activar Prueba Gratis en ZNexica POS Ahora';
       submitBtn.style.background = 'var(--green-primary, #10b981)';
     }
   } else {
@@ -981,8 +1043,8 @@ async function handlePaymentSubmit(event) {
 
     if (isFree) {
       const waMsg = encodeURIComponent(
-        `👋 ¡Hola equipo de miniPOS!\n\n` +
-        `Acabo de registrarme y activar mi periodo de prueba gratis (30 días) en miniPOS.\n` +
+        `👋 ¡Hola equipo de ZNexica POS!\n\n` +
+        `Acabo de registrarme y activar mi periodo de prueba gratis (30 días) en ZNexica POS.\n` +
         `👤 *Cliente:* ${fullName}\n` +
         `🏢 *Empresa:* ${companyName || 'Sin especificar'}\n` +
         `📱 *Teléfono / Usuario:* ${phone}\n` +
@@ -993,25 +1055,25 @@ async function handlePaymentSubmit(event) {
 
       alert(
         `🎉 ¡Felicitaciones ${fullName}!\n\n` +
-        `Tu empresa "${companyName || 'miniPOS'}" y tu usuario han sido activados con éxito en el sistema.\n\n` +
-        `Ya puedes abrir la aplicación móvil miniPOS e iniciar sesión con tu teléfono (${phone}) y tu contraseña.\n\n` +
+        `Tu empresa "${companyName || 'ZNexica POS'}" y tu usuario han sido activados con éxito en el sistema.\n\n` +
+        `Ya puedes abrir la aplicación ZNexica POS e iniciar sesión con tu teléfono (${phone}) y tu contraseña.\n\n` +
         `Se abrirá WhatsApp para que te comuniques con el soporte técnico.`
       );
       window.open(waUrl, '_blank');
     } else {
       const waMsg = encodeURIComponent(
-        `👋 ¡Hola equipo de miniPOS!\n\n` +
-        `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan miniPOS'}*.\n` +
+        `👋 ¡Hola equipo de ZNexica POS!\n\n` +
+        `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan ZNexica POS'}*.\n` +
         `👤 *Cliente:* ${fullName}\n` +
         `🏢 *Empresa:* ${companyName || 'Sin especificar'}\n` +
         `📱 *Teléfono / Usuario:* ${phone}\n` +
         `💳 *Método:* ${paymentMethodText}\n` +
         `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +
-        `Por favor verifiquen mi pago para activar mi acceso a la app miniPOS.`
+        `Por favor verifiquen mi pago para activar mi acceso a la app ZNexica POS.`
       );
       const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
-      alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app miniPOS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
+      alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app ZNexica POS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
       window.open(waUrl, '_blank');
     }
 
