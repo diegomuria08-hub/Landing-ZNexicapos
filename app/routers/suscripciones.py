@@ -27,13 +27,13 @@ PLANS_INFO = {
     # Nombres oficiales
     "FREE": {"name": "Plan Prueba Gratis (30 Días)", "price": 0.0, "has_web": False, "code": "FREE"},
     "BASIC": {"name": "Plan Básico (Stock e Inventario)", "price": 8.0, "has_web": False, "code": "BASIC"},
-    "PRO": {"name": "Plan Profesional (App Móvil + Web + Todo)", "price": 10.0, "has_web": True, "code": "PRO"},
+    "PRO": {"name": "Plan Profesional (App Móvil + Web + Todo)", "price": 20.0, "has_web": True, "code": "PRO"},
     
     # Compatibilidad con alias previos
     "free_trial": {"name": "Plan Prueba Gratis (30 Días)", "price": 0.0, "has_web": False, "code": "FREE"},
     "basico": {"name": "Plan Básico (Stock e Inventario)", "price": 8.0, "has_web": False, "code": "BASIC"},
-    "medium": {"name": "Plan Profesional (App Móvil + Web)", "price": 10.0, "has_web": True, "code": "PRO"},
-    "premium": {"name": "Plan Profesional (App Móvil + Web + Todo)", "price": 10.0, "has_web": True, "code": "PRO"}
+    "medium": {"name": "Plan Profesional (App Móvil + Web)", "price": 20.0, "has_web": True, "code": "PRO"},
+    "premium": {"name": "Plan Profesional (App Móvil + Web + Todo)", "price": 20.0, "has_web": True, "code": "PRO"}
 }
 
 
