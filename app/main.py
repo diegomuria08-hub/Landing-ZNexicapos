@@ -174,6 +174,11 @@ def render_landing(request: Request, db: Session = Depends(get_db)):
         context={
             "payment_methods": payment_methods,
             "admin_whatsapp_phone": admin_whatsapp
+        },
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
         }
     )
 
@@ -184,7 +189,12 @@ def render_admin(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="admin.html",
-        context={}
+        context={},
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
     )
 
 
