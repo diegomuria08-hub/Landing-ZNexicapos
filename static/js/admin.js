@@ -1183,11 +1183,13 @@ function filterClients() {
     // Filtro por estado
     let matchStatus = true;
     if (statusFilter === 'activo') {
-      matchStatus = c.servicio_activo && !c.esta_bloqueado;
+      matchStatus = c.servicio_activo && !c.esta_bloqueado && !c.esta_vencido;
     } else if (statusFilter === 'suspendido') {
       matchStatus = c.esta_bloqueado || c.esta_vencido;
+    } else if (statusFilter === 'vencido') {
+      matchStatus = c.esta_vencido;
     } else if (statusFilter === 'por_vencer') {
-      matchStatus = c.dias_restantes <= 5 && !c.esta_bloqueado;
+      matchStatus = c.dias_restantes <= 5 && !c.esta_vencido && !c.esta_bloqueado;
     }
 
     return matchQuery && matchStatus;
@@ -1230,11 +1232,11 @@ function renderClientsTable(clients) {
     if (c.estado_servicio === 'pendiente_aprobacion') {
       serviceBadge = `<span class="parclgo-badge parclgo-badge-pending"><span class="parclgo-badge-dot"></span>Pendiente Aprobación</span>`;
       statusMsgColor = '#b45309';
+    } else if (c.esta_vencido || c.estado_servicio === 'vencido') {
+      serviceBadge = `<span class="parclgo-badge parclgo-badge-rejected"><span class="parclgo-badge-dot"></span>Vencido (Servicio Cortado)</span>`;
+      statusMsgColor = '#dc2626';
     } else if (c.esta_bloqueado || c.estado_servicio === 'suspendido') {
       serviceBadge = `<span class="parclgo-badge parclgo-badge-rejected"><span class="parclgo-badge-dot"></span>Servicio Suspendido</span>`;
-      statusMsgColor = '#dc2626';
-    } else if (c.esta_vencido || c.estado_servicio === 'vencido') {
-      serviceBadge = `<span class="parclgo-badge parclgo-badge-rejected"><span class="parclgo-badge-dot"></span>Vencido (Ciclo Cumplido)</span>`;
       statusMsgColor = '#dc2626';
     } else if (c.estado_servicio === 'por_vencer') {
       serviceBadge = `<span class="parclgo-badge" style="background:#fef3c7; color:#92400e;"><span class="parclgo-badge-dot" style="background:#d97706;"></span>Por Vencer (${c.dias_restantes}d)</span>`;
@@ -1246,16 +1248,25 @@ function renderClientsTable(clients) {
 
     // Botones de acción de servicio
     let serviceActionBtn = '';
-    if (c.esta_bloqueado || c.esta_vencido) {
+    if (c.esta_bloqueado) {
       serviceActionBtn = `
+        <button type="button" class="saas-btn-primary" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleReactivateClient(${c.id}, '${escapeJs(c.nombre_completo)}')" title="Restablecer acceso y renovar ciclo por 30 días">
+          ✅ Reactivar (30d)
+        </button>
+      `;
+    } else if (c.esta_vencido) {
+      serviceActionBtn = `
+        <button type="button" class="saas-btn-danger" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleSuspendClient(${c.id}, '${escapeJs(c.nombre_completo)}')">
+          ⏸️ Cortar Servicio
+        </button>
         <button type="button" class="saas-btn-primary" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleReactivateClient(${c.id}, '${escapeJs(c.nombre_completo)}')">
-          ✅ Reactivar Servicio
+          ✅ Reactivar (30d)
         </button>
       `;
     } else {
       serviceActionBtn = `
         <button type="button" class="saas-btn-danger" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleSuspendClient(${c.id}, '${escapeJs(c.nombre_completo)}')">
-          ⏸️ Suspender Servicio
+          ⏸️ Cortar Servicio
         </button>
       `;
     }

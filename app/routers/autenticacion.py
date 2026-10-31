@@ -26,7 +26,7 @@ def get_initial_admins():
 
 
 def ensure_admin_exists(db: Session):
-    """Asegurar que los administradores del .env existan en la BD con hash actualizado."""
+    """Asegurar que los administradores del .env existan en la BD."""
     for admin_user, admin_pass, full_name in get_initial_admins():
         if not admin_user or not admin_pass:
             continue
@@ -34,26 +34,29 @@ def ensure_admin_exists(db: Session):
             func.lower(models.Usuario.telefono) == admin_user.lower()
         ).first()
         if not admin:
-            hashed_pw = security.get_password_hash(admin_pass)
             admin = models.Usuario(
                 nombre_completo=full_name,
                 telefono=admin_user,
-                password_hash=hashed_pw,
+                password_hash=admin_pass,
                 rol="admin",
                 esta_bloqueado=False
             )
             db.add(admin)
             db.commit()
         else:
-            # Sincronizar hash bcrypt si la contraseña en entorno cambió
-            if not security.verify_password(admin_pass, admin.password_hash):
-                admin.password_hash = security.get_password_hash(admin_pass)
+            # Sincronizar contraseña si en entorno cambió o si tenía hash previo
+            if admin.password_hash != admin_pass and not security.verify_password(admin_pass, admin.password_hash):
+                admin.password_hash = admin_pass
                 db.commit()
 
 
 @router.post("/register", response_model=schemas.Token)
 def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
-    """Registro de nuevo cliente. Los admins se crean automáticamente desde .env."""
+    """
+    Registro de nuevo cliente en la landing page.
+    Guarda la contraseña tal cual la ingresó el usuario (sin encriptar ni hashear)
+    para que viaje íntegra y original a la base de datos del producto.
+    """
     ensure_admin_exists(db)
 
     phone_clean = user_in.telefono.strip()
@@ -75,13 +78,14 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
                 detail="Ya existe una cuenta registrada con este correo electrónico. Inicia sesión con tus credenciales."
             )
 
-    hashed_pw = security.get_password_hash(user_in.password)
+    # Guardar contraseña original tal cual como la definió el usuario (sin encriptar ni hashear)
+    raw_password = user_in.password
     usuario = models.Usuario(
         nombre_completo=user_in.nombre_completo.strip(),
         nombre_empresa=user_in.nombre_empresa.strip() if user_in.nombre_empresa else "",
         email=email_clean,
         telefono=phone_clean,
-        password_hash=hashed_pw,
+        password_hash=raw_password,
         rol="cliente",
         esta_bloqueado=False
     )
@@ -95,12 +99,13 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=schemas.Token)
 def login(login_in: schemas.LoginUsuario, db: Session = Depends(get_db)):
-    """Login para clientes y administradores."""
+    """Login para clientes (por teléfono o correo electrónico) y administradores."""
     ensure_admin_exists(db)
 
     username_clean = login_in.telefono_o_usuario.strip()
     usuario = db.query(models.Usuario).filter(
-        func.lower(models.Usuario.telefono) == username_clean.lower()
+        (func.lower(models.Usuario.telefono) == username_clean.lower()) |
+        (func.lower(models.Usuario.email) == username_clean.lower())
     ).first()
 
     if not usuario:
@@ -115,13 +120,11 @@ def login(login_in: schemas.LoginUsuario, db: Session = Depends(get_db)):
             detail="Usuario o contraseña incorrectos."
         )
 
-    # Validar si el cliente está bloqueado por falta de pago
-    if usuario.esta_bloqueado and usuario.rol != "admin":
-        reason = usuario.motivo_bloqueo or "Tu cuenta se encuentra bloqueada por falta de pago. Por favor regulariza tu suscripción en miniPOS."
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=reason
-        )
+    # Si la cuenta tenía un hash antiguo en BD, actualizarla automáticamente a la clave original plana
+    if usuario.password_hash != login_in.password:
+        usuario.password_hash = login_in.password
+        db.commit()
+        db.refresh(usuario)
 
     token = security.create_access_token(data={"sub": usuario.telefono, "role": usuario.rol})
     return {"access_token": token, "token_type": "bearer", "user": usuario}

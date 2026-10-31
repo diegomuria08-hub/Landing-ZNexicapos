@@ -22,20 +22,33 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/autenticacion/login", auto_e
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verificar contraseña plana contra hash bcrypt."""
-    try:
-        pwd_bytes = plain_password.encode("utf-8")[:72]
-        hash_bytes = hashed_password.encode("utf-8")
-        return bcrypt.checkpw(pwd_bytes, hash_bytes)
-    except Exception:
+    """
+    Verificar contraseña del usuario.
+    Soporta comparación directa en texto original (sin encriptar/hashear para evitar doble encriptamiento
+    al aprovisionar en la BD del producto) y mantiene compatibilidad con hashes bcrypt previos.
+    """
+    if plain_password is None or hashed_password is None:
         return False
+    # 1. Comparación exacta en texto original (sin encriptar)
+    if plain_password == hashed_password:
+        return True
+    # 2. Fallback de compatibilidad si el registro antiguo aún tenía hash bcrypt ($2b$, $2a$, $2y$)
+    if hashed_password.startswith(("$2b$", "$2a$", "$2y$")):
+        try:
+            pwd_bytes = plain_password.encode("utf-8")[:72]
+            hash_bytes = hashed_password.encode("utf-8")
+            return bcrypt.checkpw(pwd_bytes, hash_bytes)
+        except Exception:
+            return False
+    return False
 
 
 def get_password_hash(password: str) -> str:
-    """Generar hash bcrypt seguro de una contraseña."""
-    pwd_bytes = password.encode("utf-8")[:72]
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
+    """
+    Retorna la contraseña tal cual la definió el usuario (sin encriptar ni hashear),
+    para que viaje íntegra y original a la base de datos del producto (donde sí se encripta).
+    """
+    return password
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

@@ -488,7 +488,8 @@
                 <select id="clientStatusFilter" class="parclgo-select" onchange="filterClients()">
                   <option value="all">Todos los clientes</option>
                   <option value="activo">Servicio Activo</option>
-                  <option value="suspendido">Servicio Suspendido</option>
+                  <option value="suspendido">Servicio Cortado / Suspendido</option>
+                  <option value="vencido">Vencidos (Ciclo Cumplido)</option>
                   <option value="por_vencer">Por vencer (≤ 5 días)</option>
                 </select>
 
@@ -723,7 +724,7 @@
     </div>
   </div>
 
-  <script src="/static/js/admin.js?v=5.1"></script>
+  <script src="/static/js/admin.js?v=5.2"></script>
   <script>
     // Sobrescribir togglePmTypeFields directamente en el HTML para evitar caché agresivo
     window.togglePmTypeFields = function() {

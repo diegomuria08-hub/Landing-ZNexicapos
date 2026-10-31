@@ -597,10 +597,14 @@ async function handleClientLoginSubmit(event) {
       return;
     }
 
-    // Login exitoso: guardar sesión
+    // Login exitoso: guardar sesión completa con datos reales y contraseña original
+    const userObj = data.user || {};
     saveClientSession(data.access_token, {
-      full_name: phone, // O teléfono si no viene en token
-      phone: phone
+      full_name: userObj.nombre_completo || phone,
+      company_name: userObj.nombre_empresa || '',
+      email: userObj.email || '',
+      phone: userObj.telefono || phone,
+      temp_password: password
     });
 
     closeClientAuthModal();

@@ -3,9 +3,10 @@ import re
 import shutil
 import uuid
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.database import get_db
 from app import models, schemas, security
 from app.services.provisioning import (
@@ -59,40 +60,69 @@ async def submit_payment(
     official_code = plan_meta["code"]
 
     # Validar correo
-    clean_email = email.strip().lower() if email else f"{phone.strip()}@minipos-user.com"
+    clean_email = email.strip().lower() if (email and email.strip()) else None
 
-    # Si no hay contraseña suministrada
-    raw_password = password.strip() if password else reference_last4.strip()
-    if len(raw_password) < 8 or not re.search(r"[A-Za-z]", raw_password) or not re.search(r"\d", raw_password):
-        # Si la contraseña no cumple la política exigida por la API de tenants
-        if raw_password and len(raw_password) >= 4:
-            raw_password = f"{raw_password}MiniPos2026!"
+    # Buscar usuario existente si no venía en el token
+    if not current_user:
+        current_user = db.query(models.Usuario).filter(
+            func.lower(models.Usuario.telefono) == phone.strip().lower()
+        ).first()
+        if not current_user and clean_email:
+            current_user = db.query(models.Usuario).filter(
+                func.lower(models.Usuario.email) == clean_email
+            ).first()
+
+    # Determinar la contraseña original exacta del usuario (sin encriptar ni hashear)
+    supplied_pw = password.strip() if (password and password.strip() and not password.strip().startswith("$2")) else None
+    stored_plain_pw = (
+        current_user.password_hash
+        if (current_user and current_user.password_hash and not current_user.password_hash.startswith("$2"))
+        else None
+    )
+
+    if supplied_pw:
+        raw_password = supplied_pw
+    elif stored_plain_pw:
+        raw_password = stored_plain_pw
+    else:
+        fallback_pw = reference_last4.strip()
+        if len(fallback_pw) >= 8 and re.search(r"[A-Za-z]", fallback_pw) and re.search(r"\d", fallback_pw):
+            raw_password = fallback_pw
         else:
             raw_password = "MiniPosSecret2026!"
 
-    # Buscar o crear usuario
-    if not current_user:
-        current_user = db.query(models.Usuario).filter(models.Usuario.telefono == phone.strip()).first()
-        if not current_user:
-            hashed_pw = security.get_password_hash(raw_password)
-            current_user = models.Usuario(
-                nombre_completo=full_name.strip(),
-                nombre_empresa=company_name.strip() if company_name else f"Negocio {full_name.strip()}",
-                email=clean_email,
-                telefono=phone.strip(),
-                password_hash=hashed_pw,
-                rol="cliente"
-            )
-            db.add(current_user)
-            db.commit()
-            db.refresh(current_user)
+    if not clean_email:
+        if current_user and current_user.email:
+            clean_email = current_user.email.strip().lower()
         else:
-            # Actualizar datos si no estaban asignados
-            if company_name and not current_user.nombre_empresa:
-                current_user.nombre_empresa = company_name.strip()
-            if email and not current_user.email:
-                current_user.email = clean_email
-            db.commit()
+            clean_email = f"{phone.strip()}@minipos-user.com"
+
+    # Crear o sincronizar datos del usuario en nuestra BD (guardando contraseña original sin encriptar)
+    if not current_user:
+        current_user = models.Usuario(
+            nombre_completo=full_name.strip(),
+            nombre_empresa=company_name.strip() if company_name else f"Negocio de {full_name.strip()}",
+            email=clean_email,
+            telefono=phone.strip(),
+            password_hash=raw_password,
+            rol="cliente",
+            esta_bloqueado=False
+        )
+        db.add(current_user)
+        db.commit()
+        db.refresh(current_user)
+    else:
+        if full_name and full_name.strip() and current_user.nombre_completo != full_name.strip():
+            current_user.nombre_completo = full_name.strip()
+        if company_name and company_name.strip():
+            current_user.nombre_empresa = company_name.strip()
+        if clean_email and not current_user.email:
+            current_user.email = clean_email
+        # Asegurar que la contraseña guardada en BD sea la original en texto plano
+        if supplied_pw or current_user.password_hash.startswith("$2"):
+            current_user.password_hash = raw_password
+        db.commit()
+        db.refresh(current_user)
 
     # Manejo de comprobante
     saved_file_path = None
@@ -109,6 +139,7 @@ async def submit_payment(
     initial_status = "aprobado" if is_free else "pendiente"
 
     realtime_now = get_realtime_caracas_now()
+    cycle_end = realtime_now + timedelta(days=30)
 
     suscripcion = models.Suscripcion(
         usuario_id=current_user.id,
@@ -122,57 +153,60 @@ async def submit_payment(
         tiene_web=plan_meta["has_web"],
         acepto_disclaimer_web=True,
         fecha_inicio=realtime_now,
+        fecha_fin=cycle_end,
         creado_en=realtime_now
     )
     db.add(suscripcion)
     db.commit()
     db.refresh(suscripcion)
 
-    # Si es plan FREE -> Aprovisionar de forma inmediata y desatendida en la API externa
-    if is_free:
-        empresa = current_user.nombre_empresa or company_name or f"Negocio de {current_user.nombre_completo}"
-        try:
-            remote_resp = provision_tenant_sync(
-                company_name=empresa,
-                admin_name=current_user.nombre_completo,
-                admin_email=current_user.email or clean_email,
-                admin_password=raw_password,
-                plan_code=official_code
-            )
-            data_body = remote_resp.get("data", {})
-            suscripcion.tenant_company_id = data_body.get("company", {}).get("id")
-            suscripcion.tenant_admin_id = data_body.get("admin", {}).get("id")
-            suscripcion.tenant_plan_id = data_body.get("plan", {}).get("id")
-            suscripcion.tenant_provisioning_status = "exitoso"
-            suscripcion.tenant_provisioned_at = datetime.utcnow()
-        except ProvisioningConflictError as ce:
-            # Correo ya registrado remotamente
-            suscripcion.tenant_provisioning_status = "conflicto_correo"
-            suscripcion.tenant_error_detail = ce.message
-            db.commit()
-            raise HTTPException(status_code=409, detail=ce.message)
-        except ProvisioningValidationError as ve:
-            suscripcion.tenant_provisioning_status = "fallido_validacion"
-            suscripcion.tenant_error_detail = ve.message
+    # Aprovisionar las credenciales originales del cliente en la API externa del producto (miniPOS)
+    # Se envían las credenciales tal cual las creó el usuario (sin encriptar/hashear aquí) para que el producto las encripte allá.
+    empresa = current_user.nombre_empresa or company_name or f"Negocio de {current_user.nombre_completo}"
+    try:
+        remote_resp = provision_tenant_sync(
+            company_name=empresa,
+            admin_name=current_user.nombre_completo,
+            admin_email=current_user.email or clean_email,
+            admin_password=raw_password,
+            plan_code=official_code
+        )
+        data_body = remote_resp.get("data", {})
+        suscripcion.tenant_company_id = data_body.get("company", {}).get("id")
+        suscripcion.tenant_admin_id = data_body.get("admin", {}).get("id")
+        suscripcion.tenant_plan_id = data_body.get("plan", {}).get("id")
+        suscripcion.tenant_provisioning_status = "exitoso"
+        suscripcion.tenant_provisioned_at = realtime_now
+    except ProvisioningConflictError as ce:
+        # Si el cliente ya existe en la BD del producto (ej. renovación o cambio de plan con su misma cuenta)
+        suscripcion.tenant_provisioning_status = "exitoso"
+        suscripcion.tenant_error_detail = f"Cuenta ya registrada en el producto: {ce.message}"
+        suscripcion.tenant_provisioned_at = realtime_now
+    except ProvisioningValidationError as ve:
+        suscripcion.tenant_provisioning_status = "fallido_validacion"
+        suscripcion.tenant_error_detail = ve.message
+        if is_free:
             db.commit()
             raise HTTPException(status_code=400, detail=ve.message)
-        except Exception as e:
-            suscripcion.tenant_provisioning_status = "fallido_conexion"
-            suscripcion.tenant_error_detail = str(e)
+    except Exception as e:
+        suscripcion.tenant_provisioning_status = "fallido_conexion"
+        suscripcion.tenant_error_detail = str(e)
 
     # Sincronizar control de acceso miniPOS para la app móvil
     access_record = db.query(models.AccesoMiniposApi).filter(
-        models.AccesoMiniposApi.telefono == current_user.telefono
+        func.lower(models.AccesoMiniposApi.telefono) == current_user.telefono.lower()
     ).first()
 
     if not access_record:
         access_record = models.AccesoMiniposApi(
             telefono=current_user.telefono,
             acceso_concedido=(initial_status == "aprobado"),
-            plan_activo=official_code,
+            plan_activo=official_code if initial_status == "aprobado" else "ninguno",
             esta_bloqueado=(initial_status != "aprobado"),
             estado="activo" if initial_status == "aprobado" else "pendiente",
-            mensaje_bloqueo="" if initial_status == "aprobado" else "Tu suscripción está pendiente de confirmación de pago por el administrador."
+            mensaje_bloqueo="" if initial_status == "aprobado" else "Tu suscripción está pendiente de confirmación de pago por el administrador.",
+            fecha_expiracion=cycle_end,
+            ultima_sincronizacion=realtime_now
         )
         db.add(access_record)
     else:
@@ -182,17 +216,17 @@ async def submit_payment(
             access_record.esta_bloqueado = False
             access_record.estado = "activo"
             access_record.mensaje_bloqueo = ""
+            access_record.fecha_expiracion = cycle_end
+            access_record.ultima_sincronizacion = realtime_now
             current_user.esta_bloqueado = False
             current_user.motivo_bloqueo = ""
         else:
-            # Si el usuario ya tenía acceso concedido activo (ej. prueba gratuita aún vigente),
-            # mantenemos su acceso sin interrupción abrupta hasta que el administrador apruebe el nuevo pago.
+            # Si el usuario ya tenía acceso concedido activo y vigente, lo mantenemos hasta aprobar el nuevo pago.
             if not access_record.acceso_concedido:
                 access_record.esta_bloqueado = True
                 access_record.estado = "pendiente"
                 access_record.mensaje_bloqueo = "Tu suscripción está pendiente de confirmación de pago por el administrador."
-                current_user.esta_bloqueado = True
-                current_user.motivo_bloqueo = "Pago pendiente de verificación"
+                access_record.ultima_sincronizacion = realtime_now
 
     db.commit()
     db.refresh(suscripcion)

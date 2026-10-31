@@ -41,7 +41,13 @@ def update_subscription_status(
     if new_status not in ["aprobado", "rechazado", "pendiente"]:
         raise HTTPException(status_code=400, detail="Estado de pago no válido.")
 
+    now_caracas = get_realtime_caracas_now()
+    cycle_end = now_caracas + timedelta(days=30)
+
     sub.estado = new_status
+    if new_status == "aprobado":
+        sub.fecha_inicio = now_caracas
+        sub.fecha_fin = cycle_end
 
     # Actualizar estado de acceso del usuario
     usuario = db.query(models.Usuario).filter(models.Usuario.id == sub.usuario_id).first()
@@ -50,12 +56,17 @@ def update_subscription_status(
             usuario.esta_bloqueado = False
             usuario.motivo_bloqueo = ""
             
-            # Disparar aprovisionamiento en la API externa si aún no está aprovisionado
+            # Disparar aprovisionamiento en la API externa si aún no está aprovisionado,
+            # enviando la contraseña original exacta del usuario (sin encriptar ni hashear aquí)
             if sub.tenant_provisioning_status != "exitoso":
-                from app.services.provisioning import provision_tenant_sync
+                from app.services.provisioning import provision_tenant_sync, ProvisioningConflictError
                 empresa = usuario.nombre_empresa or f"Negocio de {usuario.nombre_completo}"
                 email_admin = usuario.email or f"{usuario.telefono}@minipos-user.com"
-                admin_pass = "MiniPosPass2026!"
+                admin_pass = (
+                    usuario.password_hash
+                    if (usuario.password_hash and not usuario.password_hash.startswith("$2"))
+                    else "MiniPosPass2026!"
+                )
                 try:
                     remote_resp = provision_tenant_sync(
                         company_name=empresa,
@@ -69,13 +80,20 @@ def update_subscription_status(
                     sub.tenant_admin_id = data_body.get("admin", {}).get("id")
                     sub.tenant_plan_id = data_body.get("plan", {}).get("id")
                     sub.tenant_provisioning_status = "exitoso"
-                    sub.tenant_provisioned_at = datetime.utcnow()
+                    sub.tenant_provisioned_at = now_caracas
+                except ProvisioningConflictError as ce:
+                    sub.tenant_provisioning_status = "exitoso"
+                    sub.tenant_error_detail = f"Cuenta ya existente en el producto: {ce.message}"
+                    sub.tenant_provisioned_at = now_caracas
                 except Exception as e:
                     sub.tenant_provisioning_status = "fallido"
                     sub.tenant_error_detail = str(e)
         elif new_status == "rechazado":
             usuario.esta_bloqueado = True
             usuario.motivo_bloqueo = "Pago rechazado por el administrador. Regulariza tu suscripción."
+            db.query(models.SesionDispositivo).filter(
+                models.SesionDispositivo.usuario_id == usuario.id
+            ).update({"esta_activo": False})
 
         # Sincronizar en AccesoMiniposApi
         access_rec = db.query(models.AccesoMiniposApi).filter(
@@ -89,7 +107,8 @@ def update_subscription_status(
                 estado="activo" if new_status == "aprobado" else "bloqueado",
                 plan_activo=sub.codigo_plan if new_status == "aprobado" else "ninguno",
                 mensaje_bloqueo="" if new_status == "aprobado" else "Acceso restringido por pago no aprobado.",
-                ultima_sincronizacion=datetime.utcnow()
+                fecha_expiracion=cycle_end if new_status == "aprobado" else None,
+                ultima_sincronizacion=now_caracas
             )
             db.add(access_rec)
         else:
@@ -98,7 +117,9 @@ def update_subscription_status(
             access_rec.estado = "activo" if new_status == "aprobado" else "bloqueado"
             access_rec.plan_activo = sub.codigo_plan if new_status == "aprobado" else "ninguno"
             access_rec.mensaje_bloqueo = "" if new_status == "aprobado" else "Acceso restringido por pago no aprobado."
-            access_rec.ultima_sincronizacion = datetime.utcnow()
+            if new_status == "aprobado":
+                access_rec.fecha_expiracion = cycle_end
+            access_rec.ultima_sincronizacion = now_caracas
 
     db.commit()
     db.refresh(sub)
@@ -155,9 +176,10 @@ def get_all_clients(
     db: Session = Depends(get_db),
     admin_user: models.Usuario = Depends(security.require_admin)
 ):
-    """Listado permanente de clientes con cálculo preciso de ciclo mensual, vencimiento y estados claros."""
+    """Listado permanente de clientes con corte automático por fecha de vencimiento, cálculo de ciclo mensual y estados claros."""
     clientes = db.query(models.Usuario).filter(models.Usuario.rol == "cliente").order_by(models.Usuario.id.desc()).all()
     now_caracas = get_realtime_caracas_now()
+    db_dirty = False
 
     result = []
     for c in clientes:
@@ -177,16 +199,53 @@ def get_all_clients(
         
         # Fecha de vencimiento / corte mensual: 30 días a partir de la fecha de inicio
         fecha_fin = latest_sub.fecha_fin if (latest_sub and latest_sub.fecha_fin) else (fecha_inicio + timedelta(days=30))
+        if latest_sub and not latest_sub.fecha_fin:
+            latest_sub.fecha_fin = fecha_fin
+            db_dirty = True
         
         # Calcular días restantes de licencia
         delta = (fecha_fin.date() - now_caracas.date()).days
         dias_restantes = max(0, delta)
         esta_vencido = delta <= 0
 
+        # CORTE AUTOMÁTICO DE SERVICIO SI EL CLIENTE YA SE PASÓ DE LA FECHA DE VENCIMIENTO
+        if esta_vencido and sub_estado == "aprobado":
+            motivo_vencimiento = "Servicio cortado automáticamente por vencimiento de ciclo mensual (fecha de corte superada). Renueva tu plan para continuar."
+            if not c.esta_bloqueado:
+                c.esta_bloqueado = True
+                c.motivo_bloqueo = motivo_vencimiento
+                db.query(models.SesionDispositivo).filter(
+                    models.SesionDispositivo.usuario_id == c.id
+                ).update({"esta_activo": False})
+                db_dirty = True
+
+            if not access_rec:
+                access_rec = models.AccesoMiniposApi(
+                    telefono=c.telefono,
+                    acceso_concedido=False,
+                    esta_bloqueado=True,
+                    estado="vencido",
+                    plan_activo="ninguno",
+                    mensaje_bloqueo=c.motivo_bloqueo or motivo_vencimiento,
+                    fecha_expiracion=fecha_fin,
+                    ultima_sincronizacion=now_caracas
+                )
+                db.add(access_rec)
+                db_dirty = True
+            elif access_rec.acceso_concedido or not access_rec.esta_bloqueado or access_rec.estado != "vencido":
+                access_rec.acceso_concedido = False
+                access_rec.esta_bloqueado = True
+                access_rec.estado = "vencido"
+                access_rec.plan_activo = "ninguno"
+                access_rec.mensaje_bloqueo = c.motivo_bloqueo or motivo_vencimiento
+                access_rec.fecha_expiracion = fecha_fin
+                access_rec.ultima_sincronizacion = now_caracas
+                db_dirty = True
+
         # Determinación transparente del estado del cliente en el flujo de negocio:
         # 1. Pago pendiente de aprobación por el admin
-        # 2. Bloqueado / Cortado manualmente
-        # 3. Vencido por fecha de corte
+        # 2. Vencido por fecha de corte (servicio cortado automáticamente)
+        # 3. Bloqueado / Cortado manualmente
         # 4. Próximo a vencer (<= 5 días)
         # 5. Activo al día
         if sub_estado == "pendiente":
@@ -194,15 +253,15 @@ def get_all_clients(
             badge_label = "Pendiente Aprobación"
             mensaje_servicio = "Pago registrado en espera de verificación del comprobante."
             servicio_activo = False
+        elif esta_vencido:
+            estado_servicio = "vencido"
+            badge_label = "Vencido (Servicio Cortado)"
+            mensaje_servicio = c.motivo_bloqueo or "Periodo mensual culminado. Servicio cortado hasta renovación."
+            servicio_activo = False
         elif c.esta_bloqueado:
             estado_servicio = "suspendido"
             badge_label = "Servicio Suspendido"
             mensaje_servicio = c.motivo_bloqueo or "Servicio suspendido por administración por falta de pago."
-            servicio_activo = False
-        elif esta_vencido:
-            estado_servicio = "vencido"
-            badge_label = "Vencido (Ciclo Cumplido)"
-            mensaje_servicio = "Periodo mensual culminado. Requiere pago de renovación."
             servicio_activo = False
         elif dias_restantes <= 5:
             estado_servicio = "por_vencer"
@@ -234,8 +293,11 @@ def get_all_clients(
             "dias_restantes": dias_restantes,
             "esta_vencido": esta_vencido,
             "servicio_activo": servicio_activo,
-            "app_concedido": access_rec.acceso_concedido if access_rec else servicio_activo
+            "app_concedido": bool(access_rec.acceso_concedido) if access_rec else servicio_activo
         })
+
+    if db_dirty:
+        db.commit()
 
     return result
 
@@ -273,6 +335,7 @@ def suspend_client_service(
         access_rec.acceso_concedido = False
         access_rec.esta_bloqueado = True
         access_rec.estado = "suspendido"
+        access_rec.plan_activo = "ninguno"
         access_rec.mensaje_bloqueo = "Tu servicio miniPOS ha sido suspendido por falta de pago. Renueva tu plan para continuar facturando."
         access_rec.ultima_sincronizacion = get_realtime_caracas_now()
 
@@ -306,27 +369,43 @@ def reactivate_client_service(
     usuario.motivo_bloqueo = ""
 
     now_caracas = get_realtime_caracas_now()
+    cycle_end = now_caracas + timedelta(days=30)
 
     # Si tenía suscripción, renovar ciclo mensual
     latest_sub = db.query(models.Suscripcion).filter(
         models.Suscripcion.usuario_id == usuario.id
     ).order_by(models.Suscripcion.id.desc()).first()
 
+    plan_code = "FREE"
     if latest_sub:
         latest_sub.estado = "aprobado"
         latest_sub.fecha_inicio = now_caracas
-        latest_sub.fecha_fin = now_caracas + timedelta(days=30)
+        latest_sub.fecha_fin = cycle_end
+        plan_code = latest_sub.codigo_plan
 
     # Sincronizar en AccesoMiniposApi
     access_rec = db.query(models.AccesoMiniposApi).filter(
         models.AccesoMiniposApi.telefono == usuario.telefono
     ).first()
-    if access_rec:
+    if not access_rec:
+        access_rec = models.AccesoMiniposApi(
+            telefono=usuario.telefono,
+            acceso_concedido=True,
+            esta_bloqueado=False,
+            estado="activo",
+            plan_activo=plan_code,
+            mensaje_bloqueo="",
+            fecha_expiracion=cycle_end,
+            ultima_sincronizacion=now_caracas
+        )
+        db.add(access_rec)
+    else:
         access_rec.acceso_concedido = True
         access_rec.esta_bloqueado = False
         access_rec.estado = "activo"
+        access_rec.plan_activo = plan_code
         access_rec.mensaje_bloqueo = ""
-        access_rec.fecha_expiracion = now_caracas + timedelta(days=30)
+        access_rec.fecha_expiracion = cycle_end
         access_rec.ultima_sincronizacion = now_caracas
 
     db.commit()

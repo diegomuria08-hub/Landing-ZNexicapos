@@ -187,8 +187,8 @@
             </div>
 
             <div class="showcase-action-wrap">
-              <button type="button" onclick="openCheckoutModal('FREE', 'Plan Prueba Gratis', 0)" class="btn-primary" style="max-width: 280px; font-size: 0.92rem; padding: 0.75rem 1.5rem; cursor: pointer; border: none;">
-                🚀 Probar Esta Función Gratis
+              <button type="button" onclick="openCheckoutModal('PRO', 'Plan Profesional ($10/mes)', 10)" class="btn-primary" style="max-width: 280px; font-size: 0.92rem; padding: 0.75rem 1.5rem; cursor: pointer; border: none;">
+                👑 Adquirir ZNexica POS Ahora
               </button>
             </div>
           </div>
@@ -351,85 +351,34 @@
   <section class="pricing-section" id="planes">
     <div class="container">
       <div class="section-header reveal">
-        <span class="section-subtitle">Suscripciones Mensuales</span>
-        <h2 class="section-title">Elige el Plan Perfecto para tu Negocio</h2>
+        <span class="section-subtitle">Suscripción Mensual Todo Incluido</span>
+        <h2 class="section-title">El Plan Perfecto para tu Negocio</h2>
       </div>
 
-      <!-- Banner Informativo Importante sobre Dominio Web -->
-      <div class="web-disclaimer-banner reveal">
-        <div>⚠️</div>
-        <div>
-          <strong>SUMAMENTE IMPORTANTE:</strong> Los planes que incluyen integración web requieren que el cliente adquiera y mantenga su propio <strong>dominio personal</strong> (ej. <em>mitienda.com</em>). El cliente decide libremente si desea operar utilizando únicamente la App Móvil o integrar la plataforma Web.
-        </div>
-      </div>
+      <!-- Rejilla de Plan Único Centrado -->
+      <div class="plans-grid reveal" style="display: flex; justify-content: center; align-items: stretch;">
 
-      <!-- Rejilla de Planes -->
-      <div class="plans-grid reveal">
-
-        <!-- Plan 1: FREE / TRIAL -->
-        <div class="plan-card">
-          <div class="plan-header">
-            <h3 class="plan-name">PRUEBA GRATIS</h3>
-            <div class="plan-price-box">
-              <span class="plan-price">$0</span>
-              <span class="plan-period">/ 30 días</span>
-            </div>
-            <p class="plan-desc">Prueba todas las funcionalidades de ZNexica POS durante 1 mes sin costo ni tarjeta.</p>
-          </div>
-          <ul class="plan-features">
-            <li><span class="check-icon">✓</span> Aprovisionamiento Desatendido Inmediato</li>
-            <li><span class="check-icon">✓</span> Acceso Completo App Móvil ZNexica POS</li>
-            <li><span class="check-icon">✓</span> Control de Inventario y Stock en Tiempo Real</li>
-            <li><span class="check-icon">✓</span> Módulo de Ventas y Caja Multimoneda</li>
-            <li><span class="check-icon">✓</span> 30 Días de Prueba Sin Compromiso</li>
-          </ul>
-          <button class="btn-select-plan" onclick="openCheckoutModal('FREE', 'Plan Prueba Gratis', 0)">
-            🎁 Activar Prueba Gratis
-          </button>
-        </div>
-
-        <!-- Plan 2: BÁSICO ($8/mes) -->
-        <div class="plan-card">
-          <div class="plan-header">
-            <h3 class="plan-name">PLAN BÁSICO</h3>
-            <div class="plan-price-box">
-              <span class="plan-price">$8</span>
-              <span class="plan-period">/ mes</span>
-            </div>
-            <p class="plan-desc">Ideal para pequeños negocios que buscan controlar inventario y facturación móvil.</p>
-          </div>
-          <ul class="plan-features">
-            <li><span class="check-icon">✓</span> Tenant y Empresa Aprovisionada</li>
-            <li><span class="check-icon">✓</span> Control de Inventario (Entradas/Salidas/SKU)</li>
-            <li><span class="check-icon">✓</span> App Móvil ZNexica POS Completa</li>
-            <li><span class="check-icon">✓</span> Soporte Estándar Continuo</li>
-            <li><span class="check-icon">✓</span> Modo Offline-First sin internet</li>
-          </ul>
-          <button class="btn-select-plan" onclick="openCheckoutModal('BASIC', 'Plan Básico ($8/mes)', 8)">
-            🛒 Seleccionar Plan Básico
-          </button>
-        </div>
-
-        <!-- Plan 3: PROFESIONAL ($10/mes) -->
-        <div class="plan-card featured">
-          <div class="plan-badge">MÁS POPULAR</div>
+        <!-- Plan Único: PROFESIONAL ($10/mes - App Móvil + Página Web) -->
+        <div class="plan-card featured" style="max-width: 460px; width: 100%; margin: 0 auto;">
+          <div class="plan-badge">TODO INCLUIDO</div>
           <div class="plan-header">
             <h3 class="plan-name">PLAN PROFESIONAL</h3>
             <div class="plan-price-box">
               <span class="plan-price">$10</span>
               <span class="plan-period">/ mes</span>
             </div>
-            <p class="plan-desc">La suite total para negocios: App Móvil + Web + Inventario + Caja + Reportes.</p>
+            <p class="plan-desc">La suite total para tu negocio: App Móvil + Página Web + Inventario + Caja + Reportes.</p>
           </div>
           <ul class="plan-features">
-            <li><span class="check-icon">✓</span> Todas las funciones del Plan Básico</li>
-            <li><span class="check-icon">✓</span> Módulo Completo de Caja y Ventas (USD/EUR/Bs)</li>
-            <li><span class="check-icon">✓</span> Integración con Plataforma Web ZNexica POS</li>
-            <li><span class="check-icon">✓</span> Reportes Avanzados y Cierres de Turno</li>
-            <li><span class="check-icon">✓</span> Soporte Prioritario 24/7</li>
+            <li><span class="check-icon">✓</span> Acceso Completo App Móvil + Plataforma Web ZNexica POS</li>
+            <li><span class="check-icon">✓</span> Control de Inventario en Tiempo Real (Entradas/Salidas/SKU)</li>
+            <li><span class="check-icon">✓</span> Módulo Completo de Caja y Ventas Multi-Moneda (USD/EUR/Bs)</li>
+            <li><span class="check-icon">✓</span> Modo Offline-First (Opera con o sin internet)</li>
+            <li><span class="check-icon">✓</span> Reportes Avanzados, Cuentas por Cobrar y Cierres de Turno</li>
+            <li><span class="check-icon">✓</span> Soporte Técnico Prioritario 24/7</li>
           </ul>
           <button class="btn-select-plan" style="background:var(--green-primary); color:#fff;" onclick="openCheckoutModal('PRO', 'Plan Profesional ($10/mes)', 10)">
-            👑 Seleccionar Plan Profesional
+            👑 Adquirir Plan Profesional
           </button>
         </div>
 
@@ -562,7 +511,7 @@
         <div class="app-credential-warning-banner" style="margin-bottom: 1rem; padding: 0.75rem 0.9rem;">
           <div class="warning-icon">💡</div>
           <div class="warning-text" style="font-size: 0.8rem;">
-            <strong>Nota importante:</strong> Tu <strong>Teléfono</strong> y <strong>Contraseña</strong> serán los mismos datos con los que iniciarás sesión en la aplicación móvil de tu teléfono.
+            <strong>Nota importante:</strong> Tu <strong>Correo Electrónico</strong>, <strong>Teléfono</strong> y <strong>Contraseña</strong> serán exactamente las mismas credenciales con las que iniciarás sesión en el sistema ZNexica POS.
           </div>
         </div>
 
@@ -577,12 +526,12 @@
         </div>
 
         <div class="form-group">
-          <label for="regEmail">Correo Electrónico (Administrador)</label>
+          <label for="regEmail">Correo Electrónico (Acceso a la App / Sistema)</label>
           <input type="email" id="regEmail" class="form-input" placeholder="Ej. carlos.mendoza@elroble.com" autocomplete="off" required>
         </div>
 
         <div class="form-group">
-          <label for="regPhone">Número de Teléfono (WhatsApp / Usuario de la App)</label>
+          <label for="regPhone">Número de Teléfono (WhatsApp / Usuario)</label>
           <input type="tel" id="regPhone" class="form-input" placeholder="Ej. 04121234567" autocomplete="off" required>
         </div>
 
@@ -605,8 +554,8 @@
       <!-- Formulario de Login -->
       <form id="clientLoginForm" onsubmit="handleClientLoginSubmit(event)" autocomplete="off">
         <div class="form-group">
-          <label for="loginPhone">Número de Teléfono (WhatsApp / Usuario)</label>
-          <input type="tel" id="loginPhone" class="form-input" placeholder="Ej. 04121234567" autocomplete="off" required>
+          <label for="loginPhone">Teléfono o Correo Electrónico</label>
+          <input type="text" id="loginPhone" class="form-input" placeholder="Ej. 04121234567 o correo@empresa.com" autocomplete="off" required>
         </div>
 
         <div class="form-group">
@@ -719,7 +668,7 @@
   <script>
     window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone }}";
   </script>
-  <script src="/static/js/main.js?v=8.1"></script>
+  <script src="/static/js/main.js?v=8.2"></script>
 
   <!-- ANTI-CACHE: Forzando la nueva UI de Métodos de Pago aquí mismo -->
   <style>
@@ -1069,8 +1018,9 @@
           alert(
             `🎉 ¡Bienvenido a ZNexica POS, ${fullName}!\n\n` +
             `Tu periodo de prueba de 30 días ha sido activado con éxito.\n\n` +
-            `Tus credenciales para ingresar a la App ZNexica POS son:\n` +
-            `📱 Usuario / Teléfono: ${phone}\n` +
+            `Tus credenciales para ingresar a ZNexica POS son:\n` +
+            `✉️ Correo: ${email || 'Tu correo registrado'}\n` +
+            `📱 Teléfono: ${phone}\n` +
             `🔑 Contraseña: La que definiste al registrar tu cuenta.\n\n` +
             `Se abrirá WhatsApp para que notifiques al equipo de soporte.`
           );
