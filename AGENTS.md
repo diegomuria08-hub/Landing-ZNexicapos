@@ -37,6 +37,10 @@ Bienvenido. Este proyecto sigue estándares profesionales de Arquitectura de Sof
    - Absolutamente todos los botones, filtros, selectores, acciones de fila, botones de purga y controles en la interfaz deben tener lógica real y operativa.
    - Queda prohibido dejar botones decorativos o sin implementar. Si un botón existe en la UI, debe ejecutar su acción completa en backend y base de datos.
 
+7. **Sincronización y Despliegue Obligatorio en GitHub y Render (`origin main`)**:
+   - Todo cambio realizado en el código DEBE subirse obligatoriamente al repositorio oficial de GitHub (`https://github.com/diegomuria08-hub/Landing-ZNexicapos.git`, rama `main`) mediante `git add`, `git commit` y `git push origin main` para que Render actualice el despliegue automáticamente.
+   - Nunca subir archivos `.env` ni credenciales privadas al repositorio.
+
 ---
 *Para ver el detalle completo de las normas, consultar los archivos en:*
 - [`.agents/rules/architecture_and_code.md`](file:///c:/Users/Diego%20Muria/OneDrive/Codigos_Antigravity/landign%20miniPOS/.agents/rules/architecture_and_code.md)
