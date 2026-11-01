@@ -57,15 +57,13 @@ def update_subscription_status(
             usuario.motivo_bloqueo = ""
             
             # Disparar o actualizar aprovisionamiento en la API externa enviando la contraseña original exacta del usuario
-            if sub.tenant_provisioning_status != "exitoso" or not sub.tenant_company_id:
+            # (solo si existe la contraseña real; nunca se inventa una contraseña que bloquee al cliente)
+            has_real_pw = bool(usuario.password_hash and not usuario.password_hash.startswith("$2"))
+            if (sub.tenant_provisioning_status != "exitoso" or not sub.tenant_company_id) and has_real_pw:
                 from app.services.provisioning import provision_tenant_sync, ProvisioningConflictError
                 empresa = usuario.nombre_empresa or f"Negocio de {usuario.nombre_completo}"
                 email_admin = usuario.email or f"{usuario.telefono}@minipos-user.com"
-                admin_pass = (
-                    usuario.password_hash
-                    if (usuario.password_hash and not usuario.password_hash.startswith("$2"))
-                    else "MiniPosPass2026!"
-                )
+                admin_pass = usuario.password_hash
                 try:
                     remote_resp = provision_tenant_sync(
                         company_name=empresa,

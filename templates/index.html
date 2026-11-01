@@ -569,7 +569,7 @@
         <div class="app-credential-warning-banner" style="margin-bottom: 1rem; padding: 0.75rem 0.9rem;">
           <div class="warning-icon">💡</div>
           <div class="warning-text" style="font-size: 0.8rem;">
-            <strong>Nota importante:</strong> Tu <strong>Correo Electrónico</strong>, <strong>Teléfono</strong> y <strong>Contraseña</strong> serán exactamente las mismas credenciales con las que iniciarás sesión en el sistema ZNexica POS.
+            <strong>Nota importante:</strong> En la App ZNexica POS iniciarás sesión con tu <strong>Correo Electrónico</strong> (en minúsculas) y la misma <strong>Contraseña</strong> que crees aquí.
           </div>
         </div>
 
@@ -585,7 +585,7 @@
 
         <div class="form-group">
           <label for="regEmail">Correo Electrónico (Acceso a la App / Sistema)</label>
-          <input type="email" id="regEmail" class="form-input" placeholder="Ej. carlos.mendoza@elroble.com" autocomplete="off" required>
+          <input type="email" id="regEmail" class="form-input" placeholder="Ej. carlos.mendoza@elroble.com" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" oninput="this.value = this.value.toLowerCase().replace(/\s/g, '')" required>
         </div>
 
         <div class="form-group">
@@ -613,7 +613,7 @@
       <form id="clientLoginForm" onsubmit="handleClientLoginSubmit(event)" autocomplete="off">
         <div class="form-group">
           <label for="loginPhone">Teléfono o Correo Electrónico</label>
-          <input type="text" id="loginPhone" class="form-input" placeholder="Ej. 04121234567 o correo@empresa.com" autocomplete="off" required>
+          <input type="text" id="loginPhone" class="form-input" placeholder="Ej. 04121234567 o correo@empresa.com" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" required>
         </div>
 
         <div class="form-group">
@@ -666,7 +666,7 @@
       <div class="app-credential-warning-banner" id="checkoutPhoneNotice" style="margin-bottom: 1.2rem; font-size: 0.82rem; padding: 0.75rem 1rem;">
         <div class="warning-icon" style="font-size: 1.2rem;">📱</div>
         <div class="warning-text">
-          <strong>Acceso a la App ZNexica POS:</strong> Tu cuenta móvil está vinculada al número <strong id="warnPhoneDisplay">0412...</strong>. Una vez confirmado tu pago por el administrador, tu acceso quedará activo de forma inmediata.
+          <strong>Acceso a la App ZNexica POS:</strong> Inicia sesión en la App con tu <strong>correo electrónico registrado (en minúsculas)</strong> y tu contraseña. Tu número de contacto es <strong id="warnPhoneDisplay">0412...</strong>.
         </div>
       </div>
 
@@ -790,7 +790,7 @@
   <script>
     window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone }}";
   </script>
-  <script src="/static/js/main.js?v=8.3"></script>
+  <script src="/static/js/main.js?v=8.4"></script>
 
   <!-- ANTI-CACHE: Forzando la nueva UI de Métodos de Pago aquí mismo -->
   <style>
@@ -1161,7 +1161,7 @@
 
           const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
-          alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app ZNexica POS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
+          alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu cuenta ya está creada en ZNexica POS.\n\nPara entrar a la App usa:\n✉️ Correo: ${email}\n🔑 Contraseña: la que creaste al registrarte\n\n(Escribe el correo exactamente así, en minúsculas.)\n\nSe abrirá WhatsApp para que notifiques el pago.`);
           window.open(waUrl, '_blank');
         }
 

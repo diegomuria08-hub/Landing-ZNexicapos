@@ -72,24 +72,21 @@ async def submit_payment(
                 func.lower(models.Usuario.email) == clean_email
             ).first()
 
-    # Determinar la contraseña original exacta del usuario (sin encriptar ni hashear)
-    supplied_pw = password.strip() if (password and password.strip() and not password.strip().startswith("$2")) else None
+    # Determinar la contraseña original exacta del usuario (sin encriptar, sin recortar ni alterar)
+    supplied_pw = password if (password and password.strip() and not password.startswith("$2")) else None
     stored_plain_pw = (
         current_user.password_hash
         if (current_user and current_user.password_hash and not current_user.password_hash.startswith("$2"))
         else None
     )
 
-    if supplied_pw:
-        raw_password = supplied_pw
-    elif stored_plain_pw:
-        raw_password = stored_plain_pw
-    else:
-        fallback_pw = reference_last4.strip()
-        if len(fallback_pw) >= 8 and re.search(r"[A-Za-z]", fallback_pw) and re.search(r"\d", fallback_pw):
-            raw_password = fallback_pw
-        else:
-            raw_password = "MiniPosSecret2026!"
+    # Nunca inventar contraseñas: si no hay una contraseña real del cliente, no se sobrescribe nada en la App
+    raw_password = supplied_pw or stored_plain_pw
+    if not raw_password:
+        raise HTTPException(
+            status_code=400,
+            detail="Tu sesión no contiene tu contraseña. Cierra sesión ('Cambiar Cuenta'), vuelve a ingresar y repite el pago."
+        )
 
     if not clean_email:
         if current_user and current_user.email:

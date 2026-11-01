@@ -599,7 +599,7 @@ async function handleClientRegisterSubmit(event) {
   event.preventDefault();
   const fullName = document.getElementById('regFullName').value.trim();
   const companyName = (document.getElementById('regCompanyName')?.value || '').trim();
-  const email = (document.getElementById('regEmail')?.value || '').trim();
+  const email = (document.getElementById('regEmail')?.value || '').trim().toLowerCase();
   const phone = document.getElementById('regPhone').value.trim();
   const password = document.getElementById('regPassword').value;
   const errBox = document.getElementById('clientAuthError');
@@ -1162,7 +1162,7 @@ async function handlePaymentSubmit(event) {
       alert(
         `🎉 ¡Felicitaciones ${fullName}!\n\n` +
         `Tu empresa "${companyName || 'ZNexica POS'}" y tu usuario han sido activados con éxito en el sistema.\n\n` +
-        `Ya puedes abrir la aplicación ZNexica POS e iniciar sesión con tu teléfono (${phone}) y tu contraseña.\n\n` +
+        `Ya puedes abrir la aplicación ZNexica POS e iniciar sesión con tu correo (${email}) y tu contraseña.\n\n` +
         `Se abrirá WhatsApp para que te comuniques con el soporte técnico.`
       );
       window.open(waUrl, '_blank');
