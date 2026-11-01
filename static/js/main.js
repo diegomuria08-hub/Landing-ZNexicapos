@@ -55,149 +55,150 @@ const TAB_ORDER = [
 
 let currentTabIndex = 0;
 let showcaseDeviceMode = 'desktop'; // 'desktop' | 'mobile'
+let isLightboxZoomed = false;
 
 const TAB_DATA = {
   'tab-login': {
-    title: '📱 Acceso Seguro Móvil & Multi-Inquilino',
-    tag: 'Seguridad & Acceso',
-    desc: 'Ingreso optimizado y blindado desde cualquier teléfono celular, tablet o computador. Conexión cifrada de grado empresarial, arquitectura multi-inquilino y soporte nativo para alternar entre temas Oscuro, Claro Office y Vibrante según tu preferencia de trabajo.',
+    title: '📱 Tu Negocio en tu Bolsillo: Entra desde Celular, Tablet o PC',
+    tag: '1. Acceso Fácil y Privado',
+    desc: 'Supervisa y maneja tu negocio desde donde estés. Con una sola cuenta entras desde tu teléfono celular, una tablet en el mostrador o la computadora de tu local. Toda la información de tus ventas, productos y dinero está protegida en tu propio espacio privado para que solo tú y tu equipo autorizado puedan verla.',
     img: '/static/images/app_screens/01_acceso_login.png',
     mobileImg: '/static/images/app_screens/mobile_01_login.png',
     bullets: [
-      'Inicio de sesión ágil con correo y contraseña',
-      'Soporte de 3 temas visuales: Oscuro, Claro y Vibrante',
-      'Aislamiento seguro multi-tenant y sesiones cifradas',
-      'Diseño 100% responsivo para teléfonos y pantallas táctiles'
+      'Úsalo en tu celular, tablet o computadora sin instalar programas complicados',
+      'Espacio 100% privado y exclusivo para los datos de tu comercio',
+      '3 modos visuales cómodos para la vista: Oscuro, Claro y Vibrante',
+      'Tus datos respaldados y protegidos en todo momento'
     ]
   },
   'tab-dashboard': {
-    title: '⚡ Panel de Inicio & Métricas en Vivo',
-    tag: 'Visión General del Negocio',
-    desc: 'Visualiza de un vistazo la salud financiera de tu comercio. Monitorea ventas del día, balance acumulado en divisas (USD, EUR, Bs) con cotización oficial en tiempo real, accesos rápidos a cajas y estado del personal en un panel ejecutivo dinámico.',
+    title: '⚡ Resumen del Día: Sabe Exactamente Cuánto Estás Ganando',
+    tag: '2. Control Total de tu Dinero',
+    desc: 'Olvídate de sacar cuentas en cuadernos o esperar al final de la noche para saber cómo estuvo el día. Apenas entras al sistema, ves cuánto dinero ha ingresado hoy, cuántas ventas llevas hechas, a qué tasa está el dólar o el euro y el estado de tu caja en tiempo real.',
     img: '/static/images/app_screens/02_panel_inicio.png',
     mobileImg: '/static/images/app_screens/mobile_02_dashboard.png',
     bullets: [
-      'Resumen financiero inmediato de ingresos y ventas',
-      'Monitoreo de tasas de cambio oficiales en vivo',
-      'Botón de acceso directo para aperturar o entrar a la caja',
-      'Indicadores de rendimiento por turno de trabajo'
+      'Mira al instante cuánto has vendido hoy en Dólares, Euros y Bolívares',
+      'Tasa de cambio oficial actualizada para que nunca vendas a pérdida',
+      'Botón directo para abrir tu caja y empezar a cobrar en segundos',
+      'Control claro de cada turno de trabajo de tus empleados'
     ]
   },
   'tab-pos': {
-    title: '🛒 Punto de Venta (POS) & Cobro Multi-Moneda',
-    tag: 'Facturación & Caja Rápida',
-    desc: 'Agiliza tus cobros al máximo. Catálogo visual interactivo con navegación rápida por categorías, lector de códigos de barras, tickets en espera para atender a varios clientes en paralelo y conversión automática de divisas al instante.',
+    title: '🛒 Caja Rápida: Cobra en Segundos sin Usar Calculadora',
+    tag: '3. Ventas Ágiles y Multi-Moneda',
+    desc: 'Despacha a tus clientes rápido y sin colas en el mostrador. Toca los productos en pantalla o escanea el código de barras con la cámara de tu teléfono; el sistema calcula automáticamente el total en Dólares (USD), Euros (EUR) y Bolívares (Bs) al instante, incluso si se va el internet.',
     img: '/static/images/app_screens/04_punto_de_venta.png',
     mobileImg: '/static/images/app_screens/mobile_03_pos.png',
     bullets: [
-      'Buscador predictivo instantáneo y escáner de códigos',
-      'Conversión automática USD, EUR y Bs en tiempo real',
-      'Manejo simultáneo de tickets en espera',
-      'Modo Offline-First: factura sin interrupciones aun sin internet'
+      'Cálculo automático en USD, EUR y Bolívares sin errores de cuenta',
+      'Busca por nombre o escanea códigos de barras desde el celular o lector',
+      'Pausa una cuenta en espera mientras atiendes a otro cliente rápido',
+      'Sigue cobrando aunque falle el internet (Modo Sin Conexión)'
     ]
   },
   'tab-onboarding': {
-    title: '💡 Asistente Táctil de Ventas Paso a Paso',
-    tag: 'Capacitación Inmediata',
-    desc: 'Facilita la incorporación de tus cajeros y empleados. ZNexica POS integra guías interactivas directamente en la pantalla de cobro que enseñan con 1 clic cómo añadir productos, modificar cantidades y registrar abonos sin necesidad de entrenamientos complejos.',
+    title: '💡 Tan Fácil que Cualquier Empleado Aprende en 5 Minutos',
+    tag: '4. Cero Complicaciones',
+    desc: 'No necesitas saber de computación ni pasar días entrenando a un cajero nuevo. ZNexica POS incluye un asistente visual en pantalla que le indica paso a paso dónde tocar para agregar productos, cambiar cantidades y cerrar la venta desde el primer día.',
     img: '/static/images/app_screens/03_pos_guia_onboarding.png',
     mobileImg: '/static/images/app_screens/03_pos_guia_onboarding.png',
     bullets: [
-      'Guía visual paso a paso en el primer inicio de caja',
-      'Interacción rápida con 1 solo clic para sumar productos',
-      'Consejos de atajos de teclado y escaneo de barras',
-      'Curva de aprendizaje reducida a minutos'
+      'Guía en pantalla que explica paso a paso cómo cobrar',
+      'Botones grandes y claros pensados para pantallas táctiles y tablets',
+      'Tus trabajadores aprenden a usarlo en minutos sin cometer errores',
+      'Ideal para bodegones, abastos, tiendas de ropa, ferreterías y emprendimientos'
     ]
   },
   'tab-productos': {
-    title: '🏷️ Catálogo Completo de Productos & SKU',
-    tag: 'Gestión de Catálogo',
-    desc: 'Control integral de todo tu surtido comercial. Asigna códigos SKU y barras, define unidades de medida (Unidad, Kilos, Litros, etc.), costos de compra a proveedores, márgenes de utilidad y PVP en divisas con cálculo automático de IVA.',
+    title: '🏷️ Tus Productos y Precios Siempre al Día y Ordenados',
+    tag: '5. Catálogo e Inventario Inteligente',
+    desc: 'Registra toda tu mercancía organizada por departamentos (bebidas, víveres, repuestos, calzado, etc.). Coloca cuánto te costó cada producto y cuánto le quieres ganar: el sistema protege tus precios en divisas y te avisa cuando un producto se está agotando.',
     img: '/static/images/app_screens/05_catalogo_productos.png',
     mobileImg: '/static/images/app_screens/05_catalogo_productos.png',
     bullets: [
-      'Control preciso de márgenes y precios de venta al público',
-      'Clasificación organizada por departamentos y categorías',
-      'Alertas visuales de existencias mínimas y stock bajo',
-      'Modificación y creación de productos sin detener la venta'
+      'Vende por unidad, por peso (kilos/gramos), litros o paquetes',
+      'Calcula tu ganancia real comparando costo de compra vs. precio de venta',
+      'Avisos automáticos cuando te queda poca mercancía en el estante',
+      'Actualiza precios en segundos sin frenar la atención al público'
     ]
   },
   'tab-entradas': {
-    title: '📥 Historial de Entradas & Lotes de Mercancía',
-    tag: 'Recepción & Costos',
-    desc: 'Lleva el registro exacto de cada lote que ingresa a tu depósito. Asocia el número de factura fiscal del proveedor, costo unitario, cantidad adquirida y fecha de recepción para mantener una auditoría contable impecable.',
+    title: '📥 Registra la Mercancía que Llega y Cuida tu Inversión',
+    tag: '6. Recepción de Mercancía',
+    desc: 'Cada vez que te despacha un proveedor, registra la mercancía que entra a tu negocio en un par de toques. Así sabes exactamente cuántas unidades llegaron, a qué costo las compraste, con qué factura ingresaron y tu stock se suma automáticamente.',
     img: '/static/images/app_screens/10_inventario_entradas.png',
     mobileImg: '/static/images/app_screens/10_inventario_entradas.png',
     bullets: [
-      'Trazabilidad de lotes y fechas de recepción física',
-      'Asociación directa al proveedor y número de factura',
-      'Cálculo automático de costo promedio e impacto en PVP',
-      'Auditoría y conciliación transparente para arqueo'
+      'Suma mercancía nueva a tu inventario de forma inmediata',
+      'Guarda el precio de compra y el número de factura de cada proveedor',
+      'Actualiza tus costos para no perder dinero cuando suba la mercancía',
+      'Historial claro de todo lo que has comprado por fecha'
     ]
   },
   'tab-salidas': {
-    title: '📤 Control de Salidas, Mermas & Ajustes',
-    tag: 'Auditoría & Mermas',
-    desc: 'Elimina las pérdidas invisibles en tu establecimiento. Registra retiros de mercancía por mermas, productos dañados o vencidos, consumo interno de personal o ajustes de inventario físico sincronizado al instante con la base de datos.',
+    title: '📤 Frena las Pérdidas Hormiga y Descuadres de Mercancía',
+    tag: '7. Prevención de Pérdidas',
+    desc: '¿Sientes que vendes pero no ves la ganancia porque faltan productos? Con este módulo registras cualquier producto que salga sin venderse (vencidos, dañados, consumo del local o ajustes), sabiendo quién lo autorizó, por qué salió y a qué hora.',
     img: '/static/images/app_screens/11_inventario_salidas.png',
     mobileImg: '/static/images/app_screens/11_inventario_salidas.png',
     bullets: [
-      'Tipificación clara del retiro: merma, vencimiento o ajuste',
-      'Historial auditado con fecha y usuario responsable',
-      'Control estricto entre el conteo físico y el sistema',
-      'Prevención activa de pérdidas de mercancía'
+      'Detecta y frena robos hormiga o mercancía extraviada en tu tienda',
+      'Registra productos dañados, vencidos o de uso interno con justificación',
+      'Sabe exactamente qué usuario hizo cada movimiento de inventario',
+      'Tu conteo físico en estantes coincide siempre con lo que dice el sistema'
     ]
   },
   'tab-proveedores': {
-    title: '🚚 Directorio & Gestión de Proveedores',
-    tag: 'Cadena de Suministro',
-    desc: 'Centraliza la información de tus distribuidores comerciales. Ten a la mano números de contacto telefónico, RIF o cédula fiscal, términos y plazos de crédito comercial para negociar mejores condiciones de compra y reposición.',
+    title: '🚚 Agenda de Proveedores para Reponer Stock a Tiempo',
+    tag: '8. Compras y Distribuidores',
+    desc: 'Ten todos los datos de tus distribuidores y vendedores en un solo lugar. Consulta rápido sus teléfonos, RIF, días de despacho y condiciones de pago para hacer tus pedidos a tiempo y negociar mejores precios para tu negocio.',
     img: '/static/images/app_screens/12_directorio_proveedores.png',
     mobileImg: '/static/images/app_screens/12_directorio_proveedores.png',
     bullets: [
-      'Ficha comercial completa del proveedor',
-      'Control de plazos de pago y líneas de crédito',
-      'Directorio de contacto para pedidos rápidos',
-      'Historial de compras y pedidos recibidos'
+      'Directorio organizado con teléfonos, RIF y contacto de cada distribuidor',
+      'Control de plazos de pago y créditos que te dan tus proveedores',
+      'Consulta rápida de qué productos le compras a cada proveedor',
+      'Todo a la mano desde tu celular cuando vayas a surtir tu negocio'
     ]
   },
   'tab-clientes': {
-    title: '👥 Cartera de Clientes & CRM Comercial',
-    tag: 'Fidelización de Clientes',
-    desc: 'Registra a tus clientes recurrentes con cédula, teléfono de contacto con enlace directo a WhatsApp y dirección. Registra compras a crédito y mantén un historial de ventas personalizado para cada comprador.',
+    title: '👥 Cartera de Clientes con Contacto Directo a WhatsApp',
+    tag: '9. Atención y Fidelización',
+    desc: 'Conoce mejor a quienes compran en tu negocio. Guarda sus datos en segundos, mira el historial de todo lo que te han comprado y escríbele directo a su WhatsApp con un solo toque para enviarles promociones, avisos de mercancía nueva o recordatorios.',
     img: '/static/images/app_screens/07_cartera_clientes.png',
     mobileImg: '/static/images/app_screens/07_cartera_clientes.png',
     bullets: [
-      'Directorio comercial completo con enlace a WhatsApp',
-      'Búsqueda predictiva por nombre, cédula o teléfono',
-      'Historial de consumo individual por cliente',
-      'Base para cobranzas y programas de fidelidad'
+      'Botón directo para abrir chat de WhatsApp con tu cliente sin anotar números',
+      'Búsqueda instantánea por nombre, cédula o número de teléfono',
+      'Mira qué productos compra con más frecuencia cada cliente',
+      'Fideliza a tu clientela y aumenta tus ventas recurrentes'
     ]
   },
   'tab-cuentas': {
-    title: '💳 Cuentas por Cobrar & Control de Créditos',
-    tag: 'Finanzas & Cobranzas',
-    desc: 'Monitorea de forma rigurosa los saldos pendientes por cobrar. Registra compras a crédito, lleva el historial de abonos parciales y visualiza en tiempo real cuánto dinero tienes en la calle para asegurar la liquidez de tu negocio.',
+    title: '💳 Control de Fiados, Créditos y Abonos sin Perder Plata',
+    tag: '10. Cuentas por Cobrar',
+    desc: 'Si vendes a crédito o por abonos, nunca más perderás dinero por papeles extraviados o cuentas olvidadas. El sistema lleva la cuenta exacta de cuánto te debe cada cliente, registra cada abono que te hacen y te muestra cuánto dinero tienes en la calle por cobrar.',
     img: '/static/images/app_screens/09_cuentas_por_cobrar.png',
     mobileImg: '/static/images/app_screens/09_cuentas_por_cobrar.png',
     bullets: [
-      'Control de saldos vencidos y facturas a crédito',
-      'Registro rápido de abonos parciales y cancelaciones',
-      'Alertas de cobros pendientes por cliente',
-      'Transparencia total en el flujo de caja'
+      'Sabe al centavo quién te debe, desde cuándo y cuánto le falta por pagar',
+      'Registra pagos parciales o abonos y descuéntalos de la deuda al instante',
+      'Deudas protegidas en dólares para que la inflación no se coma tu dinero',
+      'Cobra a tiempo con recordatorios claros por cliente'
     ]
   },
   'tab-usuarios': {
-    title: '👤 Usuarios, Roles & Control de Acceso',
-    tag: 'Seguridad Operativa',
-    desc: 'Gestiona los accesos de tu equipo con perfiles de seguridad: Administrador, Cajero o Supervisor. Cada empleado cuenta con credenciales cifradas y permisos acotados para evitar modificaciones no autorizadas.',
+    title: '👤 Permisos por Empleado: Tus Cajeros Cobran, Tú Mandas',
+    tag: '11. Seguridad de tu Equipo',
+    desc: 'Delega el trabajo en tu negocio con total tranquilidad. Crea un usuario para cada cajero o encargado y decide qué puede ver y hacer: tus empleados pueden facturar rápido, pero solo tú como dueño puedes cambiar precios, borrar ventas o ver las ganancias totales.',
     img: '/static/images/app_screens/13_usuarios_y_roles.png',
     mobileImg: '/static/images/app_screens/13_usuarios_y_roles.png',
     bullets: [
-      'Roles asignables: ADMIN, CAJERO y SUPER_ADMIN',
-      'Restricción de anulación de ventas y descuentos sensibles',
-      'Sesiones individuales con auditoría de movimientos',
-      'Protección y blindaje de la información financiera'
+      'Cuentas separadas para Dueño (Administrador), Supervisor y Cajeros',
+      'Evita que los empleados cambien precios o borren ventas sin tu permiso',
+      'Cada venta queda registrada con el nombre del cajero que la realizó',
+      'Tranquilidad total para dejar tu negocio operando aunque no estés presente'
     ]
   }
 };
@@ -207,20 +208,27 @@ function switchShowcaseDevice(mode) {
   const desktopBtn = document.getElementById('viewModeDesktop');
   const mobileBtn = document.getElementById('viewModeMobile');
   const mockupFrame = document.getElementById('mockupFrame');
+  const lbDesktopBtn = document.getElementById('lbViewDesktop');
+  const lbMobileBtn = document.getElementById('lbViewMobile');
 
   if (mode === 'mobile') {
     if (mobileBtn) mobileBtn.classList.add('active');
     if (desktopBtn) desktopBtn.classList.remove('active');
     if (mockupFrame) mockupFrame.classList.add('mobile-mode');
+    if (lbMobileBtn) lbMobileBtn.classList.add('active');
+    if (lbDesktopBtn) lbDesktopBtn.classList.remove('active');
   } else {
     if (desktopBtn) desktopBtn.classList.add('active');
     if (mobileBtn) mobileBtn.classList.remove('active');
     if (mockupFrame) mockupFrame.classList.remove('mobile-mode');
+    if (lbDesktopBtn) lbDesktopBtn.classList.add('active');
+    if (lbMobileBtn) lbMobileBtn.classList.remove('active');
   }
 
   // Volver a renderizar la pestaña activa con el modo seleccionado
   const currentKey = TAB_ORDER[currentTabIndex] || 'tab-login';
   renderShowcase(currentKey);
+  syncLightboxContent();
 }
 
 function renderShowcase(targetKey) {
@@ -249,7 +257,7 @@ function renderShowcase(targetKey) {
   const showcaseCounter = document.getElementById('showcaseCounter');
 
   if (showcaseCounter) {
-    showcaseCounter.textContent = `📱 Captura ${currentTabIndex + 1} de ${TAB_ORDER.length}`;
+    showcaseCounter.textContent = `📱 Pantalla ${currentTabIndex + 1} de ${TAB_ORDER.length}`;
   }
 
   // Seleccionar imagen adecuada según modo dispositivo
@@ -277,6 +285,8 @@ function renderShowcase(targetKey) {
       .map(b => `<div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> ${b}</div>`)
       .join('');
   }
+
+  syncLightboxContent();
 }
 
 function navigateShowcase(direction) {
@@ -286,6 +296,85 @@ function navigateShowcase(direction) {
   renderShowcase(TAB_ORDER[newIndex]);
 }
 
+/* ==========================================================================
+   2.1 VISOR INTERACTIVO DE CAPTURAS EN PANTALLA COMPLETA (LIGHTBOX / ZOOM)
+   ========================================================================== */
+function syncLightboxContent() {
+  const modal = document.getElementById('screenshotLightboxModal');
+  if (!modal || !modal.classList.contains('active')) return;
+
+  const currentKey = TAB_ORDER[currentTabIndex] || 'tab-login';
+  const data = TAB_DATA[currentKey];
+  if (!data) return;
+
+  const lbImg = document.getElementById('lightboxImg');
+  const lbTag = document.getElementById('lightboxTag');
+  const lbTitle = document.getElementById('lightboxTitle');
+  const lbDesc = document.getElementById('lightboxDesc');
+  const lbBullets = document.getElementById('lightboxBullets');
+  const lbCounter = document.getElementById('lightboxCounter');
+  const lbStage = document.getElementById('lightboxStage');
+
+  const targetImgSrc = (showcaseDeviceMode === 'mobile' && data.mobileImg) ? data.mobileImg : data.img;
+
+  if (lbImg) {
+    lbImg.src = targetImgSrc;
+    lbImg.alt = data.title;
+    lbImg.classList.remove('zoomed');
+  }
+  isLightboxZoomed = false;
+  const zoomBtn = document.getElementById('lightboxZoomBtn');
+  if (zoomBtn) zoomBtn.innerHTML = '🔍 Acercar Zoom';
+  if (lbStage) lbStage.scrollTop = 0;
+
+  if (lbTag) lbTag.textContent = data.tag;
+  if (lbTitle) lbTitle.textContent = data.title;
+  if (lbDesc) lbDesc.textContent = data.desc;
+  if (lbCounter) lbCounter.textContent = `Pantalla ${currentTabIndex + 1} de ${TAB_ORDER.length}`;
+
+  if (lbBullets && data.bullets) {
+    lbBullets.innerHTML = data.bullets
+      .map(b => `<div class="lb-bullet-chip"><span>✓</span> ${b}</div>`)
+      .join('');
+  }
+}
+
+function openScreenshotLightbox() {
+  const modal = document.getElementById('screenshotLightboxModal');
+  if (!modal) return;
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  syncLightboxContent();
+}
+
+function closeScreenshotLightbox(event) {
+  if (event && event.target && event.target.id !== 'screenshotLightboxModal') return;
+  const modal = document.getElementById('screenshotLightboxModal');
+  if (!modal) return;
+
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+  isLightboxZoomed = false;
+  const lbImg = document.getElementById('lightboxImg');
+  if (lbImg) lbImg.classList.remove('zoomed');
+}
+
+function toggleLightboxZoom() {
+  const lbImg = document.getElementById('lightboxImg');
+  const zoomBtn = document.getElementById('lightboxZoomBtn');
+  if (!lbImg) return;
+
+  isLightboxZoomed = !isLightboxZoomed;
+  if (isLightboxZoomed) {
+    lbImg.classList.add('zoomed');
+    if (zoomBtn) zoomBtn.innerHTML = '🔎 Restablecer Tamaño';
+  } else {
+    lbImg.classList.remove('zoomed');
+    if (zoomBtn) zoomBtn.innerHTML = '🔍 Acercar Zoom';
+  }
+}
+
 function initDynamicTabs() {
   const buttons = document.querySelectorAll('.tab-btn');
   buttons.forEach(btn => {
@@ -293,6 +382,19 @@ function initDynamicTabs() {
       const targetKey = btn.getAttribute('data-target');
       renderShowcase(targetKey);
     });
+  });
+
+  // Soporte de teclado para el visor de capturas (Escape, Flechas Izquierda/Derecha)
+  document.addEventListener('keydown', (e) => {
+    const modal = document.getElementById('screenshotLightboxModal');
+    if (!modal || !modal.classList.contains('active')) return;
+    if (e.key === 'Escape') {
+      closeScreenshotLightbox();
+    } else if (e.key === 'ArrowLeft') {
+      navigateShowcase(-1);
+    } else if (e.key === 'ArrowRight') {
+      navigateShowcase(1);
+    }
   });
 }
 

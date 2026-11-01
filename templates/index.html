@@ -9,7 +9,7 @@
   <meta name="author" content="ZNexica POS">
   <link rel="icon" type="image/png" href="/static/images/logo_icon.png">
   <link rel="apple-touch-icon" href="/static/images/logo.jpg">
-  <link rel="stylesheet" href="/static/css/styles.css?v=4.1">
+  <link rel="stylesheet" href="/static/css/styles.css?v=4.2">
 </head>
 <body>
 
@@ -119,10 +119,60 @@
        ====================================================================== -->
   <section class="showcase-section" id="funciones">
     <div class="container">
+
+      <!-- COMUNICADO OFICIAL DE PRE-LANZAMIENTO Y FASE FINAL DE DESARROLLO -->
+      <div class="prelaunch-official-banner reveal" role="status" aria-live="polite">
+        <div class="prelaunch-badge-pill">
+          <span class="prelaunch-pulse-dot"></span>
+          COMUNICADO OFICIAL • FASE FINAL DE LANZAMIENTO
+        </div>
+        <div class="prelaunch-content-grid">
+          <div class="prelaunch-text-col">
+            <h3 class="prelaunch-title">🚀 ZNexica POS está en su etapa final de desarrollo y muy pronto saldrá oficialmente al mercado</h3>
+            <p class="prelaunch-desc">
+              Actualmente nuestro equipo de ingeniería se encuentra afinando los últimos detalles técnicos y pruebas de calidad para garantizarte un sistema impecable. <strong>Todos los clientes y comerciantes reales interesados que se registren desde hoy tendrán prioridad exclusiva</strong>: te notificaremos de forma directa apenas se habilite la salida oficial para que adquieras tu suscripción y empieces a operar tu negocio.
+            </p>
+          </div>
+          <div class="prelaunch-action-col">
+            <button type="button" onclick="openClientAuthModal()" class="prelaunch-cta-btn">
+              🔔 Registrarme como Cliente Interesado
+            </button>
+            <span class="prelaunch-subnote">Recibirás aviso prioritario por WhatsApp y Correo</span>
+          </div>
+        </div>
+      </div>
+
       <div class="section-header reveal">
-        <span class="section-subtitle">Galería de Módulos</span>
-        <h2 class="section-title">Diseñado para Operar sin Esfuerzo</h2>
-        <p class="section-description">Explora cada pantalla y función de ZNexica POS con capturas directas de la aplicación.</p>
+        <span class="section-subtitle">Conoce Tu Futuro Sistema por Dentro</span>
+        <h2 class="section-title">¿Qué es ZNexica POS y Cómo Hace Crecer tu Negocio?</h2>
+        <p class="section-description">
+          Es tu caja registradora inteligente, tu control de inventario y tu administrador financiero en un solo lugar. Pensado para que bodegones, abastos, tiendas, ferreterías y emprendimientos vendan rápido, cobren en divisas sin errores y sepan exactamente cuánto dinero ganan cada día.
+        </p>
+      </div>
+
+      <!-- 3 Pilares Comerciales Claros para el Comerciante -->
+      <div class="commercial-value-strip reveal">
+        <div class="value-pillar-card">
+          <span class="value-pillar-icon">💰</span>
+          <div>
+            <h4>Cobra Rápido y Sin Errores</h4>
+            <p>Calcula al instante en Dólares, Euros y Bolívares a tasa actualizada. Sin usar calculadora ni perder tiempo en la caja.</p>
+          </div>
+        </div>
+        <div class="value-pillar-card">
+          <span class="value-pillar-icon">📦</span>
+          <div>
+            <h4>Cero Pérdidas de Mercancía</h4>
+            <p>Controla cada producto que entra y sale. Evita robos hormiga, descuadres de inventario y sabe cuándo reponer stock.</p>
+          </div>
+        </div>
+        <div class="value-pillar-card">
+          <span class="value-pillar-icon">📲</span>
+          <div>
+            <h4>Supervisa Desde Cualquier Lugar</h4>
+            <p>Úsalo en tu celular, tablet o computadora. Revisa tus ventas del día, cuentas por cobrar y cierre de caja estés donde estés.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Selector de Vista: Vista Computadora / Vista Celular Mobile-First -->
@@ -137,17 +187,17 @@
 
       <!-- Tabs de Funcionalidades (11 Módulos Reales de la Aplicación) -->
       <div class="tab-pills reveal" id="showcasePills">
-        <button class="tab-btn active" data-target="tab-login">📱 Acceso Seguro</button>
-        <button class="tab-btn" data-target="tab-dashboard">⚡ Panel de Control</button>
-        <button class="tab-btn" data-target="tab-pos">🛒 Punto de Venta</button>
-        <button class="tab-btn" data-target="tab-onboarding">💡 Asistente Táctil</button>
-        <button class="tab-btn" data-target="tab-productos">🏷️ Catálogo & SKU</button>
-        <button class="tab-btn" data-target="tab-entradas">📥 Entradas</button>
-        <button class="tab-btn" data-target="tab-salidas">📤 Salidas & Mermas</button>
-        <button class="tab-btn" data-target="tab-proveedores">🚚 Proveedores</button>
-        <button class="tab-btn" data-target="tab-clientes">👥 Clientes</button>
-        <button class="tab-btn" data-target="tab-cuentas">💳 Cuentas por Cobrar</button>
-        <button class="tab-btn" data-target="tab-usuarios">👤 Usuarios & Roles</button>
+        <button class="tab-btn active" data-target="tab-login">📱 1. Acceso Fácil</button>
+        <button class="tab-btn" data-target="tab-dashboard">⚡ 2. Ganancias del Día</button>
+        <button class="tab-btn" data-target="tab-pos">🛒 3. Caja y Cobro Rápido</button>
+        <button class="tab-btn" data-target="tab-onboarding">💡 4. Fácil para Empleados</button>
+        <button class="tab-btn" data-target="tab-productos">🏷️ 5. Productos y Precios</button>
+        <button class="tab-btn" data-target="tab-entradas">📥 6. Entrada de Mercancía</button>
+        <button class="tab-btn" data-target="tab-salidas">📤 7. Evitar Pérdidas</button>
+        <button class="tab-btn" data-target="tab-proveedores">🚚 8. Proveedores</button>
+        <button class="tab-btn" data-target="tab-clientes">👥 9. Clientes y WhatsApp</button>
+        <button class="tab-btn" data-target="tab-cuentas">💳 10. Control de Fiados</button>
+        <button class="tab-btn" data-target="tab-usuarios">👤 11. Cajeros y Permisos</button>
       </div>
 
       <!-- Tarjeta Dinámica con Mockup Interactivo y Animado -->
@@ -157,33 +207,41 @@
           <button type="button" class="showcase-nav-btn" id="showcasePrevBtn" onclick="navigateShowcase(-1)" aria-label="Anterior captura">
             ❮ Anterior
           </button>
-          <span class="showcase-counter" id="showcaseCounter">📱 Captura 1 de 11</span>
+          <span class="showcase-counter" id="showcaseCounter">📱 Pantalla 1 de 11</span>
           <button type="button" class="showcase-nav-btn" id="showcaseNextBtn" onclick="navigateShowcase(1)" aria-label="Siguiente captura">
             Siguiente ❯
           </button>
         </div>
 
         <div class="showcase-body-grid">
-          <!-- LADO IZQUIERDO: Marco de Imagen Mockup Estilizado -->
-          <div class="mockup-frame" id="mockupFrame">
-            <div class="mockup-viewport">
-              <img src="/static/images/app_screens/01_acceso_login.png" alt="Captura de ZNexica POS" class="mockup-img" id="displayImg">
+          <!-- LADO IZQUIERDO: Marco de Imagen Mockup Estilizado (Tocar para Ampliar) -->
+          <div class="mockup-interactive-col">
+            <div class="mockup-frame clickable-mockup" id="mockupFrame" onclick="openScreenshotLightbox()" role="button" tabindex="0" aria-label="Toca para ampliar la captura en pantalla completa" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openScreenshotLightbox();}">
+              <div class="mockup-viewport">
+                <img src="/static/images/app_screens/01_acceso_login.png" alt="Captura de ZNexica POS" class="mockup-img" id="displayImg">
+              </div>
+              <div class="mockup-zoom-overlay-badge">
+                <span>🔍 Toca la captura para ampliar en pantalla completa</span>
+              </div>
             </div>
+            <button type="button" class="mockup-expand-helper-btn" onclick="openScreenshotLightbox()">
+              🔍 Ver esta pantalla en grande y con zoom (Ideal para Celular / Tablet)
+            </button>
           </div>
 
-          <!-- LADO DERECHO: Descripción y Beneficios del Módulo (Lo que hace la app) -->
+          <!-- LADO DERECHO: Descripción Comercial y Beneficios del Módulo -->
           <div class="tab-info">
-            <span class="module-tag" id="displayTag">Seguridad & Acceso</span>
-            <h3 id="displayTitle">📱 Acceso Seguro Móvil & Multi-Inquilino</h3>
+            <span class="module-tag" id="displayTag">1. Acceso Fácil y Privado</span>
+            <h3 id="displayTitle">📱 Tu Negocio en tu Bolsillo: Entra desde Celular, Tablet o PC</h3>
             <p id="displayDesc">
-              Ingreso optimizado y blindado desde cualquier teléfono inteligente, tablet o computador. Conexión cifrada de grado empresarial, arquitectura multi-inquilino y soporte nativo para alternar entre temas Oscuro, Claro Office y Vibrante según tu preferencia de trabajo.
+              Supervisa y maneja tu negocio desde donde estés. Con una sola cuenta entras desde tu teléfono celular, una tablet en el mostrador o la computadora de tu local. Toda la información de tus ventas, productos y dinero está protegida en tu propio espacio privado para que solo tú y tu equipo autorizado puedan verla.
             </p>
 
             <div class="feature-bullets" id="displayBullets">
-              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Inicio de sesión ágil con correo y contraseña</div>
-              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Soporte de 3 temas visuales: Oscuro, Claro y Vibrante</div>
-              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Aislamiento seguro multi-tenant y sesiones cifradas</div>
-              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Diseño 100% responsivo para teléfonos y pantallas táctiles</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Úsalo en tu celular, tablet o computadora sin instalar programas complicados</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Espacio 100% privado y exclusivo para los datos de tu comercio</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> 3 modos visuales cómodos para la vista: Oscuro, Claro y Vibrante</div>
+              <div class="feature-bullet-item"><span class="feature-bullet-icon">✓</span> Tus datos respaldados y protegidos en todo momento</div>
             </div>
 
             <div class="showcase-action-wrap">
@@ -656,6 +714,70 @@
   </div>
 
   <!-- ======================================================================
+       VISOR INTERACTIVO DE CAPTURAS EN PANTALLA COMPLETA (LIGHTBOX / ZOOM)
+       ====================================================================== -->
+  <div class="screenshot-lightbox-overlay" id="screenshotLightboxModal" onclick="closeScreenshotLightbox(event)" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+    <div class="screenshot-lightbox-card" onclick="event.stopPropagation()">
+      <!-- Barra Superior del Visor -->
+      <div class="lightbox-topbar">
+        <div class="lightbox-topbar-left">
+          <span class="lightbox-tag" id="lightboxTag">1. Acceso Fácil y Privado</span>
+          <span class="lightbox-counter" id="lightboxCounter">Pantalla 1 de 11</span>
+        </div>
+
+        <div class="lightbox-device-toggle">
+          <button type="button" class="lb-device-btn active" id="lbViewDesktop" onclick="switchShowcaseDevice('desktop')">
+            🖥️ PC / Tablet
+          </button>
+          <button type="button" class="lb-device-btn" id="lbViewMobile" onclick="switchShowcaseDevice('mobile')">
+            📱 Celular
+          </button>
+        </div>
+
+        <div class="lightbox-topbar-actions">
+          <button type="button" class="lb-action-btn" id="lightboxZoomBtn" onclick="toggleLightboxZoom()">
+            🔍 Acercar Zoom
+          </button>
+          <button type="button" class="lb-close-btn" onclick="closeScreenshotLightbox()" aria-label="Cerrar visor">
+            ✕ Cerrar
+          </button>
+        </div>
+      </div>
+
+      <!-- Escenario Central con Imagen Ampliable -->
+      <div class="lightbox-stage-wrapper">
+        <button type="button" class="lb-side-nav lb-prev" onclick="navigateShowcase(-1)" aria-label="Pantalla anterior">
+          ❮
+        </button>
+
+        <div class="lightbox-stage" id="lightboxStage">
+          <img src="/static/images/app_screens/01_acceso_login.png" alt="Captura ampliada ZNexica POS" class="lightbox-img" id="lightboxImg" onclick="toggleLightboxZoom()" title="Toca o haz clic en la imagen para acercar o alejar">
+        </div>
+
+        <button type="button" class="lb-side-nav lb-next" onclick="navigateShowcase(1)" aria-label="Siguiente pantalla">
+          ❯
+        </button>
+      </div>
+
+      <!-- Panel Inferior con Explicación Detallada del Módulo -->
+      <div class="lightbox-info-footer">
+        <div class="lightbox-info-main">
+          <h4 id="lightboxTitle">📱 Tu Negocio en tu Bolsillo: Entra desde Celular, Tablet o PC</h4>
+          <p id="lightboxDesc">
+            Supervisa y maneja tu negocio desde donde estés. Con una sola cuenta entras desde tu teléfono celular, una tablet en el mostrador o la computadora de tu local.
+          </p>
+          <div class="lightbox-bullets-row" id="lightboxBullets"></div>
+        </div>
+        <div class="lightbox-mobile-nav-row">
+          <button type="button" class="lb-mobile-step-btn" onclick="navigateShowcase(-1)">❮ Pantalla Anterior</button>
+          <span class="lb-zoom-tip">💡 Toca la imagen para hacer Zoom</span>
+          <button type="button" class="lb-mobile-step-btn" onclick="navigateShowcase(1)">Siguiente Pantalla ❯</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
        FOOTER
        ====================================================================== -->
   <footer class="footer">
@@ -668,7 +790,7 @@
   <script>
     window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone }}";
   </script>
-  <script src="/static/js/main.js?v=8.2"></script>
+  <script src="/static/js/main.js?v=8.3"></script>
 
   <!-- ANTI-CACHE: Forzando la nueva UI de Métodos de Pago aquí mismo -->
   <style>
