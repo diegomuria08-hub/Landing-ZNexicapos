@@ -176,6 +176,7 @@ async def submit_payment(
         suscripcion.tenant_admin_id = data_body.get("admin", {}).get("id")
         suscripcion.tenant_plan_id = data_body.get("plan", {}).get("id")
         suscripcion.tenant_provisioning_status = "exitoso"
+        suscripcion.tenant_error_detail = None
         suscripcion.tenant_provisioned_at = realtime_now
     except ProvisioningConflictError as ce:
         # Si el cliente ya existe en la BD del producto (ej. renovación o cambio de plan con su misma cuenta)

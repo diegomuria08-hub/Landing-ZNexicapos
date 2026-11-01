@@ -56,9 +56,8 @@ def update_subscription_status(
             usuario.esta_bloqueado = False
             usuario.motivo_bloqueo = ""
             
-            # Disparar aprovisionamiento en la API externa si aún no está aprovisionado,
-            # enviando la contraseña original exacta del usuario (sin encriptar ni hashear aquí)
-            if sub.tenant_provisioning_status != "exitoso":
+            # Disparar o actualizar aprovisionamiento en la API externa enviando la contraseña original exacta del usuario
+            if sub.tenant_provisioning_status != "exitoso" or not sub.tenant_company_id:
                 from app.services.provisioning import provision_tenant_sync, ProvisioningConflictError
                 empresa = usuario.nombre_empresa or f"Negocio de {usuario.nombre_completo}"
                 email_admin = usuario.email or f"{usuario.telefono}@minipos-user.com"
@@ -80,6 +79,7 @@ def update_subscription_status(
                     sub.tenant_admin_id = data_body.get("admin", {}).get("id")
                     sub.tenant_plan_id = data_body.get("plan", {}).get("id")
                     sub.tenant_provisioning_status = "exitoso"
+                    sub.tenant_error_detail = None
                     sub.tenant_provisioned_at = now_caracas
                 except ProvisioningConflictError as ce:
                     sub.tenant_provisioning_status = "exitoso"

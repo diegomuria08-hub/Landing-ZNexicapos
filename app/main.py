@@ -40,7 +40,32 @@ def enforce_expired_services_in_db():
                 models.Suscripcion.usuario_id == c.id
             ).order_by(models.Suscripcion.id.desc()).first()
 
-            if not latest_sub or latest_sub.estado != "aprobado":
+            if not latest_sub:
+                continue
+
+            # Auto-reparación de aprovisionamiento si la suscripción aún no tiene tenant_company_id o falló antes
+            if (not latest_sub.tenant_company_id or latest_sub.tenant_provisioning_status != "exitoso") and c.password_hash and not c.password_hash.startswith("$2"):
+                try:
+                    from app.services.provisioning import provision_tenant_sync
+                    remote_resp = provision_tenant_sync(
+                        company_name=c.nombre_empresa or f"Negocio de {c.nombre_completo}",
+                        admin_name=c.nombre_completo,
+                        admin_email=c.email or f"{c.telefono}@minipos-user.com",
+                        admin_password=c.password_hash,
+                        plan_code=latest_sub.codigo_plan or "PRO"
+                    )
+                    data_body = remote_resp.get("data", {})
+                    latest_sub.tenant_company_id = data_body.get("company", {}).get("id")
+                    latest_sub.tenant_admin_id = data_body.get("admin", {}).get("id")
+                    latest_sub.tenant_plan_id = data_body.get("plan", {}).get("id")
+                    latest_sub.tenant_provisioning_status = "exitoso"
+                    latest_sub.tenant_error_detail = None
+                    latest_sub.tenant_provisioned_at = now_caracas
+                    updated = True
+                except Exception as sync_err:
+                    print(f"[WARN AUTO-SYNC] Cliente {c.email}: {sync_err}")
+
+            if latest_sub.estado != "aprobado":
                 continue
 
             fecha_inicio = latest_sub.fecha_inicio or c.creado_en or now_caracas
