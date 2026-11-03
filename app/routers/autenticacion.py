@@ -96,18 +96,8 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(usuario)
 
-    # Aprovisionar y sincronizar inmediatamente las credenciales del cliente en la base de datos de la app (miniPOS)
-    try:
-        from app.services.provisioning import provision_tenant_sync
-        provision_tenant_sync(
-            company_name=empresa_clean,
-            admin_name=usuario.nombre_completo,
-            admin_email=target_email,
-            admin_password=raw_password,
-            plan_code="PRO"
-        )
-    except Exception as prov_err:
-        print(f"[WARN REGISTER PROVISIONING] Se reintentará al enviar suscripción: {prov_err}")
+    # La cuenta en la App ZNexica POS se crea al registrar el pago (ver routers/suscripciones.py),
+    # y el acceso se ACTIVA/DESACTIVA según el estado del pago (services/provisioning.py).
 
     token = security.create_access_token(data={"sub": usuario.telefono, "role": usuario.rol})
     return {"access_token": token, "token_type": "bearer", "user": usuario}
@@ -141,20 +131,6 @@ def login(login_in: schemas.LoginUsuario, db: Session = Depends(get_db)):
         usuario.password_hash = login_in.password
         db.commit()
         db.refresh(usuario)
-
-    # Si es un cliente, garantizar que sus credenciales estén sincronizadas en la BD del producto
-    if usuario.rol == "cliente":
-        try:
-            from app.services.provisioning import provision_tenant_sync
-            provision_tenant_sync(
-                company_name=usuario.nombre_empresa or f"Negocio de {usuario.nombre_completo}",
-                admin_name=usuario.nombre_completo,
-                admin_email=usuario.email or f"{usuario.telefono}@minipos-user.com",
-                admin_password=login_in.password,
-                plan_code="PRO"
-            )
-        except Exception as sync_err:
-            print(f"[WARN LOGIN SYNC] {sync_err}")
 
     token = security.create_access_token(data={"sub": usuario.telefono, "role": usuario.rol})
     return {"access_token": token, "token_type": "bearer", "user": usuario}

@@ -1233,7 +1233,7 @@ function renderClientsTable(clients) {
       serviceBadge = `<span class="parclgo-badge parclgo-badge-pending"><span class="parclgo-badge-dot"></span>Pendiente Aprobación</span>`;
       statusMsgColor = '#b45309';
     } else if (c.esta_vencido || c.estado_servicio === 'vencido') {
-      serviceBadge = `<span class="parclgo-badge parclgo-badge-rejected"><span class="parclgo-badge-dot"></span>Vencido (Servicio Cortado)</span>`;
+      serviceBadge = `<span class="parclgo-badge parclgo-badge-rejected"><span class="parclgo-badge-dot"></span>Vencido (Servicio Suspendido)</span>`;
       statusMsgColor = '#dc2626';
     } else if (c.esta_bloqueado || c.estado_servicio === 'suspendido') {
       serviceBadge = `<span class="parclgo-badge parclgo-badge-rejected"><span class="parclgo-badge-dot"></span>Servicio Suspendido</span>`;
@@ -1257,7 +1257,7 @@ function renderClientsTable(clients) {
     } else if (c.esta_vencido) {
       serviceActionBtn = `
         <button type="button" class="saas-btn-danger" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleSuspendClient(${c.id}, '${escapeJs(c.nombre_completo)}')">
-          ⏸️ Cortar Servicio
+          ⏸️ Suspender Servicio
         </button>
         <button type="button" class="saas-btn-primary" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleReactivateClient(${c.id}, '${escapeJs(c.nombre_completo)}')">
           ✅ Reactivar (30d)
@@ -1266,7 +1266,7 @@ function renderClientsTable(clients) {
     } else {
       serviceActionBtn = `
         <button type="button" class="saas-btn-danger" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleSuspendClient(${c.id}, '${escapeJs(c.nombre_completo)}')">
-          ⏸️ Cortar Servicio
+          ⏸️ Suspender Servicio
         </button>
       `;
     }

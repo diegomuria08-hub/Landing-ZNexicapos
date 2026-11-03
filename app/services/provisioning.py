@@ -1,298 +1,29 @@
-import os
-import base64
-import hashlib
+"""
+Capa de negocio que conecta la Landing con la App ZNexica POS.
+
+El consumo HTTP real de la API vive en:  app/integrations/znexica_api/client.py
+Aquí solo se decide CUÁNDO crear la cuenta y CUÁNDO activar/desactivar el acceso.
+"""
 import logging
-from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
-from dotenv import load_dotenv
-import httpx
+from typing import Any, Dict, Optional, Tuple
+
+from sqlalchemy.orm import Session
+
+from app import models
+from app.integrations.znexica_api import (
+    ZNexicaApiError,
+    ZNexicaApiConflictError,
+    ZNexicaApiValidationError,
+    provision_tenant,
+    set_user_status,
+)
 
 logger = logging.getLogger("provisioning_service")
 
-ENV_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
-if ENV_PATH.exists():
-    load_dotenv(dotenv_path=ENV_PATH, override=True)
-
-# UUIDs oficiales de planes descubiertos en la API del producto (mini-pos-api.vercel.app)
-DEFAULT_PLAN_UUIDS = {
-    "PRO": "4bcdb421-5a8f-4179-9509-e9a348e3dd12",
-    "BASIC": "b06ca3df-98d1-4272-bad0-4b49bb36252f",
-    "FREE": "834f7585-a656-46f5-968c-05c22f8ce93f",
-}
-
-# Tokens cifrados con SHA-256 sobre secreto de entorno (cero credenciales en texto plano en el código)
-_ENC_PROV_USER_HEX = "98c7ef821611d22234d561"
-_ENC_SVC_EMAIL_HEX = "9dc2ec85013d876f7588409ab1438da0730b1e617201"
-_ENC_SVC_PASS_HEX = "acc7f29f180dcd33748c32d6fe"
-
-
-def _decrypt_with_env_secret(cipher_hex: str, env_secret: str) -> str:
-    """Desbloquea un valor cifrado únicamente si la variable de entorno secreta está presente en el servidor."""
-    if not cipher_hex or not env_secret:
-        return ""
-    try:
-        key = hashlib.sha256(env_secret.encode("utf-8")).digest()
-        raw = bytes.fromhex(cipher_hex)
-        return bytes(b ^ key[i % len(key)] for i, b in enumerate(raw)).decode("utf-8")
-    except Exception:
-        return ""
-
-
-class ProvisioningError(Exception):
-    """Excepción base para errores de la API externa de aprovisionamiento."""
-    def __init__(self, message: str, status_code: int = 500, details: Any = None):
-        super().__init__(message)
-        self.message = message
-        self.status_code = status_code
-        self.details = details
-
-
-class ProvisioningConflictError(ProvisioningError):
-    """Error cuando el usuario o correo ya existe en el sistema remoto (HTTP 409)."""
-    pass
-
-
-class ProvisioningValidationError(ProvisioningError):
-    """Error de validación de campos o política de contraseñas (HTTP 400)."""
-    pass
-
-
-def get_provisioning_credentials() -> Tuple[str, str, str, str]:
-    """
-    Obtiene las credenciales de Basic Auth para la API externa exclusivamente desde
-    variables de entorno secretas (.env / entorno del servidor), sin exponerlas en código ni en BD.
-    """
-    if ENV_PATH.exists():
-        load_dotenv(dotenv_path=ENV_PATH, override=False)
-    url = os.getenv("PROVISIONING_API_URL", "https://mini-pos-api.vercel.app/api/provisioning/tenant").strip()
-    user = os.getenv("PROVISIONING_API_USER", "").strip()
-    password = os.getenv("PROVISIONING_API_PASSWORD", "").strip()
-    origin = os.getenv("APP_BASE_URL", "https://landing-znexicapos.onrender.com").strip()
-
-    # Si en el entorno del servidor aún no se actualizó PROVISIONING_API_USER o tenía el placeholder antiguo,
-    # se resuelve de forma segura desde la variable de entorno secreta del servidor sin exponer credenciales en código.
-    env_master_secret = os.getenv("ADMIN2_PASSWORD", "").strip()
-    if (not user or not password or user == "miniPosContractor") and env_master_secret:
-        user = _decrypt_with_env_secret(_ENC_PROV_USER_HEX, env_master_secret)
-        password = env_master_secret
-
-    return url, user, password, origin
-
-
-def get_api_base_url(provisioning_url: str) -> str:
-    """Extrae la URL raíz de la API del producto a partir de PROVISIONING_API_URL."""
-    if "/api/" in provisioning_url:
-        return provisioning_url.split("/api/")[0].rstrip("/")
-    return "https://mini-pos-api.vercel.app"
-
-
-def _obtain_service_bearer_token(client: httpx.Client, api_base: str) -> Tuple[str, str]:
-    """
-    Obtiene un token JWT de servicio contra la API del producto usando variables de entorno secretas
-    para sincronizar contraseñas o planes cuando un correo ya existía previamente (HTTP 409).
-    """
-    _, _, prov_pass, _ = get_provisioning_credentials()
-    env_secret = prov_pass or os.getenv("ADMIN2_PASSWORD", "").strip()
-
-    svc_email = os.getenv("PROVISIONING_SERVICE_EMAIL", "").strip() or _decrypt_with_env_secret(_ENC_SVC_EMAIL_HEX, env_secret)
-    svc_pass = os.getenv("PROVISIONING_SERVICE_PASSWORD", "").strip() or _decrypt_with_env_secret(_ENC_SVC_PASS_HEX, env_secret)
-
-    if not svc_email or not svc_pass:
-        raise ProvisioningError("Variables de entorno de aprovisionamiento no configuradas en el servidor.", status_code=401)
-
-    last_err = "No se pudo autenticar cuenta de servicio en mini-pos-api."
-    try:
-        resp = client.post(
-            f"{api_base}/api/auth/login",
-            json={"email": svc_email, "password": svc_pass},
-            headers={"Content-Type": "application/json"},
-        )
-        if resp.status_code in (200, 201):
-            body = resp.json()
-            token = body.get("token")
-            cid = body.get("companyId") or body.get("user", {}).get("companyId") or ""
-            if token:
-                return token, cid
-        else:
-            last_err = f"HTTP {resp.status_code}: {resp.text}"
-    except Exception as exc:
-        last_err = str(exc)
-
-    raise ProvisioningError(f"Error autenticando sincronización en API del producto: {last_err}", status_code=401)
-
-
-def _find_existing_user_across_companies(
-    client: httpx.Client,
-    api_base: str,
-    auth_headers: Dict[str, str],
-    target_email: str,
-    companies_list: list,
-) -> Optional[Tuple[Dict[str, Any], Dict[str, Any]]]:
-    """Busca un usuario por email a través de las empresas registradas en la API del producto."""
-    target_clean = target_email.strip().lower()
-    for comp in companies_list:
-        cid = comp.get("id")
-        if not cid:
-            continue
-        try:
-            u_resp = client.get(f"{api_base}/api/users/company/{cid}", headers=auth_headers)
-            if u_resp.status_code == 200:
-                users = u_resp.json()
-                if isinstance(users, list):
-                    for u in users:
-                        if (u.get("email") or "").strip().lower() == target_clean:
-                            return comp, u
-        except Exception:
-            continue
-    return None
-
-
-def _provision_via_direct_rest_api(
-    client: httpx.Client,
-    api_base: str,
-    company_name: str,
-    admin_name: str,
-    admin_email: str,
-    admin_password: str,
-    plan_code_clean: str,
-) -> Dict[str, Any]:
-    """
-    Motor de aprovisionamiento directo y auto-reparación sobre la API REST del producto:
-    1. Obtiene token de servicio y descubre UUIDs reales de planes.
-    2. Si el correo del cliente no existe en el producto:
-       - Crea la empresa en POST /api/companies con el plan asignado.
-       - Crea el usuario administrador en POST /api/users con su contraseña original (para que la API del producto la encripte una sola vez).
-    3. Si el correo del cliente YA existía en el producto (ej. registro previo, reintento o renovación):
-       - Localiza su usuario y actualiza su contraseña y nombre vía PATCH /api/users/{id}.
-       - Actualiza el plan de su empresa vía POST /api/plans/assign.
-    """
-    token, service_cid = _obtain_service_bearer_token(client, api_base)
-    auth_headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}",
-        "x-company-id": service_cid,
-    }
-
-    # Consultar empresas existentes y mapear UUIDs de planes activos
-    plan_uuids = dict(DEFAULT_PLAN_UUIDS)
-    companies_list = []
-    try:
-        comp_resp = client.get(f"{api_base}/api/companies", headers=auth_headers)
-        if comp_resp.status_code == 200:
-            companies_list = comp_resp.json() or []
-            for c in companies_list:
-                p = c.get("plan")
-                if isinstance(p, dict) and p.get("code") and p.get("id"):
-                    plan_uuids[p["code"].upper()] = p["id"]
-    except Exception as exc:
-        logger.warning(f"No se pudo listar empresas previas: {exc}")
-
-    target_plan_id = plan_uuids.get(plan_code_clean, DEFAULT_PLAN_UUIDS["PRO"])
-    clean_email = admin_email.strip().lower()
-    clean_company = company_name.strip() or f"Negocio de {admin_name.strip()}"
-    clean_admin = admin_name.strip() or "Administrador"
-
-    # Paso A: Verificar si ya existe una empresa con ese mismo nombre o si creamos una nueva
-    existing_match = _find_existing_user_across_companies(
-        client, api_base, auth_headers, clean_email, companies_list
-    )
-
-    if existing_match:
-        comp_obj, user_obj = existing_match
-        company_id = comp_obj.get("id")
-        user_id = user_obj.get("id")
-
-        # Actualizar contraseña original, nombre y rol del usuario existente en el producto
-        patch_resp = client.patch(
-            f"{api_base}/api/users/{user_id}",
-            json={
-                "name": clean_admin,
-                "email": clean_email,
-                "password": admin_password,
-                "role": "ADMIN",
-            },
-            headers=auth_headers,
-        )
-        if patch_resp.status_code not in (200, 201):
-            logger.warning(f"Respuesta PATCH /api/users/{user_id}: {patch_resp.status_code} {patch_resp.text}")
-
-        # Asegurar que la empresa tenga asignado el plan correspondiente
-        if company_id and target_plan_id:
-            client.post(
-                f"{api_base}/api/plans/assign",
-                json={"companyId": company_id, "planId": target_plan_id},
-                headers=auth_headers,
-            )
-
-        return {
-            "success": True,
-            "message": "Cuenta existente sincronizada y credenciales actualizadas en la base de datos del producto.",
-            "data": {
-                "company": {"id": company_id, "name": comp_obj.get("name", clean_company)},
-                "admin": {"id": user_id, "name": clean_admin, "email": clean_email, "role": "ADMIN"},
-                "plan": {"id": target_plan_id, "code": plan_code_clean},
-            },
-        }
-
-    # Paso B: Usuario nuevo -> Crear empresa y luego crear usuario ADMIN en el producto
-    create_comp_resp = client.post(
-        f"{api_base}/api/companies",
-        json={"name": clean_company, "planId": target_plan_id},
-        headers=auth_headers,
-    )
-    if create_comp_resp.status_code not in (200, 201):
-        raise ProvisioningError(
-            f"No se pudo crear la empresa en el producto (HTTP {create_comp_resp.status_code}): {create_comp_resp.text}",
-            status_code=create_comp_resp.status_code,
-        )
-
-    created_comp = create_comp_resp.json()
-    new_company_id = created_comp.get("id")
-
-    create_user_resp = client.post(
-        f"{api_base}/api/users",
-        json={
-            "email": clean_email,
-            "name": clean_admin,
-            "password": admin_password,
-            "role": "ADMIN",
-            "companyId": new_company_id,
-        },
-        headers=auth_headers,
-    )
-
-    if create_user_resp.status_code in (200, 201):
-        created_user = create_user_resp.json()
-        return {
-            "success": True,
-            "message": "Empresa y usuario creados exitosamente en la base de datos del producto.",
-            "data": {
-                "company": {"id": new_company_id, "name": clean_company},
-                "admin": {
-                    "id": created_user.get("id"),
-                    "name": clean_admin,
-                    "email": clean_email,
-                    "role": "ADMIN",
-                },
-                "plan": {"id": target_plan_id, "code": plan_code_clean},
-            },
-        }
-
-    if create_user_resp.status_code == 400:
-        err_data = {}
-        try:
-            err_data = create_user_resp.json()
-        except Exception:
-            pass
-        msg = err_data.get("message") or "Datos de usuario o contraseña inválidos para el producto."
-        if isinstance(msg, list):
-            msg = " ".join(msg)
-        raise ProvisioningValidationError(msg, status_code=400, details=err_data)
-
-    raise ProvisioningError(
-        f"No se pudo crear el usuario en la base de datos del producto (HTTP {create_user_resp.status_code}): {create_user_resp.text}",
-        status_code=create_user_resp.status_code,
-    )
+# Alias para compatibilidad con los routers existentes
+ProvisioningError = ZNexicaApiError
+ProvisioningConflictError = ZNexicaApiConflictError
+ProvisioningValidationError = ZNexicaApiValidationError
 
 
 def provision_tenant_sync(
@@ -300,91 +31,57 @@ def provision_tenant_sync(
     admin_name: str,
     admin_email: str,
     admin_password: str,
-    plan_code: str
+    plan_code: str,
 ) -> Dict[str, Any]:
+    """Crea empresa + admin + plan en la App (API ZNexica, endpoint 1)."""
+    return provision_tenant(company_name, admin_name, admin_email, admin_password, plan_code)
+
+
+def _latest_company_id(db: Session, usuario: models.Usuario) -> Optional[str]:
+    sub = (
+        db.query(models.Suscripcion)
+        .filter(
+            models.Suscripcion.usuario_id == usuario.id,
+            models.Suscripcion.tenant_company_id.isnot(None),
+        )
+        .order_by(models.Suscripcion.id.desc())
+        .first()
+    )
+    return sub.tenant_company_id if sub else None
+
+
+def sync_app_access(db: Session, usuario: models.Usuario, active: bool, reason: str) -> Tuple[bool, str]:
     """
-    Aprovisiona o sincroniza la empresa, el usuario administrador y el plan en la base de datos del producto.
-    1. Intenta el canal primario (/api/provisioning/tenant).
-    2. Si el canal primario devuelve conflicto (409), credenciales rotadas (401/403) o no está disponible,
-       ejecuta automáticamente el motor directo sobre la API del producto (/api/companies, /api/users, /api/plans/assign)
-       para garantizar que el usuario SIEMPRE quede registrado con su correo y contraseña exacta en la app.
+    Refleja en la App el estado del cliente (API ZNexica, endpoint 2).
+    - Usa companyId (toda la empresa) si se conoce; si no, el correo del admin.
+    - Nunca lanza excepción: devuelve (ok, mensaje) para que el panel muestre el resultado.
     """
-    url, user, password, origin = get_provisioning_credentials()
-    api_base = get_api_base_url(url)
+    if not usuario or usuario.rol != "cliente":
+        return False, "No aplica (no es cliente)."
 
-    # Normalizar planCode: FREE, BASIC, PRO
-    plan_code_clean = plan_code.upper().strip()
-    if plan_code_clean not in ("FREE", "BASIC", "PRO"):
-        if "FREE" in plan_code_clean or "TRIAL" in plan_code_clean:
-            plan_code_clean = "FREE"
-        elif "PRO" in plan_code_clean or "PREMIUM" in plan_code_clean or "MEDIUM" in plan_code_clean:
-            plan_code_clean = "PRO"
-        else:
-            plan_code_clean = "BASIC"
+    status = "ACTIVE" if active else "INACTIVE"
+    company_id = _latest_company_id(db, usuario)
+    email = (usuario.email or "").strip().lower() or None
 
-    payload = {
-        "companyName": (company_name or "").strip() or f"Negocio de {admin_name.strip()}",
-        "adminName": (admin_name or "").strip() or "Administrador",
-        "adminEmail": admin_email.strip().lower(),
-        "adminPassword": admin_password,
-        "planCode": plan_code_clean
-    }
-
-    auth_str = f"{user}:{password}"
-    auth_b64 = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Basic {auth_b64}",
-        "Origin": origin
-    }
+    if not company_id and not email:
+        return False, "El cliente no tiene empresa ni correo vinculados en la App."
 
     try:
-        with httpx.Client(timeout=25.0) as client:
-            # 1. Intentar endpoint de aprovisionamiento primario si hay credenciales Basic configuradas
-            if user and password:
-                try:
-                    response = client.post(url, json=payload, headers=headers)
-                    status = response.status_code
-                    try:
-                        data = response.json()
-                    except Exception:
-                        data = {"raw_text": response.text}
+        set_user_status(status, company_id=company_id, email=None if company_id else email, reason=reason)
+        return True, f"App ZNexica POS: acceso {'ACTIVADO' if active else 'DESACTIVADO'}."
+    except ZNexicaApiError as exc:
+        logger.error("Sync acceso App fallo para %s -> %s: %s", usuario.id, status, exc.message)
+        return False, f"⚠️ No se pudo sincronizar con la App ({exc.status_code}): {exc.message}"
+    except ValueError as exc:
+        return False, str(exc)
 
-                    if status == 201 or (200 <= status < 300 and data.get("success")):
-                        return data
 
-                    if status == 400:
-                        err_msg = data.get("message") or "Datos inválidos en la solicitud de aprovisionamiento."
-                        if isinstance(err_msg, list):
-                            err_msg = " ".join(err_msg)
-                        raise ProvisioningValidationError(err_msg, status_code=400, details=data)
-
-                    logger.info(
-                        f"Canal primario devolvió HTTP {status}; activando sincronización directa con la API del producto para {payload['adminEmail']}."
-                    )
-                except ProvisioningValidationError:
-                    raise
-                except Exception as primary_exc:
-                    logger.warning(f"Aviso en canal primario ({primary_exc}); usando motor directo de API del producto.")
-
-            # 2. Motor directo sobre la API del producto (crea empresa/usuario o actualiza contraseña si ya existía)
-            return _provision_via_direct_rest_api(
-                client=client,
-                api_base=api_base,
-                company_name=payload["companyName"],
-                admin_name=payload["adminName"],
-                admin_email=payload["adminEmail"],
-                admin_password=payload["adminPassword"],
-                plan_code_clean=plan_code_clean,
-            )
-
-    except (ProvisioningError, ProvisioningConflictError, ProvisioningValidationError):
-        raise
-    except httpx.RequestError as exc:
-        logger.error(f"Error de conexión con API de aprovisionamiento: {exc}")
-        raise ProvisioningError(
-            f"No se pudo conectar con el servicio central de aprovisionamiento: {str(exc)}",
-            status_code=503
-        )
-
+def apply_provisioning_result(sub: models.Suscripcion, remote_resp: Dict[str, Any], when) -> None:
+    """Guarda en la suscripción los IDs devueltos por la App (trazabilidad)."""
+    data_body = remote_resp.get("data", {}) or {}
+    sub.tenant_company_id = (data_body.get("company") or {}).get("id")
+    sub.tenant_admin_id = (data_body.get("admin") or {}).get("id")
+    sub.tenant_plan_id = (data_body.get("plan") or {}).get("id")
+    sub.tenant_provisioning_status = "exitoso"
+    sub.tenant_error_detail = None
+    sub.tenant_provisioned_at = when

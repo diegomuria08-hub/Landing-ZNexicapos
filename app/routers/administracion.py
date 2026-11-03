@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas, security
 from app.services.time_service import get_realtime_caracas_now
+from app.services.provisioning import sync_app_access
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
@@ -121,6 +122,14 @@ def update_subscription_status(
 
     db.commit()
     db.refresh(sub)
+
+    # Sincronizar estado en la API de la App (PATCH /api/provisioning/user-status)
+    if usuario and usuario.rol == "cliente":
+        if new_status == "aprobado":
+            sync_app_access(db, usuario, active=True, reason="Pago de suscripción aprobado por administración")
+        elif new_status == "rechazado":
+            sync_app_access(db, usuario, active=False, reason="Pago de suscripción rechazado por administración")
+
     return sub
 
 
@@ -206,15 +215,16 @@ def get_all_clients(
         dias_restantes = max(0, delta)
         esta_vencido = delta <= 0
 
-        # CORTE AUTOMÁTICO DE SERVICIO SI EL CLIENTE YA SE PASÓ DE LA FECHA DE VENCIMIENTO
+        # CORTE / SUSPENSIÓN AUTOMÁTICA DE SERVICIO SI EL CLIENTE YA SE PASÓ DE LA FECHA DE VENCIMIENTO
         if esta_vencido and sub_estado == "aprobado":
-            motivo_vencimiento = "Servicio cortado automáticamente por vencimiento de ciclo mensual (fecha de corte superada). Renueva tu plan para continuar."
+            motivo_vencimiento = "Servicio suspendido automáticamente por vencimiento de ciclo mensual (fecha de corte superada). Renueva tu plan para continuar."
             if not c.esta_bloqueado:
                 c.esta_bloqueado = True
                 c.motivo_bloqueo = motivo_vencimiento
                 db.query(models.SesionDispositivo).filter(
                     models.SesionDispositivo.usuario_id == c.id
                 ).update({"esta_activo": False})
+                sync_app_access(db, c, active=False, reason="Vencimiento de ciclo mensual")
                 db_dirty = True
 
             if not access_rec:
@@ -253,8 +263,8 @@ def get_all_clients(
             servicio_activo = False
         elif esta_vencido:
             estado_servicio = "vencido"
-            badge_label = "Vencido (Servicio Cortado)"
-            mensaje_servicio = c.motivo_bloqueo or "Periodo mensual culminado. Servicio cortado hasta renovación."
+            badge_label = "Vencido (Servicio Suspendido)"
+            mensaje_servicio = c.motivo_bloqueo or "Periodo mensual culminado. Servicio suspendido hasta renovación."
             servicio_activo = False
         elif c.esta_bloqueado:
             estado_servicio = "suspendido"
@@ -345,8 +355,11 @@ def suspend_client_service(
     db.commit()
     db.refresh(usuario)
 
+    # Notificar a la API de la App para desactivar el acceso
+    ok_sync, sync_msg = sync_app_access(db, usuario, active=False, reason="Servicio suspendido por administración")
+
     return {
-        "message": f"Servicio suspendido exitosamente para {usuario.nombre_completo}. La app móvil le exigirá inicio de sesión y denegará el acceso hasta que renueve su plan.",
+        "message": f"Servicio suspendido exitosamente para {usuario.nombre_completo}. {sync_msg}",
         "cliente_id": usuario.id,
         "esta_bloqueado": True
     }
@@ -409,8 +422,11 @@ def reactivate_client_service(
     db.commit()
     db.refresh(usuario)
 
+    # Notificar a la API de la App para activar el acceso
+    ok_sync, sync_msg = sync_app_access(db, usuario, active=True, reason="Servicio reactivado por administración")
+
     return {
-        "message": f"Servicio reactivado exitosamente para {usuario.nombre_completo}. Se renovó el ciclo por 30 días y el acceso a la app móvil ha sido restablecido.",
+        "message": f"Servicio reactivado exitosamente para {usuario.nombre_completo}. Se renovó el ciclo por 30 días. {sync_msg}",
         "cliente_id": usuario.id,
         "esta_bloqueado": False
     }

@@ -25,9 +25,9 @@ print("[OK] Tablas verificadas en la base de datos activa.")
 
 def enforce_expired_services_in_db():
     """
-    Revisa automáticamente todos los clientes en la base de datos y corta el servicio
+    Revisa automáticamente todos los clientes en la base de datos y suspende el servicio
     de inmediato a aquellos cuya fecha de vencimiento (fecha_fin) ya se cumplió,
-    actualizando usuarios, acceso_minipos_api y cerrando sesiones_dispositivo.
+    actualizando usuarios, acceso_minipos_api, la API externa y cerrando sesiones_dispositivo.
     """
     db = SessionLocal()
     try:
@@ -88,6 +88,11 @@ def enforce_expired_services_in_db():
                     db.query(models.SesionDispositivo).filter(
                         models.SesionDispositivo.usuario_id == c.id
                     ).update({"esta_activo": False})
+                    try:
+                        from app.services.provisioning import sync_app_access
+                        sync_app_access(db, c, active=False, reason="Vencimiento de ciclo mensual")
+                    except Exception as _sync_err:
+                        print(f"[WARN] Error notificando suspensión en App a {c.email}: {_sync_err}")
                     updated = True
 
                 access_rec = db.query(models.AccesoMiniposApi).filter(
@@ -126,7 +131,7 @@ def enforce_expired_services_in_db():
 
 
 async def periodic_expiration_watcher():
-    """Tarea en segundo plano que verifica y corta servicios vencidos cada 10 minutos sin intervención manual."""
+    """Tarea en segundo plano que verifica y suspende servicios vencidos cada 10 minutos sin intervención manual."""
     while True:
         try:
             await asyncio.to_thread(enforce_expired_services_in_db)
