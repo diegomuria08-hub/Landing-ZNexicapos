@@ -37,37 +37,36 @@ def provision_tenant_sync(
     return provision_tenant(company_name, admin_name, admin_email, admin_password, plan_code)
 
 
-def _latest_company_id(db: Session, usuario: models.Usuario) -> Optional[str]:
+def _latest_sub_metadata(db: Session, usuario: models.Usuario) -> Tuple[Optional[str], Optional[str]]:
     sub = (
         db.query(models.Suscripcion)
-        .filter(
-            models.Suscripcion.usuario_id == usuario.id,
-            models.Suscripcion.tenant_company_id.isnot(None),
-        )
+        .filter(models.Suscripcion.usuario_id == usuario.id)
         .order_by(models.Suscripcion.id.desc())
         .first()
     )
-    return sub.tenant_company_id if sub else None
+    if sub:
+        return sub.tenant_company_id, sub.tenant_admin_id
+    return None, None
 
 
 def sync_app_access(db: Session, usuario: models.Usuario, active: bool, reason: str) -> Tuple[bool, str]:
     """
     Refleja en la App el estado del cliente (API ZNexica, endpoint 2).
-    - Usa companyId (toda la empresa) si se conoce; si no, el correo del admin.
+    - Envía email, adminId y companyId para asegurar actualización atómica en la App.
     - Nunca lanza excepción: devuelve (ok, mensaje) para que el panel muestre el resultado.
     """
     if not usuario or usuario.rol != "cliente":
         return False, "No aplica (no es cliente)."
 
     status = "ACTIVE" if active else "INACTIVE"
-    company_id = _latest_company_id(db, usuario)
+    company_id, admin_id = _latest_sub_metadata(db, usuario)
     email = (usuario.email or "").strip().lower() or None
 
-    if not company_id and not email:
+    if not company_id and not email and not admin_id:
         return False, "El cliente no tiene empresa ni correo vinculados en la App."
 
     try:
-        set_user_status(status, company_id=company_id, email=None if company_id else email, reason=reason)
+        resp = set_user_status(status, email=email, user_id=admin_id, company_id=company_id, reason=reason)
         return True, f"App ZNexica POS: acceso {'ACTIVADO' if active else 'DESACTIVADO'}."
     except ZNexicaApiError as exc:
         logger.error("Sync acceso App fallo para %s -> %s: %s", usuario.id, status, exc.message)

@@ -191,8 +191,8 @@ def set_user_status(
 ) -> Dict[str, Any]:
     """
     Activa o desactiva acceso en la App.
-    - company_id: afecta a TODOS los usuarios de la empresa (suspensión por impago).
-    - user_id / email: afecta a un usuario puntual.
+    - Envía email, userId y companyId disponibles para garantizar que tanto el usuario
+      como la empresa queden en el estado deseado.
     Un usuario INACTIVE recibe HTTP 401 al intentar iniciar sesión en la App.
     """
     status_clean = (status or "").upper().strip()
@@ -200,13 +200,14 @@ def set_user_status(
         raise ValueError("status debe ser 'ACTIVE' o 'INACTIVE'.")
 
     payload: Dict[str, Any] = {"status": status_clean}
-    if company_id:
-        payload["companyId"] = company_id
-    elif user_id:
-        payload["userId"] = user_id
-    elif email:
+    if email:
         payload["email"] = email.strip().lower()
-    else:
+    if user_id:
+        payload["userId"] = str(user_id)
+    if company_id:
+        payload["companyId"] = str(company_id)
+
+    if not any([email, user_id, company_id]):
         raise ValueError("Debe indicarse company_id, user_id o email.")
     if reason:
         payload["reason"] = reason[:250]
