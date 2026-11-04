@@ -22,18 +22,16 @@ router = APIRouter(prefix="/api/suscripciones", tags=["Suscripciones y Pagos"])
 UPLOAD_DIR = "static/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Catálogo Oficial de Planes miniPOS
+# Catálogo Oficial ZNexica POS — Único Plan Comercial: Profesional ($20/mes)
 PLANS_INFO = {
-    # Nombres oficiales
-    "FREE": {"name": "Plan Prueba Gratis (30 Días)", "price": 0.0, "has_web": False, "code": "FREE"},
-    "BASIC": {"name": "Plan Básico (Stock e Inventario)", "price": 8.0, "has_web": False, "code": "BASIC"},
-    "PRO": {"name": "Plan Profesional (App Móvil + Web + Todo)", "price": 20.0, "has_web": True, "code": "PRO"},
-    
-    # Compatibilidad con alias previos
-    "free_trial": {"name": "Plan Prueba Gratis (30 Días)", "price": 0.0, "has_web": False, "code": "FREE"},
-    "basico": {"name": "Plan Básico (Stock e Inventario)", "price": 8.0, "has_web": False, "code": "BASIC"},
-    "medium": {"name": "Plan Profesional (App Móvil + Web)", "price": 20.0, "has_web": True, "code": "PRO"},
-    "premium": {"name": "Plan Profesional (App Móvil + Web + Todo)", "price": 20.0, "has_web": True, "code": "PRO"}
+    "PRO": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
+    # Mapeo de compatibilidad: todo plan seleccionado se sincroniza con el Plan Profesional de $20
+    "FREE": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
+    "BASIC": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
+    "free_trial": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
+    "basico": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
+    "medium": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
+    "premium": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"}
 }
 
 
@@ -131,20 +129,19 @@ async def submit_payment(
             shutil.copyfileobj(proof_file.file, buffer)
         saved_file_path = f"/static/uploads/{unique_filename}"
 
-    # Estado inicial: el plan FREE se aprueba inmediatamente
-    is_free = (official_code == "FREE" or plan_meta["price"] == 0.0)
-    initial_status = "aprobado" if is_free else "pendiente"
+    # El único plan comercial es PRO ($20/mes); requiere verificación de pago o aprobación
+    initial_status = "pendiente"
 
     realtime_now = get_realtime_caracas_now()
     cycle_end = realtime_now + timedelta(days=30)
 
     suscripcion = models.Suscripcion(
         usuario_id=current_user.id,
-        codigo_plan=official_code,
+        codigo_plan="PRO",
         nombre_plan=plan_meta["name"],
         monto_usd=plan_meta["price"],
         metodo_pago=payment_method,
-        referencia_ultimos4=reference_last4.strip() or "FREE-TRIAL",
+        referencia_ultimos4=reference_last4.strip() or "PAGO-WEB",
         ruta_comprobante=saved_file_path,
         estado=initial_status,
         tiene_web=plan_meta["has_web"],
@@ -183,9 +180,8 @@ async def submit_payment(
     except ProvisioningValidationError as ve:
         suscripcion.tenant_provisioning_status = "fallido_validacion"
         suscripcion.tenant_error_detail = ve.message
-        if is_free:
-            db.commit()
-            raise HTTPException(status_code=400, detail=ve.message)
+        db.commit()
+        raise HTTPException(status_code=400, detail=ve.message)
     except Exception as e:
         suscripcion.tenant_provisioning_status = "fallido_conexion"
         suscripcion.tenant_error_detail = str(e)

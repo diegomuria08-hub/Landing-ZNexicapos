@@ -41,7 +41,26 @@ def enforce_expired_services_in_db():
             ).order_by(models.Suscripcion.id.desc()).first()
 
             if not latest_sub:
-                continue
+                fecha_inicio = c.creado_en or now_caracas
+                fecha_fin = fecha_inicio + timedelta(days=30)
+                latest_sub = models.Suscripcion(
+                    usuario_id=c.id,
+                    codigo_plan="PRO",
+                    nombre_plan="Plan Profesional ($20/mes)",
+                    monto_usd=20.0,
+                    metodo_pago="Registro Web",
+                    referencia_ultimos4="REGISTRO",
+                    estado="aprobado",
+                    tiene_web=True,
+                    acepto_disclaimer_web=True,
+                    fecha_inicio=fecha_inicio,
+                    fecha_fin=fecha_fin,
+                    creado_en=fecha_inicio,
+                    tenant_provisioning_status="pendiente"
+                )
+                db.add(latest_sub)
+                db.flush()
+                updated = True
 
             # Auto-reparación de aprovisionamiento si la suscripción aún no tiene tenant_company_id o falló antes
             if (not latest_sub.tenant_company_id or latest_sub.tenant_provisioning_status != "exitoso") and c.password_hash and not c.password_hash.startswith("$2"):

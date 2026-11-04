@@ -38,7 +38,7 @@
         <a href="#quienes-somos" class="nav-link">Quiénes Somos</a>
         <a href="#planes" class="nav-link">Planes</a>
         <a href="#faq" class="nav-link">FAQ</a>
-        <a href="#planes" class="nav-cta-btn">🚀 Probar Gratis</a>
+        <a href="#planes" class="nav-cta-btn">🚀 Adquirir Plan</a>
       </nav>
 
       <div class="navbar-crown-badge" title="Tecnología de Grado Empresarial">
@@ -64,7 +64,7 @@
       </p>
       <div class="hero-actions">
         <a href="#planes" class="btn-primary">
-          🚀 Probar 30 Días Gratis
+          🚀 Adquirir Plan Profesional
         </a>
         <a href="#funciones" class="btn-secondary">
           📱 Ver Capturas y Funciones
@@ -524,9 +524,9 @@
   <section class="cta-banner reveal">
     <div class="container">
       <h2>¿Listo para transformar tu negocio?</h2>
-      <p>Empieza hoy con 30 días gratis. Sin tarjeta de crédito, sin compromisos.</p>
+      <p>Control total de ventas, caja e inventario con la mejor tecnología.</p>
       <a href="#planes" class="btn-cta-white">
-        🚀 Comenzar Ahora — Es Gratis
+        🚀 Adquirir Plan Profesional
       </a>
     </div>
   </section>
@@ -695,15 +695,6 @@
           <div id="dynamicClientInputs">
             <!-- Se inyectan campos de formulario desde JS -->
           </div>
-        </div>
-
-        <!-- Contenedor A: Aviso Exclusivo de Activación Gratuita Inmediata -->
-        <div id="freePlanNoticeBox" style="display: none; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 1.25rem 1rem; color: #065f46; text-align: center; margin-bottom: 1.25rem;">
-          <div style="font-size: 2rem; margin-bottom: 0.35rem;">🎉</div>
-          <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.25rem;">Activación Gratuita Inmediata</strong>
-          <p style="margin: 0; font-size: 0.9rem; color: #047857; line-height: 1.45;">
-            Este plan no requiere datos bancarios ni comprobante. Al confirmar, tu empresa quedará aprovisionada de inmediato en ZNexica POS con 30 días de acceso total.
-          </p>
         </div>
 
         <button type="submit" id="submitPaymentBtn" class="btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.9rem 1.5rem; font-size: 1rem;">
@@ -1125,34 +1116,28 @@
         if (cleanSellerPhone.startsWith('0')) cleanSellerPhone = '58' + cleanSellerPhone.substring(1);
         if (!cleanSellerPhone.startsWith('58')) cleanSellerPhone = '58' + cleanSellerPhone;
 
-        if (isFree) {
-          const waMsg = encodeURIComponent(
-            `👋 ¡Hola equipo de ZNexica POS!\n\n` +
-            `Acabo de registrarme y activar mi suscripción de prueba gratis (30 días) en ZNexica POS.\n` +
-            `👤 *Cliente:* ${fullName}\n` +
-            `📱 *Teléfono / Usuario:* ${phone}\n` +
-            `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
-            `🚀 *Plan:* Plan Prueba Gratis (30 Días)\n\n` +
-            `¡Por favor asístanme para comenzar a configurar mi app ZNexica POS!`
-          );
-          const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
+        const waMsg = encodeURIComponent(
+          `👋 ¡Hola equipo de ZNexica POS!\n\n` +
+          `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan Profesional ($20/mes)'}*.\n` +
+          `👤 *Cliente:* ${fullName}\n` +
+          `📱 *Teléfono / Usuario:* ${phone}\n` +
+          `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
+          `💰 *Monto:* $20.00\n` +
+          `🔢 *Referencia:* ${referenceLast4}\n\n` +
+          `Por favor confirmen mi pago para mantener activo mi servicio en la app.`
+        );
+        const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
-          alert(
-            `🎉 ¡Bienvenido a ZNexica POS, ${fullName}!\n\n` +
-            `Tu periodo de prueba de 30 días ha sido activado con éxito.\n\n` +
-            `Tus credenciales para ingresar a ZNexica POS son:\n` +
-            `✉️ Correo: ${email || 'Tu correo registrado'}\n` +
-            `📱 Teléfono: ${phone}\n` +
-            `🔑 Contraseña: La que definiste al registrar tu cuenta.\n\n` +
-            `Se abrirá WhatsApp para que notifiques al equipo de soporte.`
-          );
-          window.open(waUrl, '_blank');
-        } else {
-          const waMsg = encodeURIComponent(
-            `👋 ¡Hola equipo de ZNexica POS!\n\n` +
-            `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan ZNexica POS'}*.\n` +
-            `👤 *Cliente:* ${fullName}\n` +
-            `📱 *Teléfono / Usuario:* ${phone}\n` +
+        alert(
+          `🎉 ¡Pago registrado exitosamente, ${fullName}!\n\n` +
+          `Tu comprobante fue recibido y está en proceso de verificación por administración.\n\n` +
+          `Tus credenciales para ingresar a la App ZNexica POS son:\n` +
+          `✉️ Correo: ${email || 'Tu correo registrado'}\n` +
+          `📱 Teléfono: ${phone}\n` +
+          `🔑 Contraseña: La que definiste al registrarte.\n\n` +
+          `Se abrirá WhatsApp para que envíes tu notificación al equipo.`
+        );
+        window.open(waUrl, '_blank');
             `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
             `💳 *Método:* ${paymentMethodText}\n` +
             `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +

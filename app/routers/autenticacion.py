@@ -96,8 +96,89 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(usuario)
 
-    # La cuenta en la App ZNexica POS se crea al registrar el pago (ver routers/suscripciones.py),
-    # y el acceso se ACTIVA/DESACTIVA según el estado del pago (services/provisioning.py).
+    # Aprovisionar de inmediato en la API externa del producto (miniPOS) con el Plan Profesional ($20/mes)
+    from datetime import timedelta
+    from app.services.provisioning import provision_tenant_sync, ProvisioningConflictError
+    from app.services.time_service import get_realtime_caracas_now
+
+    now_caracas = get_realtime_caracas_now()
+    cycle_end = now_caracas + timedelta(days=30)
+
+    tenant_co_id = None
+    tenant_adm_id = None
+    tenant_pl_id = None
+    prov_status = "pendiente"
+    prov_error = None
+
+    try:
+        remote_resp = provision_tenant_sync(
+            company_name=empresa_clean,
+            admin_name=usuario.nombre_completo,
+            admin_email=target_email,
+            admin_password=raw_password,
+            plan_code="PRO"
+        )
+        data_body = remote_resp.get("data", {})
+        tenant_co_id = (data_body.get("company") or {}).get("id")
+        tenant_adm_id = (data_body.get("admin") or {}).get("id")
+        tenant_pl_id = (data_body.get("plan") or {}).get("id")
+        prov_status = "exitoso"
+    except ProvisioningConflictError as ce:
+        prov_status = "exitoso"
+        prov_error = f"Cuenta ya registrada en el producto: {ce.message}"
+    except Exception as exc:
+        prov_status = "fallido_conexion"
+        prov_error = str(exc)
+
+    # Registrar la suscripción inicial al único Plan Profesional ($20/mes)
+    sub_inicial = models.Suscripcion(
+        usuario_id=usuario.id,
+        codigo_plan="PRO",
+        nombre_plan="Plan Profesional ($20/mes)",
+        monto_usd=20.0,
+        metodo_pago="Registro Web",
+        referencia_ultimos4="REGISTRO",
+        estado="aprobado",
+        tiene_web=True,
+        acepto_disclaimer_web=True,
+        fecha_inicio=now_caracas,
+        fecha_fin=cycle_end,
+        creado_en=now_caracas,
+        tenant_company_id=tenant_co_id,
+        tenant_admin_id=tenant_adm_id,
+        tenant_plan_id=tenant_pl_id,
+        tenant_provisioning_status=prov_status,
+        tenant_error_detail=prov_error,
+        tenant_provisioned_at=now_caracas if prov_status == "exitoso" else None
+    )
+    db.add(sub_inicial)
+
+    # Sincronizar en AccesoMiniposApi
+    access_record = db.query(models.AccesoMiniposApi).filter(
+        func.lower(models.AccesoMiniposApi.telefono) == phone_clean
+    ).first()
+    if not access_record:
+        access_record = models.AccesoMiniposApi(
+            telefono=phone_clean,
+            acceso_concedido=True,
+            plan_activo="PRO",
+            esta_bloqueado=False,
+            estado="activo",
+            mensaje_bloqueo="",
+            fecha_expiracion=cycle_end,
+            ultima_sincronizacion=now_caracas
+        )
+        db.add(access_record)
+    else:
+        access_record.plan_activo = "PRO"
+        access_record.acceso_concedido = True
+        access_record.esta_bloqueado = False
+        access_record.estado = "activo"
+        access_record.mensaje_bloqueo = ""
+        access_record.fecha_expiracion = cycle_end
+        access_record.ultima_sincronizacion = now_caracas
+
+    db.commit()
 
     token = security.create_access_token(data={"sub": usuario.telefono, "role": usuario.rol})
     return {"access_token": token, "token_type": "bearer", "user": usuario}

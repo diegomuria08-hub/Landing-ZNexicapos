@@ -199,9 +199,9 @@ def get_all_clients(
             models.AccesoMiniposApi.telefono == c.telefono
         ).first()
 
-        plan_code = latest_sub.codigo_plan if latest_sub else "FREE"
-        plan_name = latest_sub.nombre_plan if latest_sub else "Plan Prueba Gratis"
-        sub_estado = latest_sub.estado if latest_sub else "aprobado"
+        plan_code = latest_sub.codigo_plan if latest_sub else "PRO"
+        plan_name = latest_sub.nombre_plan if latest_sub else "Plan Profesional ($20/mes)"
+        sub_estado = latest_sub.estado if latest_sub else ("aprobado" if not c.esta_bloqueado else "suspendido")
         fecha_inicio = latest_sub.fecha_inicio if (latest_sub and latest_sub.fecha_inicio) else (c.creado_en or now_caracas)
         
         # Fecha de vencimiento / corte mensual: 30 días a partir de la fecha de inicio
@@ -387,12 +387,12 @@ def reactivate_client_service(
         models.Suscripcion.usuario_id == usuario.id
     ).order_by(models.Suscripcion.id.desc()).first()
 
-    plan_code = "FREE"
+    plan_code = "PRO"
     if latest_sub:
         latest_sub.estado = "aprobado"
         latest_sub.fecha_inicio = now_caracas
         latest_sub.fecha_fin = cycle_end
-        plan_code = latest_sub.codigo_plan
+        plan_code = latest_sub.codigo_plan or "PRO"
 
     # Sincronizar en AccesoMiniposApi
     access_rec = db.query(models.AccesoMiniposApi).filter(
@@ -450,7 +450,7 @@ def delete_client_permanently(
     latest_sub = db.query(models.Suscripcion).filter(
         models.Suscripcion.usuario_id == usuario.id
     ).order_by(models.Suscripcion.id.desc()).first()
-    ultimo_plan = latest_sub.codigo_plan if latest_sub else "FREE"
+    ultimo_plan = latest_sub.codigo_plan if latest_sub else "PRO"
 
     # 1. Registrar en la tabla de auditoría
     baja_audit = models.ClienteBajaAudit(

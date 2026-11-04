@@ -954,9 +954,9 @@ function copyToClipboard(text, btnElement) {
   });
 }
 
-// Punto de entrada al seleccionar cualquier plan en la página
+// Punto de entrada al seleccionar el plan en la página (Único Plan: Profesional $20/mes)
 function openCheckoutModal(planCode, planName, planPrice) {
-  pendingPlan = { code: planCode, name: planName, price: planPrice };
+  pendingPlan = { code: 'PRO', name: 'Plan Profesional ($20/mes)', price: 20 };
 
   const session = getClientSession();
   if (!session) {
@@ -964,12 +964,12 @@ function openCheckoutModal(planCode, planName, planPrice) {
     openClientAuthModal();
   } else {
     // Si ya inició sesión antes en este equipo, abrir directamente el checkout
-    proceedToCheckout(planCode, planName, planPrice);
+    proceedToCheckout('PRO', 'Plan Profesional ($20/mes)', 20);
   }
 }
 
 function proceedToCheckout(planCode, planName, planPrice) {
-  currentPlanInfo = { code: planCode, name: planName, price: planPrice };
+  currentPlanInfo = { code: 'PRO', name: 'Plan Profesional ($20/mes)', price: 20 };
   const session = getClientSession();
 
   const modal = document.getElementById('checkoutModal');
@@ -980,21 +980,15 @@ function proceedToCheckout(planCode, planName, planPrice) {
   const userDisp = document.getElementById('checkoutUserDisplay');
   const phoneDisp = document.getElementById('checkoutPhoneDisplay');
   const warnPhoneDisp = document.getElementById('warnPhoneDisplay');
-  const isFree = (planCode === 'FREE' || planPrice === 0);
 
-  if (title) title.textContent = planName;
-  if (priceDisplay) priceDisplay.textContent = isFree ? 'Gratis' : `$${planPrice}`;
+  if (title) title.textContent = 'Plan Profesional ($20/mes)';
+  if (priceDisplay) priceDisplay.textContent = '$20';
   if (statusBadge) {
-    statusBadge.textContent = isFree ? 'Activación Inmediata' : 'Pendiente de Pago';
-    if (isFree) {
-      statusBadge.classList.remove('status-pending');
-      statusBadge.classList.add('status-active');
-    } else {
-      statusBadge.classList.remove('status-active');
-      statusBadge.classList.add('status-pending');
-    }
+    statusBadge.textContent = 'Pendiente de Pago';
+    statusBadge.classList.remove('status-active');
+    statusBadge.classList.add('status-pending');
   }
-  if (hiddenCode) hiddenCode.value = planCode;
+  if (hiddenCode) hiddenCode.value = 'PRO';
 
   if (session && session.user) {
     const uName = session.user.full_name || 'Cliente';
@@ -1004,25 +998,17 @@ function proceedToCheckout(planCode, planName, planPrice) {
     if (warnPhoneDisp) warnPhoneDisp.textContent = uPhone;
   }
 
-  // Contenedores dedicados independientes (sin sobrescritura destructiva de nodos)
+  // Contenedores dedicados
   const freeBox = document.getElementById('freePlanNoticeBox');
   const paidBox = document.getElementById('paidPlanInstructionsBox');
-  const dynamicInputs = document.getElementById('dynamicClientInputs');
   const submitBtn = document.getElementById('submitPaymentBtn') || document.querySelector('#paymentForm button[type="submit"]');
 
-  if (isFree) {
-    if (paidBox) paidBox.style.display = 'none';
-    if (freeBox) freeBox.style.display = 'block';
-    if (dynamicInputs) dynamicInputs.innerHTML = '';
-    if (submitBtn) {
-      submitBtn.innerHTML = '🚀 Activar Prueba Gratis en ZNexica POS Ahora';
-      submitBtn.style.background = 'var(--green-primary, #10b981)';
-    }
-  } else {
-    if (freeBox) freeBox.style.display = 'none';
-    if (paidBox) paidBox.style.display = 'block';
-    if (submitBtn) {
-      submitBtn.innerHTML = '📲 Registrar Pago y Notificar por WhatsApp';
+  if (freeBox) freeBox.style.display = 'none';
+  if (paidBox) paidBox.style.display = 'block';
+  if (submitBtn) {
+    submitBtn.innerHTML = '📲 Registrar Pago y Notificar por WhatsApp';
+    submitBtn.style.background = 'var(--green-primary, #10b981)';
+  }
       submitBtn.style.background = '';
     }
     loadAvailablePaymentMethods();
@@ -1050,18 +1036,14 @@ async function handlePaymentSubmit(event) {
     return;
   }
 
-  const planCode = document.getElementById('selectedPlanCode').value;
-  const isFree = (planCode === 'FREE' || currentPlanInfo.price === 0);
+  const planCode = 'PRO';
 
-  let paymentMethodText = 'Plan Gratuito (Prueba 30 Días)';
-  let referenceLast4 = 'FREE-TRIAL';
+  const select = document.getElementById('paymentMethodSelect');
+  const methodId = parseInt(select ? select.value : 0);
+  const selectedMethodObj = (availablePaymentMethods || []).find(m => m.id === methodId);
+  const paymentMethodText = selectedMethodObj ? selectedMethodObj.titulo : 'Pago Móvil';
+  let referenceLast4 = 'PAGO-WEB';
   let proofFile = null;
-
-  if (!isFree) {
-    const select = document.getElementById('paymentMethodSelect');
-    const methodId = parseInt(select ? select.value : 0);
-    const selectedMethodObj = (availablePaymentMethods || []).find(m => m.id === methodId);
-    paymentMethodText = selectedMethodObj ? selectedMethodObj.titulo : 'Pago Móvil';
 
     // Recolección de campos dinámicos
     const dynInputs = document.querySelectorAll('.dyn-input');
@@ -1122,7 +1104,7 @@ async function handlePaymentSubmit(event) {
   const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.innerHTML = isFree ? '⏳ Aprovisionando tu cuenta gratis...' : '⏳ Registrando pago...';
+    submitBtn.innerHTML = '⏳ Registrando pago...';
   }
 
   try {
@@ -1147,41 +1129,20 @@ async function handlePaymentSubmit(event) {
     if (cleanSellerPhone.startsWith('0')) cleanSellerPhone = '58' + cleanSellerPhone.substring(1);
     if (!cleanSellerPhone.startsWith('58')) cleanSellerPhone = '58' + cleanSellerPhone;
 
-    if (isFree) {
-      const waMsg = encodeURIComponent(
-        `👋 ¡Hola equipo de ZNexica POS!\n\n` +
-        `Acabo de registrarme y activar mi periodo de prueba gratis (30 días) en ZNexica POS.\n` +
-        `👤 *Cliente:* ${fullName}\n` +
-        `🏢 *Empresa:* ${companyName || 'Sin especificar'}\n` +
-        `📱 *Teléfono / Usuario:* ${phone}\n` +
-        `🚀 *Plan:* Plan Prueba Gratis (30 Días)\n\n` +
-        `¡Por favor asístanme para comenzar a configurar mi punto de venta!`
-      );
-      const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
+    const waMsg = encodeURIComponent(
+      `👋 ¡Hola equipo de ZNexica POS!\n\n` +
+      `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan Profesional ($20/mes)'}*.\n` +
+      `👤 *Cliente:* ${fullName}\n` +
+      `🏢 *Empresa:* ${companyName || 'Sin especificar'}\n` +
+      `📱 *Teléfono / Usuario:* ${phone}\n` +
+      `💳 *Método:* ${paymentMethodText}\n` +
+      `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +
+      `Por favor verifiquen mi pago para activar mi acceso a la app ZNexica POS.`
+    );
+    const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
-      alert(
-        `🎉 ¡Felicitaciones ${fullName}!\n\n` +
-        `Tu empresa "${companyName || 'ZNexica POS'}" y tu usuario han sido activados con éxito en el sistema.\n\n` +
-        `Ya puedes abrir la aplicación ZNexica POS e iniciar sesión con tu correo (${email}) y tu contraseña.\n\n` +
-        `Se abrirá WhatsApp para que te comuniques con el soporte técnico.`
-      );
-      window.open(waUrl, '_blank');
-    } else {
-      const waMsg = encodeURIComponent(
-        `👋 ¡Hola equipo de ZNexica POS!\n\n` +
-        `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan ZNexica POS'}*.\n` +
-        `👤 *Cliente:* ${fullName}\n` +
-        `🏢 *Empresa:* ${companyName || 'Sin especificar'}\n` +
-        `📱 *Teléfono / Usuario:* ${phone}\n` +
-        `💳 *Método:* ${paymentMethodText}\n` +
-        `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +
-        `Por favor verifiquen mi pago para activar mi acceso a la app ZNexica POS.`
-      );
-      const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
-
-      alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app ZNexica POS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
-      window.open(waUrl, '_blank');
-    }
+    alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app ZNexica POS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
+    window.open(waUrl, '_blank');
 
   } catch (err) {
     console.error(err);
