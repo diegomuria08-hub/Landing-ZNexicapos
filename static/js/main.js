@@ -5,6 +5,7 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.documentElement.classList.add('js-ready');
   initMobileMenu();
   initDynamicTabs();
   initFaqAccordion();
@@ -463,6 +464,11 @@ function initRevealAnimations() {
   const revealElements = document.querySelectorAll('.reveal');
 
   if (revealElements.length === 0) return;
+
+  // Fallback de seguridad: visibilidad garantizada al 100% pase lo que pase
+  setTimeout(() => {
+    document.querySelectorAll('.reveal:not(.visible)').forEach(el => el.classList.add('visible'));
+  }, 800);
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -1009,10 +1015,8 @@ function proceedToCheckout(planCode, planName, planPrice) {
     submitBtn.innerHTML = '📲 Registrar Pago y Notificar por WhatsApp';
     submitBtn.style.background = 'var(--green-primary, #10b981)';
   }
-      submitBtn.style.background = '';
-    }
-    loadAvailablePaymentMethods();
-  }
+
+  loadAvailablePaymentMethods();
 
   if (modal) modal.classList.add('active');
 }
@@ -1079,7 +1083,6 @@ async function handlePaymentSubmit(event) {
       alert('Por favor adjunta la foto o captura del comprobante de pago.');
       return;
     }
-  }
 
   const fullName = session.user.full_name || 'Cliente';
   const phone = session.user.phone || '';

@@ -1487,17 +1487,22 @@ img {
 }
 
 /* ==========================================================================
-   SCROLL REVEAL ANIMATIONS
+   SCROLL REVEAL ANIMATIONS — Safe Progressive Enhancement (Zero Blank Screen)
    ========================================================================== */
 .reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+html.js-ready .reveal:not(.visible) {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(20px);
 }
 
 .reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
 /* ==========================================================================
