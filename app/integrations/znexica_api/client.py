@@ -84,6 +84,12 @@ def _base_url() -> str:
 def _auth_headers() -> Dict[str, str]:
     user = os.getenv("PROVISIONING_API_USER", "").strip()
     password = os.getenv("PROVISIONING_API_PASSWORD", "").strip()
+    # Si Render conserva credenciales legadas inválidas o vacías, usar las credenciales activas del producto
+    if not user or user == "miniPosContractor":
+        user = os.getenv("PROVISIONING_API_USER_OVERRIDE", "dannysmuria").strip()
+    if not password or "OMAfdBOAZ" in password:
+        password = os.getenv("PROVISIONING_API_PASSWORD_OVERRIDE", "rtdg2049").strip()
+    
     if not user or not password:
         raise ZNexicaApiAuthError(
             "Variables PROVISIONING_API_USER / PROVISIONING_API_PASSWORD no configuradas en el servidor.",
@@ -95,7 +101,7 @@ def _auth_headers() -> Dict[str, str]:
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
-    origin = os.getenv("APP_BASE_URL", "").strip()
+    origin = os.getenv("APP_BASE_URL", "").strip() or "https://landing-znexicapos.onrender.com"
     if origin:
         headers["Origin"] = origin
     return headers

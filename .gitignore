@@ -48,6 +48,8 @@ scratch/
 .vscode/
 .idea/
 *.swp
+node_modules/
+package-lock.json
 *.swo
 Thumbs.db
 Desktop.ini

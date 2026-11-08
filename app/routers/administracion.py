@@ -65,13 +65,16 @@ def update_subscription_status(
                 empresa = usuario.nombre_empresa or f"Negocio de {usuario.nombre_completo}"
                 email_admin = usuario.email or f"{usuario.telefono}@minipos-user.com"
                 admin_pass = usuario.password_hash
+                plan_to_provision = (sub.codigo_plan or "PRO").strip().upper()
+                if plan_to_provision not in ("FREE", "BASIC", "PRO"):
+                    plan_to_provision = "PRO"
                 try:
                     remote_resp = provision_tenant_sync(
                         company_name=empresa,
                         admin_name=usuario.nombre_completo,
                         admin_email=email_admin,
                         admin_password=admin_pass,
-                        plan_code=sub.codigo_plan
+                        plan_code=plan_to_provision
                     )
                     data_body = remote_resp.get("data", {})
                     sub.tenant_company_id = data_body.get("company", {}).get("id")
@@ -392,7 +395,38 @@ def reactivate_client_service(
         latest_sub.estado = "aprobado"
         latest_sub.fecha_inicio = now_caracas
         latest_sub.fecha_fin = cycle_end
-        plan_code = latest_sub.codigo_plan or "PRO"
+        plan_code = (latest_sub.codigo_plan or "PRO").strip().upper()
+        if plan_code not in ("FREE", "BASIC", "PRO"):
+            plan_code = "PRO"
+
+        # Garantizar que el cliente esté aprovisionado en la App si no lo estaba
+        has_real_pw = bool(usuario.password_hash and not usuario.password_hash.startswith("$2"))
+        if (latest_sub.tenant_provisioning_status != "exitoso" or not latest_sub.tenant_company_id) and has_real_pw:
+            from app.services.provisioning import provision_tenant_sync, ProvisioningConflictError
+            empresa = usuario.nombre_empresa or f"Negocio de {usuario.nombre_completo}"
+            email_admin = usuario.email or f"{usuario.telefono}@minipos-user.com"
+            admin_pass = usuario.password_hash
+            try:
+                remote_resp = provision_tenant_sync(
+                    company_name=empresa,
+                    admin_name=usuario.nombre_completo,
+                    admin_email=email_admin,
+                    admin_password=admin_pass,
+                    plan_code=plan_code
+                )
+                data_body = remote_resp.get("data", {})
+                latest_sub.tenant_company_id = data_body.get("company", {}).get("id")
+                latest_sub.tenant_admin_id = data_body.get("admin", {}).get("id")
+                latest_sub.tenant_plan_id = data_body.get("plan", {}).get("id")
+                latest_sub.tenant_provisioning_status = "exitoso"
+                latest_sub.tenant_error_detail = None
+                latest_sub.tenant_provisioned_at = now_caracas
+            except ProvisioningConflictError as ce:
+                latest_sub.tenant_provisioning_status = "exitoso"
+                latest_sub.tenant_error_detail = f"Cuenta ya existente en el producto: {ce.message}"
+                latest_sub.tenant_provisioned_at = now_caracas
+            except Exception as e:
+                latest_sub.tenant_error_detail = str(e)
 
     # Sincronizar en AccesoMiniposApi
     access_rec = db.query(models.AccesoMiniposApi).filter(
