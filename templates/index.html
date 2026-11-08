@@ -9,7 +9,7 @@
   <meta name="author" content="ZNexica POS">
   <link rel="icon" type="image/png" href="/static/images/logo_icon.png">
   <link rel="apple-touch-icon" href="/static/images/logo.jpg">
-  <link rel="stylesheet" href="/static/css/styles.css?v=4.2">
+  <link rel="stylesheet" href="/static/css/styles.css?v=5.0">
 </head>
 <body>
 
@@ -781,7 +781,7 @@
   <script>
     window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone }}";
   </script>
-  <script src="/static/js/main.js?v=8.4"></script>
+  <script src="/static/js/main.js?v=9.0"></script>
 
   <!-- ANTI-CACHE: Forzando la nueva UI de Métodos de Pago aquí mismo -->
   <style>
@@ -1138,18 +1138,6 @@
           `Se abrirá WhatsApp para que envíes tu notificación al equipo.`
         );
         window.open(waUrl, '_blank');
-            `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
-            `💳 *Método:* ${paymentMethodText}\n` +
-            `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +
-            `Por favor verifiquen mi pago para activar mi acceso a la app ZNexica POS.`
-          );
-
-          const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
-
-          alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu cuenta ya está creada en ZNexica POS.\n\nPara entrar a la App usa:\n✉️ Correo: ${email}\n🔑 Contraseña: la que creaste al registrarte\n\n(Escribe el correo exactamente así, en minúsculas.)\n\nSe abrirá WhatsApp para que notifiques el pago.`);
-          window.open(waUrl, '_blank');
-        }
-
       } catch (err) {
         console.error(err);
         alert('Error de conexión o comunicación con el servidor al registrar el pago.');
