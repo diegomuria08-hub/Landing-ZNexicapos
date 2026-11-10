@@ -2,6 +2,7 @@ import os
 import secrets
 import hashlib
 import logging
+import urllib.parse
 from datetime import datetime, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
@@ -20,6 +21,33 @@ logger = logging.getLogger("autenticacion")
 ADMIN_2FA_STORE = {}
 
 
+def get_admin_phone_for_user(usuario: models.Usuario) -> str:
+    """
+    Determina el número de teléfono exacto de WhatsApp según el administrador que inicia sesión:
+      - Diego_admin: 584243580005
+      - Dannys_Admin (Papá): 584124579238
+      - Admin3: Fallback temporal a 584243580005 (hasta definir nuevo número)
+    """
+    user_clean = (usuario.telefono or "").strip().lower()
+    admin1_user = os.getenv("ADMIN_USERNAME", "diego_admin").strip().lower()
+    admin2_user = os.getenv("ADMIN2_USERNAME", "dannys_admin").strip().lower()
+    admin3_user = os.getenv("ADMIN3_USERNAME", "admin3").strip().lower()
+
+    if user_clean == admin1_user or "diego" in user_clean:
+        raw_phone = os.getenv("ADMIN1_PHONE", "584243580005").strip()
+    elif user_clean == admin2_user or "dannys" in user_clean or "danny" in user_clean:
+        raw_phone = os.getenv("ADMIN2_PHONE", "584124579238").strip()
+    elif user_clean == admin3_user:
+        raw_phone = os.getenv("ADMIN3_PHONE", "584243580005").strip()
+    else:
+        raw_phone = os.getenv("WHATSAPP_ADMIN_PHONE", "584243580005").strip()
+
+    digits_only = "".join(filter(str.isdigit, raw_phone))
+    if digits_only.startswith("0"):
+        digits_only = "58" + digits_only[1:]
+    return digits_only or "584243580005"
+
+
 def _send_2fa_whatsapp(phone: str, code: str):
     """
     Hook de integración con el servicio / Chatbot de WhatsApp.
@@ -27,7 +55,7 @@ def _send_2fa_whatsapp(phone: str, code: str):
     """
     clean_phone = (phone or "").replace("+", "").replace(" ", "").replace("-", "")
     logger.info("🔐 [2FA SECURITY BOT] Código de un solo uso para admin (%s): %s (Expira en 5 min)", clean_phone, code)
-    print(f"\n=======================================================\n🔐 [2FA SECURITY BOT] CÓDIGO GENERADO: {code}\nDestinatario: {clean_phone} (Válido por 5 minutos)\n=======================================================\n")
+    print(f"\n=======================================================\n🔐 [2FA SECURITY BOT] CÓDIGO GENERADO: {code}\nDestinatario WhatsApp: +{clean_phone} (Válido por 5 minutos)\n=======================================================\n")
 
 ENV_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
 load_dotenv(dotenv_path=ENV_PATH, override=True)
@@ -249,13 +277,25 @@ def login(login_in: schemas.LoginUsuario, db: Session = Depends(get_db)):
             "expires_at": datetime.utcnow() + timedelta(minutes=5)
         }
 
-        admin_phone = os.getenv("WHATSAPP_ADMIN_PHONE", "584243580005")
+        admin_phone = get_admin_phone_for_user(usuario)
         _send_2fa_whatsapp(admin_phone, otp_code)
+
+        wa_msg = (
+            f"🔐 *ZNexica POS - Código de Seguridad 2FA*\n\n"
+            f"Hola {usuario.nombre_completo}, tu código de acceso para iniciar sesión es:\n\n"
+            f"👉 *{otp_code}*\n\n"
+            f"(Válido por exactamente 5 minutos. No compartas este código con nadie.)"
+        )
+        encoded_msg = urllib.parse.quote(wa_msg)
+        wa_url = f"https://api.whatsapp.com/send?phone={admin_phone}&text={encoded_msg}"
+        masked_phone = f"+{admin_phone[:4]}***{admin_phone[-4:]}" if len(admin_phone) >= 8 else f"+{admin_phone}"
 
         return {
             "requires_2fa": True,
             "temp_token": temp_token,
-            "message": "Código de seguridad de 6 dígitos generado. Revisa tu WhatsApp o la consola del servidor."
+            "message": f"Código de seguridad enviado al WhatsApp del administrador ({masked_phone}).",
+            "whatsapp_url": wa_url,
+            "admin_phone_masked": masked_phone
         }
 
     # Clientes: Entrega directa de token JWT

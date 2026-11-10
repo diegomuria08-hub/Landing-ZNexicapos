@@ -81,6 +81,23 @@ async function handleAdminLogin(event) {
       if (f2aView) f2aView.style.display = 'block';
       const tempTokenInput = document.getElementById('tempToken2FA');
       if (tempTokenInput) tempTokenInput.value = data.temp_token;
+
+      const descBox = document.getElementById('admin2FADesc');
+      if (descBox && data.admin_phone_masked) {
+        descBox.innerHTML = `Código de seguridad enviado al WhatsApp del Administrador (<strong>${data.admin_phone_masked}</strong>). Expira en 5 minutos.`;
+      }
+
+      const waBtn = document.getElementById('btnOpenWhatsApp2FA');
+      if (waBtn && data.whatsapp_url) {
+        waBtn.href = data.whatsapp_url;
+        waBtn.style.display = 'inline-flex';
+        try {
+          window.open(data.whatsapp_url, '_blank');
+        } catch (e) {
+          console.log('Popup bloqueado, usar el botón directo de WhatsApp.');
+        }
+      }
+
       const codeInput = document.getElementById('input2FACode');
       if (codeInput) {
         codeInput.value = '';

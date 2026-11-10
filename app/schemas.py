@@ -47,6 +47,8 @@ class Token(BaseModel):
     requires_2fa: Optional[bool] = False
     temp_token: Optional[str] = None
     message: Optional[str] = None
+    whatsapp_url: Optional[str] = None
+    admin_phone_masked: Optional[str] = None
 
 
 class Verify2FAIn(BaseModel):

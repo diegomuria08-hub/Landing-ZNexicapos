@@ -163,11 +163,15 @@
 
       <!-- Vista 2FA (Seguridad de Dos Pasos para Administradores) -->
       <div id="admin2FAView" style="display: none; text-align: center;">
-        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📲</div>
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔐</div>
         <h3 style="font-size: 1.15rem; color: #0f172a; margin-bottom: 0.35rem; font-weight: 700;">Verificación en Dos Pasos (2FA)</h3>
-        <p style="font-size: 0.83rem; color: #64748b; margin-bottom: 1.25rem; line-height: 1.45;">
-          Ingresa el código numérico de <strong>6 dígitos</strong> enviado a tu canal seguro de WhatsApp. Expira en 5 minutos.
+        <p id="admin2FADesc" style="font-size: 0.83rem; color: #64748b; margin-bottom: 1.1rem; line-height: 1.45;">
+          Ingresa el código numérico de <strong>6 dígitos</strong> enviado a tu WhatsApp. Expira en 5 minutos.
         </p>
+
+        <a id="btnOpenWhatsApp2FA" href="#" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: #25d366; color: #ffffff; text-decoration: none; padding: 0.65rem 1.1rem; border-radius: 8px; font-size: 0.84rem; font-weight: 600; margin-bottom: 1.25rem; box-shadow: 0 2px 6px rgba(37,211,102,0.25);">
+          📲 Abrir WhatsApp y Recibir Código
+        </a>
 
         <form id="admin2FAForm" onsubmit="handleVerify2FA(event)">
           <input type="hidden" id="tempToken2FA">
@@ -749,7 +753,7 @@
     </div>
   </div>
 
-  <script src="/static/js/admin.js?v=6.0"></script>
+  <script src="/static/js/admin.js?v=6.1"></script>
   <script>
     // Sobrescribir togglePmTypeFields directamente en el HTML para evitar caché agresivo
     window.togglePmTypeFields = function() {
