@@ -224,6 +224,22 @@ async def submit_payment(
 
     db.commit()
     db.refresh(suscripcion)
+
+    # BLOQUEAR ACCESO EN LA APP (INACTIVE) HASTA QUE EL ADMINISTRADOR APRUEBE EL PAGO
+    # La API de Vercel crea el tenant en ACTIVE; lo ponemos en INACTIVE de inmediato
+    # para que el cliente quede detenido en la puerta hasta que se valide su comprobante:
+    if initial_status != "aprobado":
+        current_user.esta_bloqueado = True
+        current_user.motivo_bloqueo = "Pago pendiente de verificación y aprobación por el administrador."
+        db.commit()
+        from app.services.provisioning import sync_app_access
+        sync_app_access(
+            db,
+            current_user,
+            active=False,
+            reason="Comprobante recibido: acceso bloqueado en la App hasta que administración apruebe el pago."
+        )
+
     return suscripcion
 
 

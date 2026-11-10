@@ -182,7 +182,7 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
         prov_status = "fallido_conexion"
         prov_error = str(exc)
 
-    # Registrar la suscripción inicial al único Plan Profesional ($20/mes)
+    # Registrar la suscripción inicial al único Plan Profesional ($20/mes) en estado PENDIENTE de pago
     sub_inicial = models.Suscripcion(
         usuario_id=usuario.id,
         codigo_plan="PRO",
@@ -190,7 +190,7 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
         monto_usd=20.0,
         metodo_pago="Registro Web",
         referencia_ultimos4="REGISTRO",
-        estado="aprobado",
+        estado="pendiente",
         tiene_web=True,
         acepto_disclaimer_web=True,
         fecha_inicio=now_caracas,
@@ -205,6 +205,10 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
     )
     db.add(sub_inicial)
 
+    # Detener al cliente en la puerta: el acceso permanece bloqueado hasta confirmación de pago
+    usuario.esta_bloqueado = True
+    usuario.motivo_bloqueo = "Cuenta registrada. Acceso bloqueado hasta la verificación y aprobación del pago por el administrador."
+
     # Sincronizar en AccesoMiniposApi
     access_record = db.query(models.AccesoMiniposApi).filter(
         func.lower(models.AccesoMiniposApi.telefono) == phone_clean
@@ -212,25 +216,36 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
     if not access_record:
         access_record = models.AccesoMiniposApi(
             telefono=phone_clean,
-            acceso_concedido=True,
-            plan_activo="PRO",
-            esta_bloqueado=False,
-            estado="activo",
-            mensaje_bloqueo="",
+            acceso_concedido=False,
+            plan_activo="ninguno",
+            esta_bloqueado=True,
+            estado="pendiente",
+            mensaje_bloqueo="Tu cuenta está registrada pero requiere confirmación de pago por el administrador para acceder al sistema.",
             fecha_expiracion=cycle_end,
             ultima_sincronizacion=now_caracas
         )
         db.add(access_record)
     else:
-        access_record.plan_activo = "PRO"
-        access_record.acceso_concedido = True
-        access_record.esta_bloqueado = False
-        access_record.estado = "activo"
-        access_record.mensaje_bloqueo = ""
+        access_record.plan_activo = "ninguno"
+        access_record.acceso_concedido = False
+        access_record.esta_bloqueado = True
+        access_record.estado = "pendiente"
+        access_record.mensaje_bloqueo = "Tu cuenta está registrada pero requiere confirmación de pago por el administrador para acceder al sistema."
         access_record.fecha_expiracion = cycle_end
         access_record.ultima_sincronizacion = now_caracas
 
     db.commit()
+
+    # BLOQUEAR INMEDIATAMENTE EN LA APP MÓVIL (INACTIVE)
+    # Ya que la API de Vercel crea el tenant con status ACTIVE por defecto,
+    # forzamos el estado INACTIVE al instante para que no pueda entrar hasta que el admin apruebe el pago:
+    from app.services.provisioning import sync_app_access
+    sync_app_access(
+        db,
+        usuario,
+        active=False,
+        reason="Cuenta nueva creada en la web: acceso bloqueado hasta confirmación y aprobación del pago por administración."
+    )
 
     token = security.create_access_token(data={"sub": usuario.telefono, "role": usuario.rol})
     return {"access_token": token, "token_type": "bearer", "user": usuario}

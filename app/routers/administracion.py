@@ -130,8 +130,8 @@ def update_subscription_status(
     if usuario and usuario.rol == "cliente":
         if new_status == "aprobado":
             sync_app_access(db, usuario, active=True, reason="Pago de suscripción aprobado por administración")
-        elif new_status == "rechazado":
-            sync_app_access(db, usuario, active=False, reason="Pago de suscripción rechazado por administración")
+        elif new_status in ["rechazado", "pendiente"]:
+            sync_app_access(db, usuario, active=False, reason=f"Pago de suscripción en estado '{new_status}' por administración")
 
     return sub
 
