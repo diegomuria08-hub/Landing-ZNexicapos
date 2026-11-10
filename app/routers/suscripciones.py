@@ -92,14 +92,14 @@ async def submit_payment(
         else:
             clean_email = f"{phone.strip()}@minipos-user.com"
 
-    # Crear o sincronizar datos del usuario en nuestra BD (guardando contraseña original sin encriptar)
+    # Crear o sincronizar datos del usuario en nuestra BD (guardando hash seguro con Bcrypt)
     if not current_user:
         current_user = models.Usuario(
             nombre_completo=full_name.strip(),
             nombre_empresa=company_name.strip() if company_name else f"Negocio de {full_name.strip()}",
             email=clean_email,
             telefono=phone.strip(),
-            password_hash=raw_password,
+            password_hash=security.get_password_hash(raw_password),
             rol="cliente",
             esta_bloqueado=False
         )
@@ -113,9 +113,9 @@ async def submit_payment(
             current_user.nombre_empresa = company_name.strip()
         if clean_email and not current_user.email:
             current_user.email = clean_email
-        # Asegurar que la contraseña guardada en BD sea la original en texto plano
-        if supplied_pw or current_user.password_hash.startswith("$2"):
-            current_user.password_hash = raw_password
+        # Asegurar que la contraseña guardada en BD esté hasheada con Bcrypt + Sal
+        if supplied_pw or not current_user.password_hash.startswith(("$2b$", "$2a$", "$2y$")):
+            current_user.password_hash = security.get_password_hash(raw_password)
         db.commit()
         db.refresh(current_user)
 

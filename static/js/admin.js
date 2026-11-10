@@ -63,13 +63,37 @@ async function handleAdminLogin(event) {
     });
 
     const data = await res.json();
-    if (!res.ok || data.user.rol !== 'admin') {
+    if (!res.ok) {
       const msg = data.detail || 'Credenciales inválidas o acceso no autorizado.';
       if (errorBox) {
         errorBox.textContent = msg;
         errorBox.style.display = 'block';
       } else {
         alert(msg);
+      }
+      return;
+    }
+
+    // 2FA Requerido para Administradores
+    if (data.requires_2fa) {
+      document.getElementById('adminLoginForm').style.display = 'none';
+      const f2aView = document.getElementById('admin2FAView');
+      if (f2aView) f2aView.style.display = 'block';
+      const tempTokenInput = document.getElementById('tempToken2FA');
+      if (tempTokenInput) tempTokenInput.value = data.temp_token;
+      const codeInput = document.getElementById('input2FACode');
+      if (codeInput) {
+        codeInput.value = '';
+        codeInput.focus();
+      }
+      return;
+    }
+
+    if (!data.user || data.user.rol !== 'admin') {
+      const msg = 'Acceso no autorizado para este panel.';
+      if (errorBox) {
+        errorBox.textContent = msg;
+        errorBox.style.display = 'block';
       }
       return;
     }
@@ -85,6 +109,74 @@ async function handleAdminLogin(event) {
       alert('Error de conexión.');
     }
   }
+}
+
+async function handleVerify2FA(event) {
+  event.preventDefault();
+  const tempToken = document.getElementById('tempToken2FA').value;
+  const code = document.getElementById('input2FACode').value.trim();
+  const errorBox = document.getElementById('adminLoginError');
+  const btn = document.getElementById('btnVerify2FA');
+  if (errorBox) errorBox.style.display = 'none';
+
+  if (!code || code.length !== 6) {
+    if (errorBox) {
+      errorBox.textContent = 'Por favor ingresa un código válido de 6 dígitos.';
+      errorBox.style.display = 'block';
+    }
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Validando código...';
+  }
+
+  try {
+    const res = await fetch('/api/autenticacion/verify-2fa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ temp_token: tempToken, code: code })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      const msg = data.detail || 'Código de seguridad incorrecto o expirado.';
+      if (errorBox) {
+        errorBox.textContent = msg;
+        errorBox.style.display = 'block';
+      } else {
+        alert(msg);
+      }
+      return;
+    }
+
+    localStorage.setItem('minipos_admin_token', data.access_token);
+    cancel2FA();
+    checkAdminSession();
+  } catch (err) {
+    console.error(err);
+    if (errorBox) {
+      errorBox.textContent = 'Error al validar código con el servidor.';
+      errorBox.style.display = 'block';
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Validar Acceso';
+    }
+  }
+}
+
+function cancel2FA() {
+  const f2aView = document.getElementById('admin2FAView');
+  if (f2aView) f2aView.style.display = 'none';
+  const loginForm = document.getElementById('adminLoginForm');
+  if (loginForm) loginForm.style.display = 'block';
+  const tempTokenInput = document.getElementById('tempToken2FA');
+  if (tempTokenInput) tempTokenInput.value = '';
+  const codeInput = document.getElementById('input2FACode');
+  if (codeInput) codeInput.value = '';
 }
 
 function handleAdminLogout() {

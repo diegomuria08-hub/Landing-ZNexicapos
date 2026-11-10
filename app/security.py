@@ -1,4 +1,5 @@
 import os
+import unicodedata
 from datetime import datetime, timedelta
 from typing import Optional
 from dotenv import load_dotenv
@@ -21,34 +22,41 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "4320
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/autenticacion/login", auto_error=False)
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verificar contraseña del usuario.
-    Soporta comparación directa en texto original (sin encriptar/hashear para evitar doble encriptamiento
-    al aprovisionar en la BD del producto) y mantiene compatibilidad con hashes bcrypt previos.
-    """
-    if plain_password is None or hashed_password is None:
-        return False
-    # 1. Comparación exacta en texto original (sin encriptar)
-    if plain_password == hashed_password:
-        return True
-    # 2. Fallback de compatibilidad si el registro antiguo aún tenía hash bcrypt ($2b$, $2a$, $2y$)
-    if hashed_password.startswith(("$2b$", "$2a$", "$2y$")):
-        try:
-            pwd_bytes = plain_password.encode("utf-8")[:72]
-            hash_bytes = hashed_password.encode("utf-8")
-            return bcrypt.checkpw(pwd_bytes, hash_bytes)
-        except Exception:
-            return False
-    return False
+def _normalize_password_bytes(password: str) -> bytes:
+    """Normaliza en Unicode NFC y codifica a UTF-8 recortando al límite de 72 bytes de Bcrypt."""
+    if not password:
+        return b""
+    # Normalización canónica para asegurar que 'ñ' y acentos pesen exactamente igual en Web y Móvil
+    normalized = unicodedata.normalize('NFC', password)
+    return normalized.encode('utf-8')[:72]
 
 
 def get_password_hash(password: str) -> str:
+    """Genera hash Bcrypt seguro con Sal (costo 12) de longitud fija y sin almacenar texto plano."""
+    pwd_bytes = _normalize_password_bytes(password)
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(pwd_bytes, salt).decode('utf-8')
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Retorna la contraseña tal cual la definió el usuario (sin encriptar ni hashear),
-    para que viaje íntegra y original a la base de datos del producto (donde sí se encripta).
+    Verifica contraseñas con bcrypt.checkpw.
+    Mantiene compatibilidad de migración en caliente si existía texto plano previo.
     """
-    return password
+    if not plain_password or not hashed_password:
+        return False
+
+    pwd_bytes = _normalize_password_bytes(plain_password)
+
+    # 1. Validación segura con Hash Bcrypt ($2b$, $2a$, $2y$)
+    if hashed_password.startswith(("$2b$", "$2a$", "$2y$")):
+        try:
+            return bcrypt.checkpw(pwd_bytes, hashed_password.encode('utf-8'))
+        except Exception:
+            return False
+
+    # 2. Fallback temporal de migración transparente (solo para cuentas previas en texto plano)
+    return plain_password == hashed_password
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

@@ -41,9 +41,17 @@ class UsuarioOut(BaseModel):
 
 
 class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user: UsuarioOut
+    access_token: Optional[str] = None
+    token_type: Optional[str] = "bearer"
+    user: Optional[UsuarioOut] = None
+    requires_2fa: Optional[bool] = False
+    temp_token: Optional[str] = None
+    message: Optional[str] = None
+
+
+class Verify2FAIn(BaseModel):
+    temp_token: str
+    code: str
 
 
 class ActualizarPerfilAdmin(BaseModel):

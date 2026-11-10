@@ -160,6 +160,31 @@
           Iniciar Sesión
         </button>
       </form>
+
+      <!-- Vista 2FA (Seguridad de Dos Pasos para Administradores) -->
+      <div id="admin2FAView" style="display: none; text-align: center;">
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📲</div>
+        <h3 style="font-size: 1.15rem; color: #0f172a; margin-bottom: 0.35rem; font-weight: 700;">Verificación en Dos Pasos (2FA)</h3>
+        <p style="font-size: 0.83rem; color: #64748b; margin-bottom: 1.25rem; line-height: 1.45;">
+          Ingresa el código numérico de <strong>6 dígitos</strong> enviado a tu canal seguro de WhatsApp. Expira en 5 minutos.
+        </p>
+
+        <form id="admin2FAForm" onsubmit="handleVerify2FA(event)">
+          <input type="hidden" id="tempToken2FA">
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <input type="text" id="input2FACode" class="form-input" 
+                   maxlength="6" pattern="[0-9]{6}" inputmode="numeric" 
+                   placeholder="000000" autocomplete="one-time-code" required 
+                   style="text-align: center; font-size: 1.7rem; letter-spacing: 0.45rem; font-weight: 800; color: #0f172a;">
+          </div>
+          <button type="submit" id="btnVerify2FA" class="saas-btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 0.95rem; margin-bottom: 0.75rem;">
+            Validar Acceso
+          </button>
+          <button type="button" onclick="cancel2FA()" style="background: none; border: none; color: #64748b; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">
+            Volver al inicio de sesión
+          </button>
+        </form>
+      </div>
     </div>
 
     <!-- Vista 2: Dashboard Principal de Administración (Estilo Parclgo) -->
@@ -724,7 +749,7 @@
     </div>
   </div>
 
-  <script src="/static/js/admin.js?v=5.2"></script>
+  <script src="/static/js/admin.js?v=6.0"></script>
   <script>
     // Sobrescribir togglePmTypeFields directamente en el HTML para evitar caché agresivo
     window.togglePmTypeFields = function() {
