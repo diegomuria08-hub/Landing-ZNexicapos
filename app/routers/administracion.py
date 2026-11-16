@@ -92,7 +92,7 @@ def update_subscription_status(
                     sub.tenant_error_detail = str(e)
         elif new_status == "rechazado":
             usuario.esta_bloqueado = True
-            usuario.motivo_bloqueo = "Pago rechazado por el administrador. Regulariza tu suscripción."
+            usuario.motivo_bloqueo = "Pago del lote de Números de Control rechazado por el administrador. Regulariza tu recarga."
             db.query(models.SesionDispositivo).filter(
                 models.SesionDispositivo.usuario_id == usuario.id
             ).update({"esta_activo": False})
@@ -108,7 +108,7 @@ def update_subscription_status(
                 esta_bloqueado=(new_status != "aprobado"),
                 estado="activo" if new_status == "aprobado" else "bloqueado",
                 plan_activo=sub.codigo_plan if new_status == "aprobado" else "ninguno",
-                mensaje_bloqueo="" if new_status == "aprobado" else "Acceso restringido por pago no aprobado.",
+                mensaje_bloqueo="" if new_status == "aprobado" else "Acceso restringido por lote de Números de Control no aprobado.",
                 fecha_expiracion=cycle_end if new_status == "aprobado" else None,
                 ultima_sincronizacion=now_caracas
             )
@@ -118,7 +118,7 @@ def update_subscription_status(
             access_rec.esta_bloqueado = (new_status != "aprobado")
             access_rec.estado = "activo" if new_status == "aprobado" else "bloqueado"
             access_rec.plan_activo = sub.codigo_plan if new_status == "aprobado" else "ninguno"
-            access_rec.mensaje_bloqueo = "" if new_status == "aprobado" else "Acceso restringido por pago no aprobado."
+            access_rec.mensaje_bloqueo = "" if new_status == "aprobado" else "Acceso restringido por lote de Números de Control no aprobado."
             if new_status == "aprobado":
                 access_rec.fecha_expiracion = cycle_end
             access_rec.ultima_sincronizacion = now_caracas
@@ -129,9 +129,9 @@ def update_subscription_status(
     # Sincronizar estado en la API de la App (PATCH /api/provisioning/user-status)
     if usuario and usuario.rol == "cliente":
         if new_status == "aprobado":
-            sync_app_access(db, usuario, active=True, reason="Pago de suscripción aprobado por administración")
+            sync_app_access(db, usuario, active=True, reason="Lote de Números de Control aprobado por administración")
         elif new_status in ["rechazado", "pendiente"]:
-            sync_app_access(db, usuario, active=False, reason=f"Pago de suscripción en estado '{new_status}' por administración")
+            sync_app_access(db, usuario, active=False, reason=f"Lote de Números de Control en estado '{new_status}' por administración")
 
     return sub
 
@@ -202,8 +202,8 @@ def get_all_clients(
             models.AccesoMiniposApi.telefono == c.telefono
         ).first()
 
-        plan_code = latest_sub.codigo_plan if latest_sub else "PRO"
-        plan_name = latest_sub.nombre_plan if latest_sub else "Plan Profesional ($20/mes)"
+        plan_code = latest_sub.codigo_plan if latest_sub else "NC_500"
+        plan_name = latest_sub.nombre_plan if latest_sub else "Lote 500 Números de Control ($0.18/fact)"
         sub_estado = latest_sub.estado if latest_sub else ("aprobado" if not c.esta_bloqueado else "suspendido")
         fecha_inicio = latest_sub.fecha_inicio if (latest_sub and latest_sub.fecha_inicio) else (c.creado_en or now_caracas)
         
@@ -220,14 +220,14 @@ def get_all_clients(
 
         # CORTE / SUSPENSIÓN AUTOMÁTICA DE SERVICIO SI EL CLIENTE YA SE PASÓ DE LA FECHA DE VENCIMIENTO
         if esta_vencido and sub_estado == "aprobado":
-            motivo_vencimiento = "Servicio suspendido automáticamente por vencimiento de ciclo mensual (fecha de corte superada). Renueva tu plan para continuar."
+            motivo_vencimiento = "Servicio de facturación suspendido automáticamente por ciclo finalizado o lote agotado. Adquiere un nuevo lote de Números de Control para continuar."
             if not c.esta_bloqueado:
                 c.esta_bloqueado = True
                 c.motivo_bloqueo = motivo_vencimiento
                 db.query(models.SesionDispositivo).filter(
                     models.SesionDispositivo.usuario_id == c.id
                 ).update({"esta_activo": False})
-                sync_app_access(db, c, active=False, reason="Vencimiento de ciclo mensual")
+                sync_app_access(db, c, active=False, reason="Ciclo de lote vencido o agotado")
                 db_dirty = True
 
             if not access_rec:
@@ -254,35 +254,30 @@ def get_all_clients(
                 db_dirty = True
 
         # Determinación transparente del estado del cliente en el flujo de negocio:
-        # 1. Pago pendiente de aprobación por el admin
-        # 2. Vencido por fecha de corte (servicio cortado automáticamente)
-        # 3. Bloqueado / Cortado manualmente
-        # 4. Próximo a vencer (<= 5 días)
-        # 5. Activo al día
         if sub_estado == "pendiente":
             estado_servicio = "pendiente_aprobacion"
             badge_label = "Pendiente Aprobación"
-            mensaje_servicio = "Pago registrado en espera de verificación del comprobante."
+            mensaje_servicio = "Lote de Números de Control en espera de verificación de pago."
             servicio_activo = False
         elif esta_vencido:
             estado_servicio = "vencido"
-            badge_label = "Vencido (Servicio Suspendido)"
-            mensaje_servicio = c.motivo_bloqueo or "Periodo mensual culminado. Servicio suspendido hasta renovación."
+            badge_label = "Lote Vencido / Agotado"
+            mensaje_servicio = c.motivo_bloqueo or "Sin Números de Control activos o servicio suspendido. Requiere recarga de lote."
             servicio_activo = False
         elif c.esta_bloqueado:
             estado_servicio = "suspendido"
             badge_label = "Servicio Suspendido"
-            mensaje_servicio = c.motivo_bloqueo or "Servicio suspendido por administración por falta de pago."
+            mensaje_servicio = c.motivo_bloqueo or "Sin Números de Control activos o servicio suspendido. Requiere recarga de lote."
             servicio_activo = False
         elif dias_restantes <= 5:
             estado_servicio = "por_vencer"
             badge_label = f"Por Vencer ({dias_restantes} días)"
-            mensaje_servicio = f"Próximo a fecha de corte. Restan {dias_restantes} días."
+            mensaje_servicio = f"Lote próximo a revisión de corte. Restan {dias_restantes} días."
             servicio_activo = True
         else:
             estado_servicio = "activo"
             badge_label = "Activo en la App"
-            mensaje_servicio = "Servicio al día y operativo."
+            mensaje_servicio = "Lote de Números de Control activo y habilitado para facturar."
             servicio_activo = True
 
         result.append({
@@ -325,7 +320,7 @@ def suspend_client_service(
         raise HTTPException(status_code=404, detail="Cliente no encontrado.")
 
     usuario.esta_bloqueado = True
-    usuario.motivo_bloqueo = "Servicio suspendido por falta de renovación de plan o mensualidad."
+    usuario.motivo_bloqueo = "Servicio de facturación suspendido por agotamiento de Números de Control o falta de pago. Adquiere un nuevo lote para continuar facturando."
 
     # Sincronizar en AccesoMiniposApi
     access_rec = db.query(models.AccesoMiniposApi).filter(
@@ -338,7 +333,7 @@ def suspend_client_service(
             esta_bloqueado=True,
             estado="suspendido",
             plan_activo="ninguno",
-            mensaje_bloqueo="Tu servicio miniPOS ha sido suspendido por falta de pago. Renueva tu plan para continuar facturando.",
+            mensaje_bloqueo="Servicio de facturación suspendido por agotamiento de Números de Control o falta de pago. Adquiere un nuevo lote para continuar facturando.",
             ultima_sincronizacion=get_realtime_caracas_now()
         )
         db.add(access_rec)
@@ -347,7 +342,7 @@ def suspend_client_service(
         access_rec.esta_bloqueado = True
         access_rec.estado = "suspendido"
         access_rec.plan_activo = "ninguno"
-        access_rec.mensaje_bloqueo = "Tu servicio miniPOS ha sido suspendido por falta de pago. Renueva tu plan para continuar facturando."
+        access_rec.mensaje_bloqueo = "Servicio de facturación suspendido por agotamiento de Números de Control o falta de pago. Adquiere un nuevo lote para continuar facturando."
         access_rec.ultima_sincronizacion = get_realtime_caracas_now()
 
     # Cerrar sesiones activas en dispositivos para forzar petición de login
@@ -359,10 +354,10 @@ def suspend_client_service(
     db.refresh(usuario)
 
     # Notificar a la API de la App para desactivar el acceso
-    ok_sync, sync_msg = sync_app_access(db, usuario, active=False, reason="Servicio suspendido por administración")
+    ok_sync, sync_msg = sync_app_access(db, usuario, active=False, reason="Lote de Números de Control agotado o suspendido por administración")
 
     return {
-        "message": f"Servicio suspendido exitosamente para {usuario.nombre_completo}. {sync_msg}",
+        "message": f"Servicio de facturación suspendido exitosamente para {usuario.nombre_completo}. {sync_msg}",
         "cliente_id": usuario.id,
         "esta_bloqueado": True
     }
@@ -374,7 +369,7 @@ def reactivate_client_service(
     db: Session = Depends(get_db),
     admin_user: models.Usuario = Depends(security.require_admin)
 ):
-    """Reactiva el servicio al cliente restaurando acceso completo a la app móvil e iniciando nuevo ciclo mensual de 30 días."""
+    """Habilita o recarga el lote de Números de Control del cliente, restaurando su acceso a la app ZNexica POS."""
     usuario = db.query(models.Usuario).filter(models.Usuario.id == user_id, models.Usuario.rol == "cliente").first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Cliente no encontrado.")
@@ -385,19 +380,18 @@ def reactivate_client_service(
     now_caracas = get_realtime_caracas_now()
     cycle_end = now_caracas + timedelta(days=30)
 
-    # Si tenía suscripción, renovar ciclo mensual
+    # Si tenía suscripción/lote, habilitar ciclo y mantener su código real de lote
     latest_sub = db.query(models.Suscripcion).filter(
         models.Suscripcion.usuario_id == usuario.id
     ).order_by(models.Suscripcion.id.desc()).first()
 
-    plan_code = "PRO"
+    plan_code = "NC_500"
     if latest_sub:
         latest_sub.estado = "aprobado"
         latest_sub.fecha_inicio = now_caracas
         latest_sub.fecha_fin = cycle_end
-        plan_code = (latest_sub.codigo_plan or "PRO").strip().upper()
-        if plan_code not in ("FREE", "BASIC", "PRO"):
-            plan_code = "PRO"
+        plan_code = (latest_sub.codigo_plan or "NC_500").strip().upper()
+        remote_plan_code = plan_code if plan_code in ("FREE", "BASIC", "PRO") else "PRO"
 
         # Garantizar que el cliente esté aprovisionado en la App si no lo estaba
         has_real_pw = bool(usuario.password_hash and not usuario.password_hash.startswith("$2"))
@@ -412,7 +406,7 @@ def reactivate_client_service(
                     admin_name=usuario.nombre_completo,
                     admin_email=email_admin,
                     admin_password=admin_pass,
-                    plan_code=plan_code
+                    plan_code=remote_plan_code
                 )
                 data_body = remote_resp.get("data", {})
                 latest_sub.tenant_company_id = data_body.get("company", {}).get("id")
@@ -457,10 +451,10 @@ def reactivate_client_service(
     db.refresh(usuario)
 
     # Notificar a la API de la App para activar el acceso
-    ok_sync, sync_msg = sync_app_access(db, usuario, active=True, reason="Servicio reactivado por administración")
+    ok_sync, sync_msg = sync_app_access(db, usuario, active=True, reason="Lote de Números de Control habilitado por administración")
 
     return {
-        "message": f"Servicio reactivado exitosamente para {usuario.nombre_completo}. Se renovó el ciclo por 30 días. {sync_msg}",
+        "message": f"Lote de Números de Control habilitado exitosamente para {usuario.nombre_completo}. Servicio de facturación activo. {sync_msg}",
         "cliente_id": usuario.id,
         "esta_bloqueado": False
     }
@@ -480,11 +474,11 @@ def delete_client_permanently(
 
     motivo = payload.motivo.strip() if payload.motivo else "Baja solicitada / Ya no utiliza el sistema"
 
-    # Obtener el último plan para el registro de auditoría
+    # Obtener el último lote/plan para el registro de auditoría
     latest_sub = db.query(models.Suscripcion).filter(
         models.Suscripcion.usuario_id == usuario.id
     ).order_by(models.Suscripcion.id.desc()).first()
-    ultimo_plan = latest_sub.codigo_plan if latest_sub else "PRO"
+    ultimo_plan = latest_sub.codigo_plan if latest_sub else "NC_500"
 
     # 1. Registrar en la tabla de auditoría
     baja_audit = models.ClienteBajaAudit(
@@ -642,12 +636,18 @@ def generate_whatsapp_link(
     if phone_clean.startswith("0"):
         phone_clean = "58" + phone_clean[1:]
 
-    msg = (
-        f"👋 Hola {usuario.nombre_completo}, ¡excelentes noticias!\n\n"
-        f"Tu pago para el *{sub.nombre_plan}* de *miniPOS* ha sido verificado con éxito. ✅\n\n"
-        f"📱 Ya tienes *ACCESO COMPLETO* a la aplicación miniPOS en tu dispositivo móvil.\n"
-        f"¡Gracias por confiar en nosotros para hacer crecer tu negocio!"
-    )
+    if sub.estado == "aprobado":
+        msg = (
+            f"👋 Hola {usuario.nombre_completo}, ¡excelentes noticias!\n\n"
+            f"Tu pago para el *{sub.nombre_plan}* en *ZNexica POS* ha sido verificado y aprobado con éxito. ✅\n\n"
+            f"🧾 Tu lote de *Números de Control para Facturación Electrónica y Reportes* ya está *ACTIVO* en tu aplicación gratuita.\n"
+            f"¡Ya puedes ingresar y facturar al instante!"
+        )
+    else:
+        msg = (
+            f"👋 Hola {usuario.nombre_completo}, te escribimos de *ZNexica POS* respecto a tu solicitud del *{sub.nombre_plan}* (Estado: {sub.estado.upper()}).\n\n"
+            f"Por favor contáctanos o envía tu comprobante válido para habilitar tu lote de Números de Control y facturación electrónica."
+        )
 
     encoded_msg = urllib.parse.quote(msg)
     wa_url = f"https://api.whatsapp.com/send?phone={phone_clean}&text={encoded_msg}"

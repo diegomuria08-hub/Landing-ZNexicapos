@@ -960,9 +960,12 @@ function copyToClipboard(text, btnElement) {
   });
 }
 
-// Punto de entrada al seleccionar el plan en la página (Único Plan: Profesional $20/mes)
+// Punto de entrada al seleccionar un lote de Números de Control en la página
 function openCheckoutModal(planCode, planName, planPrice) {
-  pendingPlan = { code: 'PRO', name: 'Plan Profesional ($20/mes)', price: 20 };
+  const code = planCode || 'NC_500';
+  const name = planName || 'Lote 500 Números de Control ($0.18/fact)';
+  const price = Number(planPrice || 90);
+  pendingPlan = { code, name, price };
 
   const session = getClientSession();
   if (!session) {
@@ -970,12 +973,15 @@ function openCheckoutModal(planCode, planName, planPrice) {
     openClientAuthModal();
   } else {
     // Si ya inició sesión antes en este equipo, abrir directamente el checkout
-    proceedToCheckout('PRO', 'Plan Profesional ($20/mes)', 20);
+    proceedToCheckout(code, name, price);
   }
 }
 
 function proceedToCheckout(planCode, planName, planPrice) {
-  currentPlanInfo = { code: 'PRO', name: 'Plan Profesional ($20/mes)', price: 20 };
+  const code = planCode || 'NC_500';
+  const name = planName || 'Lote 500 Números de Control ($0.18/fact)';
+  const price = Number(planPrice || 90);
+  currentPlanInfo = { code, name, price };
   const session = getClientSession();
 
   const modal = document.getElementById('checkoutModal');
@@ -987,14 +993,14 @@ function proceedToCheckout(planCode, planName, planPrice) {
   const phoneDisp = document.getElementById('checkoutPhoneDisplay');
   const warnPhoneDisp = document.getElementById('warnPhoneDisplay');
 
-  if (title) title.textContent = 'Plan Profesional ($20/mes)';
-  if (priceDisplay) priceDisplay.textContent = '$20';
+  if (title) title.textContent = name;
+  if (priceDisplay) priceDisplay.textContent = `$${price}`;
   if (statusBadge) {
     statusBadge.textContent = 'Pendiente de Pago';
     statusBadge.classList.remove('status-active');
     statusBadge.classList.add('status-pending');
   }
-  if (hiddenCode) hiddenCode.value = 'PRO';
+  if (hiddenCode) hiddenCode.value = code;
 
   if (session && session.user) {
     const uName = session.user.full_name || 'Cliente';
@@ -1040,7 +1046,7 @@ async function handlePaymentSubmit(event) {
     return;
   }
 
-  const planCode = 'PRO';
+  const planCode = document.getElementById('selectedPlanCode')?.value || currentPlanInfo.code || 'NC_500';
 
   const select = document.getElementById('paymentMethodSelect');
   const methodId = parseInt(select ? select.value : 0);
@@ -1132,24 +1138,27 @@ async function handlePaymentSubmit(event) {
     if (cleanSellerPhone.startsWith('0')) cleanSellerPhone = '58' + cleanSellerPhone.substring(1);
     if (!cleanSellerPhone.startsWith('58')) cleanSellerPhone = '58' + cleanSellerPhone;
 
+    const lotName = data.nombre_plan || currentPlanInfo.name || 'Lote 500 Números de Control ($0.18/fact)';
+    const lotAmount = Number(data.monto_usd || currentPlanInfo.price || 90).toFixed(2);
+
     const waMsg = encodeURIComponent(
       `👋 ¡Hola equipo de ZNexica POS!\n\n` +
-      `Acabo de registrar el pago de mi suscripción al *${data.nombre_plan || 'Plan Profesional ($20/mes)'}*.\n` +
+      `Acabo de registrar el pago de mi paquete de facturación electrónica: *${lotName}* ($${lotAmount} USD).\n` +
       `👤 *Cliente:* ${fullName}\n` +
       `🏢 *Empresa:* ${companyName || 'Sin especificar'}\n` +
       `📱 *Teléfono / Usuario:* ${phone}\n` +
       `💳 *Método:* ${paymentMethodText}\n` +
       `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +
-      `Por favor verifiquen mi pago para activar mi acceso a la app ZNexica POS.`
+      `Por favor verifiquen mi comprobante para habilitar mis Números de Control en la app ZNexica POS.`
     );
     const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
-    alert(`✅ ¡Registro y Pago enviado exitosamente!\n\nTu suscripción está registrada. Una vez aprobado el comprobante, tendrás acceso inmediato a la app ZNexica POS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
+    alert(`✅ ¡Pago enviado exitosamente!\n\nTu solicitud para el ${lotName} ($${lotAmount} USD) está registrada.\nUna vez aprobado el comprobante por administración, podrás ingresar y facturar electrónicamente en ZNexica POS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
     window.open(waUrl, '_blank');
 
   } catch (err) {
     console.error(err);
-    alert('Error de conexión con el servidor al procesar la suscripción.');
+    alert('Error de conexión con el servidor al procesar el lote de Números de Control.');
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;

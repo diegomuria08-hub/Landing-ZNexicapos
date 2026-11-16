@@ -22,16 +22,52 @@ router = APIRouter(prefix="/api/suscripciones", tags=["Suscripciones y Pagos"])
 UPLOAD_DIR = "static/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Catálogo Oficial ZNexica POS — Único Plan Comercial: Profesional ($20/mes)
+# Catálogo Oficial ZNexica POS — Paquetes de Números de Control (Facturación Electrónica y Reportes)
+# La App es 100% gratuita; el negocio paga únicamente por consumo de Números de Control (1 factura = 1 N° de Control).
 PLANS_INFO = {
-    "PRO": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
-    # Mapeo de compatibilidad: todo plan seleccionado se sincroniza con el Plan Profesional de $20
-    "FREE": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
-    "BASIC": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
-    "free_trial": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
-    "basico": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
-    "medium": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"},
-    "premium": {"name": "Plan Profesional ($20/mes)", "price": 20.0, "has_web": True, "code": "PRO"}
+    "NC_500": {
+        "name": "Lote 500 Números de Control ($0.18/fact)",
+        "price": 90.0,
+        "has_web": False,
+        "code": "NC_500",
+        "control_numbers": 500,
+    },
+    "NC_1000": {
+        "name": "Lote 1.000 Números de Control ($0.21/fact)",
+        "price": 210.0,
+        "has_web": True,
+        "code": "NC_1000",
+        "control_numbers": 1000,
+    },
+    "NC_2500": {
+        "name": "Lote 2.500 Números de Control ($0.25/fact)",
+        "price": 625.0,
+        "has_web": True,
+        "code": "NC_2500",
+        "control_numbers": 2500,
+    },
+    # Mapeo de compatibilidad hacia atrás
+    "PRO": {
+        "name": "Lote 500 Números de Control ($0.18/fact)",
+        "price": 90.0,
+        "has_web": False,
+        "code": "NC_500",
+        "control_numbers": 500,
+    },
+    "BASIC": {
+        "name": "Lote 500 Números de Control ($0.18/fact)",
+        "price": 90.0,
+        "has_web": False,
+        "code": "NC_500",
+        "control_numbers": 500,
+    },
+    "FREE": {
+        "name": "Lote 500 Números de Control ($0.18/fact)",
+        "price": 90.0,
+        "has_web": False,
+        "code": "NC_500",
+        "control_numbers": 500,
+    },
 }
 
 
@@ -129,7 +165,7 @@ async def submit_payment(
             shutil.copyfileobj(proof_file.file, buffer)
         saved_file_path = f"/static/uploads/{unique_filename}"
 
-    # El único plan comercial es PRO ($20/mes); requiere verificación de pago o aprobación
+    # Todo lote de Números de Control requiere verificación de pago y aprobación antes de habilitar facturación
     initial_status = "pendiente"
 
     realtime_now = get_realtime_caracas_now()
@@ -137,7 +173,7 @@ async def submit_payment(
 
     suscripcion = models.Suscripcion(
         usuario_id=current_user.id,
-        codigo_plan="PRO",
+        codigo_plan=official_code,
         nombre_plan=plan_meta["name"],
         monto_usd=plan_meta["price"],
         metodo_pago=payment_method,
@@ -156,6 +192,7 @@ async def submit_payment(
 
     # Aprovisionar las credenciales originales del cliente en la API externa del producto (miniPOS)
     # Se envían las credenciales tal cual las creó el usuario (sin encriptar/hashear aquí) para que el producto las encripte allá.
+    # Hacia Vercel siempre enviamos plan_code="PRO" (único esquema válido remoto) mientras nuestra BD conserva el lote real (NC_500/NC_1000/NC_2500).
     empresa = current_user.nombre_empresa or company_name or f"Negocio de {current_user.nombre_completo}"
     try:
         remote_resp = provision_tenant_sync(
@@ -163,7 +200,7 @@ async def submit_payment(
             admin_name=current_user.nombre_completo,
             admin_email=current_user.email or clean_email,
             admin_password=raw_password,
-            plan_code=official_code
+            plan_code="PRO"
         )
         data_body = remote_resp.get("data", {})
         suscripcion.tenant_company_id = data_body.get("company", {}).get("id")
@@ -173,7 +210,7 @@ async def submit_payment(
         suscripcion.tenant_error_detail = None
         suscripcion.tenant_provisioned_at = realtime_now
     except ProvisioningConflictError as ce:
-        # Si el cliente ya existe en la BD del producto (ej. renovación o cambio de plan con su misma cuenta)
+        # Si el cliente ya existe en la BD del producto (ej. recarga de lote con su misma cuenta)
         suscripcion.tenant_provisioning_status = "exitoso"
         suscripcion.tenant_error_detail = f"Cuenta ya registrada en el producto: {ce.message}"
         suscripcion.tenant_provisioned_at = realtime_now
@@ -198,7 +235,7 @@ async def submit_payment(
             plan_activo=official_code if initial_status == "aprobado" else "ninguno",
             esta_bloqueado=(initial_status != "aprobado"),
             estado="activo" if initial_status == "aprobado" else "pendiente",
-            mensaje_bloqueo="" if initial_status == "aprobado" else "Tu suscripción está pendiente de confirmación de pago por el administrador.",
+            mensaje_bloqueo="" if initial_status == "aprobado" else "Tu lote de Números de Control está pendiente de confirmación de pago por el administrador.",
             fecha_expiracion=cycle_end,
             ultima_sincronizacion=realtime_now
         )
@@ -215,11 +252,11 @@ async def submit_payment(
             current_user.esta_bloqueado = False
             current_user.motivo_bloqueo = ""
         else:
-            # Si el usuario ya tenía acceso concedido activo y vigente, lo mantenemos hasta aprobar el nuevo pago.
+            # Si el usuario ya tenía acceso concedido activo y vigente, lo mantenemos hasta aprobar el nuevo lote.
             if not access_record.acceso_concedido:
                 access_record.esta_bloqueado = True
                 access_record.estado = "pendiente"
-                access_record.mensaje_bloqueo = "Tu suscripción está pendiente de confirmación de pago por el administrador."
+                access_record.mensaje_bloqueo = "Tu lote de Números de Control está pendiente de confirmación de pago por el administrador."
                 access_record.ultima_sincronizacion = realtime_now
 
     db.commit()
@@ -230,14 +267,14 @@ async def submit_payment(
     # para que el cliente quede detenido en la puerta hasta que se valide su comprobante:
     if initial_status != "aprobado":
         current_user.esta_bloqueado = True
-        current_user.motivo_bloqueo = "Pago pendiente de verificación y aprobación por el administrador."
+        current_user.motivo_bloqueo = "Lote de Números de Control pendiente de verificación y aprobación por el administrador."
         db.commit()
         from app.services.provisioning import sync_app_access
         sync_app_access(
             db,
             current_user,
             active=False,
-            reason="Comprobante recibido: acceso bloqueado en la App hasta que administración apruebe el pago."
+            reason="Lote de Números de Control pendiente de aprobación."
         )
 
     return suscripcion

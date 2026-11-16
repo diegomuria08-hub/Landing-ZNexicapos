@@ -45,13 +45,13 @@ def enforce_expired_services_in_db():
                 fecha_fin = fecha_inicio + timedelta(days=30)
                 latest_sub = models.Suscripcion(
                     usuario_id=c.id,
-                    codigo_plan="PRO",
-                    nombre_plan="Plan Profesional ($20/mes)",
-                    monto_usd=20.0,
+                    codigo_plan="NC_500",
+                    nombre_plan="Lote 500 Números de Control ($0.18/fact)",
+                    monto_usd=90.0,
                     metodo_pago="Registro Web",
                     referencia_ultimos4="REGISTRO",
-                    estado="aprobado",
-                    tiene_web=True,
+                    estado="pendiente" if c.esta_bloqueado else "aprobado",
+                    tiene_web=False,
                     acepto_disclaimer_web=True,
                     fecha_inicio=fecha_inicio,
                     fecha_fin=fecha_fin,
@@ -66,12 +66,14 @@ def enforce_expired_services_in_db():
             if (not latest_sub.tenant_company_id or latest_sub.tenant_provisioning_status != "exitoso") and c.password_hash and not c.password_hash.startswith("$2"):
                 try:
                     from app.services.provisioning import provision_tenant_sync
+                    sub_code = (latest_sub.codigo_plan or "PRO").strip().upper()
+                    remote_plan_code = sub_code if sub_code in ("FREE", "BASIC", "PRO") else "PRO"
                     remote_resp = provision_tenant_sync(
                         company_name=c.nombre_empresa or f"Negocio de {c.nombre_completo}",
                         admin_name=c.nombre_completo,
                         admin_email=c.email or f"{c.telefono}@minipos-user.com",
                         admin_password=c.password_hash,
-                        plan_code=latest_sub.codigo_plan or "PRO"
+                        plan_code=remote_plan_code
                     )
                     data_body = remote_resp.get("data", {})
                     latest_sub.tenant_company_id = data_body.get("company", {}).get("id")
@@ -98,8 +100,8 @@ def enforce_expired_services_in_db():
 
             if esta_vencido:
                 msg_corte = (
-                    "Tu suscripción mensual ha vencido (fecha de corte superada). "
-                    "Por favor renueva tu plan para continuar operando en ZNexica POS."
+                    "Tu lote de Números de Control ha vencido o se agotó. "
+                    "Por favor adquiere un nuevo lote para continuar operando en ZNexica POS."
                 )
                 if not c.esta_bloqueado:
                     c.esta_bloqueado = True

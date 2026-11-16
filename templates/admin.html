@@ -386,11 +386,10 @@
                 </select>
 
                 <select id="subPlanFilter" class="parclgo-select" onchange="filterSubscriptions()">
-                  <option value="all">All Plans (Todos los planes)</option>
-                  <option value="free_trial">Prueba Gratis</option>
-                  <option value="basico">Plan Básico</option>
-                  <option value="medium">Plan Medium</option>
-                  <option value="premium">Plan Premium</option>
+                  <option value="all">Todos los Lotes (N° Control)</option>
+                  <option value="NC_500">Lote 500 N° Control ($90)</option>
+                  <option value="NC_1000">Lote 1.000 N° Control ($210)</option>
+                  <option value="NC_2500">Lote 2.500 N° Control ($625)</option>
                 </select>
               </div>
 
@@ -412,7 +411,7 @@
                     <th style="width: 44px; text-align: center;"><input type="checkbox" class="saas-checkbox" id="selectAllSubs" onchange="toggleSelectAllSubs(this.checked)" title="Seleccionar todos los registros"></th>
                     <th>Cliente</th>
                     <th>Contacto</th>
-                    <th>Plan / Licencia</th>
+                    <th>Lote N° Control</th>
                     <th>Monto</th>
                     <th>Método & Referencia</th>
                     <th>Comprobante</th>
@@ -501,10 +500,10 @@
             <div class="parclgo-toolbar" style="padding: 1.25rem 1.25rem 0.75rem;">
               <div>
                 <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
-                  👥 Directorio de Clientes & Control de Licencias
+                  👥 Directorio de Clientes & Control de Números de Facturación
                 </h3>
                 <p style="margin: 0.2rem 0 0; font-size: 0.78rem; color: #64748b;">
-                  Control de mensualidades y estado de licencias. Gestione la suspensión o reactivación preventiva de acceso a la app móvil ZNexica POS ante la falta o regularización de pagos.
+                  Control de lotes de Números de Control y facturación electrónica. Gestione la suspensión o reactivación de acceso a la app ZNexica POS cuando un comercio agote sus números de control o tenga pagos pendientes.
                 </p>
               </div>
 
@@ -535,8 +534,8 @@
                   <tr>
                     <th>Cliente & Empresa</th>
                     <th>Teléfono (Login App)</th>
-                    <th>Plan Actual</th>
-                    <th>Ciclo Mensual & Vencimiento</th>
+                    <th>Lote N° Control</th>
+                    <th>Vigencia & Corte</th>
                     <th>Estado en la App</th>
                     <th style="text-align: right;">Acciones de Servicio</th>
                   </tr>
@@ -753,7 +752,7 @@
     </div>
   </div>
 
-  <script src="/static/js/admin.js?v=6.1"></script>
+  <script src="/static/js/admin.js?v=7.0"></script>
   <script>
     // Sobrescribir togglePmTypeFields directamente en el HTML para evitar caché agresivo
     window.togglePmTypeFields = function() {

@@ -182,16 +182,16 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
         prov_status = "fallido_conexion"
         prov_error = str(exc)
 
-    # Registrar la suscripción inicial al único Plan Profesional ($20/mes) en estado PENDIENTE de pago
+    # Registrar la solicitud inicial de Lote de Números de Control en estado PENDIENTE de pago
     sub_inicial = models.Suscripcion(
         usuario_id=usuario.id,
-        codigo_plan="PRO",
-        nombre_plan="Plan Profesional ($20/mes)",
-        monto_usd=20.0,
+        codigo_plan="NC_500",
+        nombre_plan="Lote 500 Números de Control ($0.18/fact)",
+        monto_usd=90.0,
         metodo_pago="Registro Web",
         referencia_ultimos4="REGISTRO",
         estado="pendiente",
-        tiene_web=True,
+        tiene_web=False,
         acepto_disclaimer_web=True,
         fecha_inicio=now_caracas,
         fecha_fin=cycle_end,
@@ -205,9 +205,9 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
     )
     db.add(sub_inicial)
 
-    # Detener al cliente en la puerta: el acceso permanece bloqueado hasta confirmación de pago
+    # Detener al cliente en la puerta: el acceso permanece bloqueado hasta confirmar el lote de Números de Control
     usuario.esta_bloqueado = True
-    usuario.motivo_bloqueo = "Cuenta registrada. Acceso bloqueado hasta la verificación y aprobación del pago por el administrador."
+    usuario.motivo_bloqueo = "Cuenta registrada. Adquiere y activa tu lote de Números de Control para ingresar y facturar en ZNexica POS."
 
     # Sincronizar en AccesoMiniposApi
     access_record = db.query(models.AccesoMiniposApi).filter(
@@ -220,7 +220,7 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
             plan_activo="ninguno",
             esta_bloqueado=True,
             estado="pendiente",
-            mensaje_bloqueo="Tu cuenta está registrada pero requiere confirmación de pago por el administrador para acceder al sistema.",
+            mensaje_bloqueo="Debes contar con un lote de Números de Control aprobado y activo para facturar en el sistema.",
             fecha_expiracion=cycle_end,
             ultima_sincronizacion=now_caracas
         )
@@ -230,7 +230,7 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
         access_record.acceso_concedido = False
         access_record.esta_bloqueado = True
         access_record.estado = "pendiente"
-        access_record.mensaje_bloqueo = "Tu cuenta está registrada pero requiere confirmación de pago por el administrador para acceder al sistema."
+        access_record.mensaje_bloqueo = "Debes contar con un lote de Números de Control aprobado y activo para facturar en el sistema."
         access_record.fecha_expiracion = cycle_end
         access_record.ultima_sincronizacion = now_caracas
 
@@ -238,13 +238,13 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
 
     # BLOQUEAR INMEDIATAMENTE EN LA APP MÓVIL (INACTIVE)
     # Ya que la API de Vercel crea el tenant con status ACTIVE por defecto,
-    # forzamos el estado INACTIVE al instante para que no pueda entrar hasta que el admin apruebe el pago:
+    # forzamos el estado INACTIVE al instante para que no pueda entrar ni facturar hasta aprobar su lote:
     from app.services.provisioning import sync_app_access
     sync_app_access(
         db,
         usuario,
         active=False,
-        reason="Cuenta nueva creada en la web: acceso bloqueado hasta confirmación y aprobación del pago por administración."
+        reason="Cuenta registrada sin lote de Números de Control activo."
     )
 
     token = security.create_access_token(data={"sub": usuario.telefono, "role": usuario.rol})

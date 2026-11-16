@@ -602,6 +602,14 @@ function formatPaymentDetails(raw) {
   return html;
 }
 
+function formatControlNumbersBadge(code) {
+  const cleanCode = (code || '').toUpperCase().trim();
+  if (cleanCode === 'NC_500') return '🧾 500 N° Control ($0.18/fact)';
+  if (cleanCode === 'NC_1000') return '🧾 1.000 N° Control ($0.21/fact)';
+  if (cleanCode === 'NC_2500') return '🧾 2.500 N° Control ($0.25/fact)';
+  return `🧾 Lote ${escapeHtml(cleanCode || 'NC_500')}`;
+}
+
 function renderSubscriptionsTable(subs) {
   const tbody = document.getElementById('subscriptionsTableBody');
   const infoEl = document.getElementById('subTableInfo');
@@ -674,7 +682,7 @@ function renderSubscriptionsTable(subs) {
       </td>
       <td>
         <div class="parclgo-cell-bold">${escapeHtml(sub.nombre_plan)}</div>
-        <span class="parclgo-cell-sub" style="text-transform: capitalize;">Plan: ${escapeHtml(sub.codigo_plan)}</span>
+        <span class="parclgo-cell-sub" style="font-weight: 700; color: #059669;">${formatControlNumbersBadge(sub.codigo_plan)}</span>
       </td>
       <td>
         <span class="parclgo-cell-amount">$${Number(sub.monto_usd || 0).toFixed(2)}</span>
@@ -1397,7 +1405,7 @@ function renderClientsTable(clients) {
       </td>
       <td>
         <div class="parclgo-cell-bold">${escapeHtml(c.plan_nombre)}</div>
-        <span class="parclgo-cell-sub" style="font-weight: 700; color: #4338ca;">Código: ${escapeHtml(c.plan_codigo)}</span>
+        <span class="parclgo-cell-sub" style="font-weight: 700; color: #059669;">${formatControlNumbersBadge(c.plan_codigo)}</span>
       </td>
       <td>
         <div style="font-size: 0.78rem; line-height: 1.4;">
@@ -1487,9 +1495,9 @@ function sendClientWhatsAppReminder(phone, clientName, planName, expiryDate) {
   if (!cleanPhone.startsWith('58')) cleanPhone = '58' + cleanPhone;
 
   const text = encodeURIComponent(
-    `👋 Hola ${clientName}, te escribimos del equipo de *miniPOS*.\n\n` +
-    `Te recordamos que tu suscripción al *${planName}* tiene fecha de corte el *${expiryDate}*.\n\n` +
-    `💳 Para evitar interrupciones en el uso de tu punto de venta y app móvil miniPOS, por favor realiza tu renovación a tiempo.\n\n` +
+    `👋 Hola ${clientName}, te escribimos del equipo de *ZNexica POS*.\n\n` +
+    `Te recordamos revisar la disponibilidad y vigencia de tu *${planName}* (corte estimado: *${expiryDate}*).\n\n` +
+    `🧾 Para continuar emitiendo facturas electrónicas y generando reportes sin interrupciones en tu aplicación gratuita ZNexica POS, recarga a tiempo tu nuevo lote de Números de Control.\n\n` +
     `¡Cualquier duda estamos a tu disposición!`
   );
 

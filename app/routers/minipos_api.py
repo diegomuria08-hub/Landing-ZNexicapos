@@ -59,7 +59,7 @@ def check_access(phone: str, db: Session = Depends(get_db)):
             # CORTE AUTOMÁTICO INMEDIATO SI YA SE PASÓ DE LA FECHA DE VENCIMIENTO
             if esta_vencido and not usuario.esta_bloqueado:
                 usuario.esta_bloqueado = True
-                usuario.motivo_bloqueo = "Tu suscripción mensual ha vencido (fecha de corte superada). Por favor renueva tu plan para continuar operando en miniPOS."
+                usuario.motivo_bloqueo = "Tu lote de Números de Control ha vencido o se agotó. Adquiere un nuevo lote para continuar facturando en ZNexica POS."
                 db.query(models.SesionDispositivo).filter(
                     models.SesionDispositivo.usuario_id == usuario.id
                 ).update({"esta_activo": False})
@@ -69,7 +69,7 @@ def check_access(phone: str, db: Session = Depends(get_db)):
             estado_corte = "vencido" if esta_vencido else "suspendido"
             msg = (
                 usuario.motivo_bloqueo
-                or "Tu servicio miniPOS se encuentra suspendido o vencido por falta de pago. Por favor regulariza tu suscripción."
+                or "Sin Números de Control activos o servicio de facturación suspendido. Adquiere un lote para habilitar el acceso."
             )
             if not usuario.esta_bloqueado:
                 usuario.esta_bloqueado = True
@@ -133,7 +133,7 @@ def check_access(phone: str, db: Session = Depends(get_db)):
                 return new_rec
         else:
             # Registrado pero sin pago aprobado -> Bloqueado / Pendiente
-            msg = "Tu cuenta se encuentra bloqueada por falta de pago o verificación pendiente. Ingresa a miniPOS para activar tu plan."
+            msg = "Tu cuenta no posee un lote de Números de Control activo o está pendiente de aprobación. Adquiere y valida tu lote en ZNexica POS."
             if record:
                 record.acceso_concedido = False
                 record.esta_bloqueado = True
@@ -166,7 +166,7 @@ def check_access(phone: str, db: Session = Depends(get_db)):
         esta_bloqueado=True,
         estado="bloqueado",
         plan_activo="ninguno",
-        mensaje_bloqueo="Número no registrado en el sistema miniPOS. Por favor regístrate y adquiere un plan.",
+        mensaje_bloqueo="Número no registrado en ZNexica POS. Por favor regístrate y adquiere un lote de Números de Control.",
         fecha_expiracion=None,
         ultima_sincronizacion=now_caracas
     )
