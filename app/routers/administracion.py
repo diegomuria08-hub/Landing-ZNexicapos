@@ -203,7 +203,7 @@ def get_all_clients(
         ).first()
 
         plan_code = latest_sub.codigo_plan if latest_sub else "NC_500"
-        plan_name = latest_sub.nombre_plan if latest_sub else "Lote 500 Números de Control ($0.18/fact)"
+        plan_name = latest_sub.nombre_plan if latest_sub else "Lote 500 Números de Control ($0.25/fact)"
         sub_estado = latest_sub.estado if latest_sub else ("aprobado" if not c.esta_bloqueado else "suspendido")
         fecha_inicio = latest_sub.fecha_inicio if (latest_sub and latest_sub.fecha_inicio) else (c.creado_en or now_caracas)
         
@@ -640,7 +640,7 @@ def generate_whatsapp_link(
         msg = (
             f"👋 Hola {usuario.nombre_completo}, ¡excelentes noticias!\n\n"
             f"Tu pago para el *{sub.nombre_plan}* en *ZNexica POS* ha sido verificado y aprobado con éxito. ✅\n\n"
-            f"🧾 Tu lote de *Números de Control para Facturación Electrónica y Reportes* ya está *ACTIVO* en tu aplicación gratuita.\n"
+            f"🧾 Tu lote de *Números de Control para Facturación Electrónica y Reportes* ya está *ACTIVO* en tu plataforma ZNexica POS.\n"
             f"¡Ya puedes ingresar y facturar al instante!"
         )
     else:

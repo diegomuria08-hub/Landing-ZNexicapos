@@ -22,12 +22,12 @@ router = APIRouter(prefix="/api/suscripciones", tags=["Suscripciones y Pagos"])
 UPLOAD_DIR = "static/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Catálogo Oficial ZNexica POS — Paquetes de Números de Control (Facturación Electrónica y Reportes)
-# La App es 100% gratuita; el negocio paga únicamente por consumo de Números de Control (1 factura = 1 N° de Control).
+# Catálogo Oficial ZNexica POS — Paquetes de Números de Control (Economía de Escala / Pago por Uso)
+# Solo pagas por lo que consumes (1 factura = 1 N° de Control). A mayor volumen de lote, menor costo unitario.
 PLANS_INFO = {
     "NC_500": {
-        "name": "Lote 500 Números de Control ($0.18/fact)",
-        "price": 90.0,
+        "name": "Lote 500 Números de Control ($0.25/fact)",
+        "price": 125.0,
         "has_web": False,
         "code": "NC_500",
         "control_numbers": 500,
@@ -40,30 +40,30 @@ PLANS_INFO = {
         "control_numbers": 1000,
     },
     "NC_2500": {
-        "name": "Lote 2.500 Números de Control ($0.25/fact)",
-        "price": 625.0,
+        "name": "Lote 2.500 Números de Control ($0.18/fact)",
+        "price": 450.0,
         "has_web": True,
         "code": "NC_2500",
         "control_numbers": 2500,
     },
     # Mapeo de compatibilidad hacia atrás
     "PRO": {
-        "name": "Lote 500 Números de Control ($0.18/fact)",
-        "price": 90.0,
+        "name": "Lote 500 Números de Control ($0.25/fact)",
+        "price": 125.0,
         "has_web": False,
         "code": "NC_500",
         "control_numbers": 500,
     },
     "BASIC": {
-        "name": "Lote 500 Números de Control ($0.18/fact)",
-        "price": 90.0,
+        "name": "Lote 500 Números de Control ($0.25/fact)",
+        "price": 125.0,
         "has_web": False,
         "code": "NC_500",
         "control_numbers": 500,
     },
     "FREE": {
-        "name": "Lote 500 Números de Control ($0.18/fact)",
-        "price": 90.0,
+        "name": "Lote 500 Números de Control ($0.25/fact)",
+        "price": 125.0,
         "has_web": False,
         "code": "NC_500",
         "control_numbers": 500,

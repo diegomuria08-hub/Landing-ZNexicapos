@@ -604,9 +604,9 @@ function formatPaymentDetails(raw) {
 
 function formatControlNumbersBadge(code) {
   const cleanCode = (code || '').toUpperCase().trim();
-  if (cleanCode === 'NC_500') return '🧾 500 N° Control ($0.18/fact)';
+  if (cleanCode === 'NC_500') return '🧾 500 N° Control ($0.25/fact)';
   if (cleanCode === 'NC_1000') return '🧾 1.000 N° Control ($0.21/fact)';
-  if (cleanCode === 'NC_2500') return '🧾 2.500 N° Control ($0.25/fact)';
+  if (cleanCode === 'NC_2500') return '🧾 2.500 N° Control ($0.18/fact)';
   return `🧾 Lote ${escapeHtml(cleanCode || 'NC_500')}`;
 }
 
@@ -1497,7 +1497,7 @@ function sendClientWhatsAppReminder(phone, clientName, planName, expiryDate) {
   const text = encodeURIComponent(
     `👋 Hola ${clientName}, te escribimos del equipo de *ZNexica POS*.\n\n` +
     `Te recordamos revisar la disponibilidad y vigencia de tu *${planName}* (corte estimado: *${expiryDate}*).\n\n` +
-    `🧾 Para continuar emitiendo facturas electrónicas y generando reportes sin interrupciones en tu aplicación gratuita ZNexica POS, recarga a tiempo tu nuevo lote de Números de Control.\n\n` +
+    `🧾 Para continuar emitiendo facturas electrónicas y generando reportes sin interrupciones en tu plataforma ZNexica POS, recarga a tiempo tu nuevo lote de Números de Control.\n\n` +
     `¡Cualquier duda estamos a tu disposición!`
   );
 

@@ -46,8 +46,8 @@ def enforce_expired_services_in_db():
                 latest_sub = models.Suscripcion(
                     usuario_id=c.id,
                     codigo_plan="NC_500",
-                    nombre_plan="Lote 500 Números de Control ($0.18/fact)",
-                    monto_usd=90.0,
+                    nombre_plan="Lote 500 Números de Control ($0.25/fact)",
+                    monto_usd=125.0,
                     metodo_pago="Registro Web",
                     referencia_ultimos4="REGISTRO",
                     estado="pendiente" if c.esta_bloqueado else "aprobado",

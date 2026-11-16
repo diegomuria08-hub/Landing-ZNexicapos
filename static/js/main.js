@@ -963,8 +963,8 @@ function copyToClipboard(text, btnElement) {
 // Punto de entrada al seleccionar un lote de Números de Control en la página
 function openCheckoutModal(planCode, planName, planPrice) {
   const code = planCode || 'NC_500';
-  const name = planName || 'Lote 500 Números de Control ($0.18/fact)';
-  const price = Number(planPrice || 90);
+  const name = planName || 'Lote 500 Números de Control ($0.25/fact)';
+  const price = Number(planPrice || 125);
   pendingPlan = { code, name, price };
 
   const session = getClientSession();
@@ -979,8 +979,8 @@ function openCheckoutModal(planCode, planName, planPrice) {
 
 function proceedToCheckout(planCode, planName, planPrice) {
   const code = planCode || 'NC_500';
-  const name = planName || 'Lote 500 Números de Control ($0.18/fact)';
-  const price = Number(planPrice || 90);
+  const name = planName || 'Lote 500 Números de Control ($0.25/fact)';
+  const price = Number(planPrice || 125);
   currentPlanInfo = { code, name, price };
   const session = getClientSession();
 
@@ -1138,8 +1138,8 @@ async function handlePaymentSubmit(event) {
     if (cleanSellerPhone.startsWith('0')) cleanSellerPhone = '58' + cleanSellerPhone.substring(1);
     if (!cleanSellerPhone.startsWith('58')) cleanSellerPhone = '58' + cleanSellerPhone;
 
-    const lotName = data.nombre_plan || currentPlanInfo.name || 'Lote 500 Números de Control ($0.18/fact)';
-    const lotAmount = Number(data.monto_usd || currentPlanInfo.price || 90).toFixed(2);
+    const lotName = data.nombre_plan || currentPlanInfo.name || 'Lote 500 Números de Control ($0.25/fact)';
+    const lotAmount = Number(data.monto_usd || currentPlanInfo.price || 125).toFixed(2);
 
     const waMsg = encodeURIComponent(
       `👋 ¡Hola equipo de ZNexica POS!\n\n` +
