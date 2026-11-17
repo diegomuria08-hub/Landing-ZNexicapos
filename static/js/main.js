@@ -960,6 +960,24 @@ function copyToClipboard(text, btnElement) {
   });
 }
 
+function getAdminWhatsAppNumber() {
+  let cleanPhone = (window.ADMIN_WHATSAPP_PHONE || '').toString().replace(/[^0-9]/g, '');
+  if (cleanPhone.startsWith('0')) cleanPhone = '58' + cleanPhone.substring(1);
+  if (cleanPhone && !cleanPhone.startsWith('58')) cleanPhone = '58' + cleanPhone;
+  return cleanPhone;
+}
+
+// Solicitar cotización de Plan Personalizado de alto volumen vía WhatsApp oficial
+function requestCustomPlanWhatsApp() {
+  const cleanSellerPhone = getAdminWhatsAppNumber();
+  const waMsg = encodeURIComponent(
+    `👋 ¡Hola equipo de ZNexica POS!\n\n` +
+    `Mi negocio maneja un volumen de facturación superior a los planes estándar (+2.500 Números de Control) y me gustaría solicitar una cotización para un *Plan Personalizado*.\n\n` +
+    `¿Podrían asesorarme con las tarifas preferenciales según mi lote mensual?`
+  );
+  window.open(`https://wa.me/${cleanSellerPhone}?text=${waMsg}`, '_blank', 'noopener,noreferrer');
+}
+
 // Punto de entrada al seleccionar un lote de Números de Control en la página
 function openCheckoutModal(planCode, planName, planPrice) {
   const code = planCode || 'NC_500';
@@ -1134,9 +1152,7 @@ async function handlePaymentSubmit(event) {
 
     closeCheckoutModal();
 
-    let cleanSellerPhone = (window.ADMIN_WHATSAPP_PHONE || "584243580005").toString().replace(/[^0-9]/g, '');
-    if (cleanSellerPhone.startsWith('0')) cleanSellerPhone = '58' + cleanSellerPhone.substring(1);
-    if (!cleanSellerPhone.startsWith('58')) cleanSellerPhone = '58' + cleanSellerPhone;
+    const cleanSellerPhone = getAdminWhatsAppNumber();
 
     const lotName = data.nombre_plan || currentPlanInfo.name || 'Lote 500 Números de Control ($0.25/fact)';
     const lotAmount = Number(data.monto_usd || currentPlanInfo.price || 125).toFixed(2);

@@ -9,7 +9,7 @@
   <meta name="author" content="ZNexica POS">
   <link rel="icon" type="image/png" href="/static/images/logo_icon.png">
   <link rel="apple-touch-icon" href="/static/images/logo.jpg">
-  <link rel="stylesheet" href="/static/css/styles.css?v=5.0">
+  <link rel="stylesheet" href="/static/css/styles.css?v=5.2">
 </head>
 <body>
 
@@ -409,8 +409,11 @@
   <section class="pricing-section" id="planes">
     <div class="container">
       <div class="section-header reveal">
-        <span class="section-subtitle">Modalidad Pago por Uso • Economía de Escala</span>
-        <h2 class="section-title">Solo Pagas por lo que Consumes: Lotes de Números de Control</h2>
+        <span class="section-subtitle">Modalidad Pago por Uso • Tarifas desde $0.25 hasta $0.18 por Factura</span>
+        <h2 class="section-title">Precios desde $0.25 hasta $0.18 por Factura según tu Volumen</h2>
+        <p class="section-description">
+          En ZNexica POS solo pagas por lo que consumes. El precio unitario varía de acuerdo con la cantidad de facturas que adquieras: mientras mayor sea tu lote de Números de Control, más económico te resulta cada documento emitido.
+        </p>
       </div>
 
       <!-- Bloque Explicativo Destacado ("Pago por Uso & Números de Control") -->
@@ -419,37 +422,38 @@
           <div>
             <h4 style="margin: 0 0 0.4rem; font-size: 1rem; color: #0f172a; font-weight: 800;">💡 Pago por Uso Inteligente</h4>
             <p style="margin: 0; font-size: 0.88rem; color: #475569; line-height: 1.5;">
-              Sin alquileres mensuales fijos ni contratos forzosos. Tu inversión va 100% ligada al movimiento real y facturación de tu negocio.
+              Olvídate de mensualidades fijas o contratos forzosos. Inviertes únicamente en los comprobantes que tu negocio realmente emite, adaptándose al ritmo real de tus ventas.
             </p>
           </div>
           <div>
-            <h4 style="margin: 0 0 0.4rem; font-size: 1rem; color: #0f172a; font-weight: 800;">🧾 ¿Qué es un Número de Control?</h4>
+            <h4 style="margin: 0 0 0.4rem; font-size: 1rem; color: #0f172a; font-weight: 800;">🧾 1 Factura = 1 Número de Control</h4>
             <p style="margin: 0; font-size: 0.88rem; color: #475569; line-height: 1.5;">
-              Es el correlativo único y auditable asignado a cada factura electrónica o comprobante que emite tu negocio (<strong>1 Factura = 1 Número de Control</strong>).
+              Cada documento electrónico o comprobante fiscal emitido consume un Número de Control correlativo y auditable. Para ingresar y facturar es indispensable contar con un lote activo.
             </p>
           </div>
           <div>
-            <h4 style="margin: 0 0 0.4rem; font-size: 1rem; color: #0f172a; font-weight: 800;">📉 Mientras Más Compras, Más Barato</h4>
+            <h4 style="margin: 0 0 0.4rem; font-size: 1rem; color: #0f172a; font-weight: 800;">📉 Mientras Mayor el Lote, Más Económico</h4>
             <p style="margin: 0; font-size: 0.88rem; color: #475569; line-height: 1.5;">
-              Economía de escala real: a mayor lote de Números de Control, menor es el costo por factura (baja de $0.25 a $0.21 y hasta $0.18 por documento). <strong>Para ingresar y facturar es indispensable contar con un lote activo.</strong>
+              Aprovecha nuestra economía de escala: el precio por factura baja progresivamente desde <strong>$0.25</strong> hasta <strong>$0.18 USD</strong> conforme eliges un lote más grande.
             </p>
           </div>
         </div>
       </div>
 
       <!-- Rejilla de 3 Paquetes de Números de Control -->
-      <div class="plans-grid reveal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; align-items: stretch;">
+      <div class="plans-grid reveal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 2rem; align-items: stretch;">
 
         <!-- Paquete 1: Lote Básico 500 ($0.25 por factura = $125) -->
         <div class="plan-card" style="width: 100%;">
-          <div class="plan-badge" style="background: #f1f5f9; color: #0f172a;">LOTE INICIAL • $0.25 POR FACTURA</div>
+          <div class="plan-badge" style="background: #f1f5f9; color: #0f172a;">LOTE INICIAL • TARIFA BASE</div>
           <div class="plan-header">
             <h3 class="plan-name">LOTE BÁSICO • 500 NÚMEROS</h3>
             <div class="plan-price-box">
-              <span class="plan-price">$125</span>
-              <span class="plan-period">/ 500 Números de Control</span>
+              <span class="plan-price">$0.25</span>
+              <span class="plan-period">USD / por factura</span>
             </div>
-            <p class="plan-desc">Equivale a 500 facturas emitidas ($0.25 c/u). Ideal para emprendimientos, abastos y tiendas que inician a su propio ritmo.</p>
+            <div class="plan-lot-total-pill">📦 Lote de 500 Facturas • Total: $125 USD</div>
+            <p class="plan-desc">Ideal para emprendimientos, abastos y tiendas en crecimiento que buscan facturar a su propio ritmo sin cuotas mensuales fijas.</p>
           </div>
           <ul class="plan-features">
             <li><span class="check-icon">✓</span> Acceso a Plataforma ZNexica POS (Pago por Uso)</li>
@@ -459,20 +463,21 @@
             <li><span class="check-icon">✓</span> Recarga flexible al agotar tu lote</li>
           </ul>
           <button class="btn-select-plan" onclick="openCheckoutModal('NC_500', 'Lote 500 Números de Control ($0.25/fact)', 125)">
-            🧾 Comprar 500 Números ($125)
+            🧾 Comprar Lote de 500 ($125)
           </button>
         </div>
 
         <!-- Paquete 2: Lote PyME 1.000 ($0.21 por factura = $210) -->
         <div class="plan-card featured" style="width: 100%;">
-          <div class="plan-badge">MÁS POPULAR • $0.21 POR FACTURA (AHORRAS 16%)</div>
+          <div class="plan-badge">MÁS POPULAR • AHORRAS 16%</div>
           <div class="plan-header">
             <h3 class="plan-name">LOTE PYME • 1.000 NÚMEROS</h3>
             <div class="plan-price-box">
-              <span class="plan-price">$210</span>
-              <span class="plan-period">/ 1.000 Números de Control</span>
+              <span class="plan-price">$0.21</span>
+              <span class="plan-period">USD / por factura</span>
             </div>
-            <p class="plan-desc">Equivale a 1.000 facturas emitidas ($0.21 c/u). Ahorras $40 frente al lote básico e incluye reportería gerencial y control multi-cajero.</p>
+            <div class="plan-lot-total-pill">📦 Lote de 1.000 Facturas • Total: $210 USD (Ahorras $40)</div>
+            <p class="plan-desc">Excelente equilibrio costo-beneficio para negocios con flujo constante. Reduce tu tarifa por factura e incluye control multi-cajero.</p>
           </div>
           <ul class="plan-features">
             <li><span class="check-icon">✓</span> Acceso Total ZNexica POS (Móvil, Tablet y PC)</li>
@@ -482,20 +487,21 @@
             <li><span class="check-icon">✓</span> Soporte técnico prioritario</li>
           </ul>
           <button class="btn-select-plan" style="background:var(--green-primary); color:#fff;" onclick="openCheckoutModal('NC_1000', 'Lote 1.000 Números de Control ($0.21/fact)', 210)">
-            🚀 Comprar 1.000 Números ($210)
+            🚀 Comprar Lote de 1.000 ($210)
           </button>
         </div>
 
         <!-- Paquete 3: Lote Empresarial 2.500 ($0.18 por factura = $450) -->
         <div class="plan-card" style="width: 100%;">
-          <div class="plan-badge" style="background: #0f172a; color: #fff;">MÁXIMO AHORRO • $0.18 POR FACTURA (AHORRAS 28%)</div>
+          <div class="plan-badge" style="background: #0f172a; color: #fff;">MÁXIMO AHORRO • AHORRAS 28%</div>
           <div class="plan-header">
             <h3 class="plan-name">LOTE EMPRESARIAL • 2.500 NÚMEROS</h3>
             <div class="plan-price-box">
-              <span class="plan-price">$450</span>
-              <span class="plan-period">/ 2.500 Números de Control</span>
+              <span class="plan-price">$0.18</span>
+              <span class="plan-period">USD / por factura</span>
             </div>
-            <p class="plan-desc">Equivale a 2.500 facturas emitidas ($0.18 c/u). La tarifa más baja por volumen: ahorras $175 frente a la tarifa base.</p>
+            <div class="plan-lot-total-pill">📦 Lote de 2.500 Facturas • Total: $450 USD (Ahorras $175)</div>
+            <p class="plan-desc">Nuestra tarifa estándar más económica por factura emitida. Pensado para comercios de alta rotación y múltiples sucursales.</p>
           </div>
           <ul class="plan-features">
             <li><span class="check-icon">✓</span> Suite Completa ZNexica POS sin rentas mensuales</li>
@@ -505,10 +511,32 @@
             <li><span class="check-icon">✓</span> Soporte VIP 24/7 y asistencia dedicada</li>
           </ul>
           <button class="btn-select-plan" onclick="openCheckoutModal('NC_2500', 'Lote 2.500 Números de Control ($0.18/fact)', 450)">
-            👑 Comprar 2.500 Números ($450)
+            👑 Comprar Lote de 2.500 ($450)
           </button>
         </div>
 
+      </div>
+
+      <!-- Bloque de Plan Personalizado para Alto Volumen -->
+      <div class="custom-plan-banner reveal">
+        <div class="custom-plan-content">
+          <span class="custom-plan-badge">🏢 ALTO VOLUMEN • ATENCIÓN CORPORATIVA</span>
+          <h3 class="custom-plan-title">¿Tu lote de facturación supera nuestros planes actuales?</h3>
+          <p class="custom-plan-desc">
+            Si el movimiento de tu negocio supera las 2.500 facturas y necesitas un volumen mayor de Números de Control, contáctanos directamente para ofrecerte un Plan Personalizado a la medida de tu empresa, con tarifas preferenciales aún más económicas y atención prioritaria.
+          </p>
+          <ul class="custom-plan-perks">
+            <li><span>✓</span> Lotes a medida (+5.000 / +10.000 facturas)</li>
+            <li><span>✓</span> Tarifa corporativa preferencial por volumen</li>
+            <li><span>✓</span> Soporte VIP y asesoría directa</li>
+          </ul>
+        </div>
+        <div class="custom-plan-action">
+          <button type="button" class="btn-custom-plan" onclick="requestCustomPlanWhatsApp()">
+            💬 Contáctanos para un Plan Personalizado
+          </button>
+          <span class="custom-plan-note">Respuesta directa con un asesor comercial por WhatsApp</span>
+        </div>
       </div>
     </div>
   </section>
@@ -536,11 +564,11 @@
 
         <div class="faq-item">
           <button class="faq-question" aria-expanded="false">
-            ¿Cuánto cuesta cada lote y cómo ahorro comprando más cantidad?
+            ¿Cuánto cuesta cada lote y qué pasa si supero los planes actuales?
             <span class="faq-chevron">▼</span>
           </button>
           <div class="faq-answer">
-            <p>Mientras mayor sea el paquete, más económica es cada factura: el Lote Básico de <strong>500 Números de Control cuesta $125 USD</strong> ($0.25 por factura), el Lote PyME de <strong>1.000 Números cuesta $210 USD</strong> ($0.21 por factura) y el Lote Empresarial de <strong>2.500 Números cuesta $450 USD</strong> ($0.18 por factura). Cuando consumas tus números de control, recargas un nuevo lote desde la web y continúas facturando sin interrupciones.</p>
+            <p>Nuestros precios varían de acuerdo con la cantidad de facturas de tu lote, desde <strong>$0.25 hasta $0.18 USD por factura</strong>: el Lote Básico de <strong>500 Números de Control cuesta $125 USD</strong> ($0.25 por factura), el Lote PyME de <strong>1.000 Números cuesta $210 USD</strong> ($0.21 por factura) y el Lote Empresarial de <strong>2.500 Números cuesta $450 USD</strong> ($0.18 por factura). Si el volumen de tu negocio supera los 2.500 documentos, contáctanos para diseñar un <strong>Plan Personalizado</strong> con tarifas preferenciales. Cuando consumas tus números de control, recargas un nuevo lote desde la web y continúas facturando sin interrupciones.</p>
           </div>
         </div>
 
@@ -603,7 +631,7 @@
   <section class="cta-banner reveal">
     <div class="container">
       <h2>¿Listo para implementar Pago por Uso en tu negocio?</h2>
-      <p>Solo pagas por lo que consumes: mientras mayor sea tu lote de Números de Control, más económico es cada documento.</p>
+      <p>Solo pagas por lo que consumes, con tarifas desde $0.25 hasta $0.18 por factura: mientras mayor sea tu lote, más económico resulta cada documento.</p>
       <a href="#planes" class="btn-cta-white">
         🧾 Adquirir Números de Control
       </a>
@@ -860,7 +888,7 @@
   <script>
     window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone }}";
   </script>
-  <script src="/static/js/main.js?v=10.1"></script>
+  <script src="/static/js/main.js?v=10.2"></script>
 
   <!-- ANTI-CACHE: Forzando la nueva UI de Métodos de Pago aquí mismo -->
   <style>
