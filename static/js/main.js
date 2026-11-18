@@ -930,7 +930,7 @@ function onPaymentMethodSelectedChange() {
         <div class="pm-data-row">
           <span class="pm-data-label">Modalidad</span>
           <div class="pm-data-value-group">
-            <span class="pm-data-value">Pago en Efectivo Físico (${escapeHtml(selected.titulo)})</span>
+            <span class="pm-data-value">Pago en Efectivo (${escapeHtml(selected.titulo)})</span>
           </div>
         </div>
       `;
@@ -943,7 +943,7 @@ function onPaymentMethodSelectedChange() {
   let pmFooterMsg = 'Complete el pago según los datos indicados y registre su comprobante.';
   if (selected.tipo_metodo === 'efectivo') {
     pmIcon = '💵';
-    pmFooterMsg = 'Indique abajo quién entregará el efectivo físico (divisas o bolívares) y la fecha estimada de entrega. No requiere foto de comprobante.';
+    pmFooterMsg = 'Indique abajo quién entregará el efectivo (divisas o bolívares) y la fecha estimada de entrega. No requiere foto de comprobante.';
   } else if (selected.tipo_metodo === 'pago_movil') {
     pmIcon = '📱';
     pmFooterMsg = 'Realice el Pago Móvil exacto en Bolívares a los datos indicados y adjunte la captura del comprobante.';
