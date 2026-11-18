@@ -808,6 +808,22 @@
           📲 Registrar Pago y Notificar por WhatsApp
         </button>
       </form>
+
+      <!-- Pantalla de Confirmación y Notificación Directa por WhatsApp (Anti-Bloqueo Popup) -->
+      <div id="paymentSuccessBox" style="display: none; text-align: center; padding: 1rem 0.25rem;">
+        <div style="font-size: 2.8rem; margin-bottom: 0.4rem;">✅</div>
+        <h3 style="margin: 0 0 0.5rem; font-size: 1.25rem; font-weight: 800; color: #0f172a;">¡Pago Registrado Exitosamente!</h3>
+        <p id="paymentSuccessMsg" style="font-size: 0.88rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
+          Tu comprobante fue recibido y está en verificación. Pulsa el botón verde para enviar tu notificación por WhatsApp al administrador y activar tu lote.
+        </p>
+        <a id="paymentSuccessWaLink" href="#" target="_blank" rel="noopener noreferrer"
+           style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; background: #25d366; color: #ffffff; text-decoration: none; font-weight: 800; font-size: 1rem; padding: 0.95rem 1.25rem; border-radius: 12px; box-shadow: 0 6px 18px rgba(37, 211, 102, 0.3); margin-bottom: 0.75rem;">
+          📲 Notificar Pago por WhatsApp Ahora
+        </a>
+        <button type="button" onclick="closeCheckoutModal()" style="width: 100%; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0.7rem; font-size: 0.88rem; font-weight: 600; cursor: pointer;">
+          Cerrar
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1217,8 +1233,6 @@
           return;
         }
 
-        closeCheckoutModal();
-
         let cleanSellerPhone = (window.ADMIN_WHATSAPP_PHONE || "584243580005").toString().replace(/[^0-9]/g, '');
         if (cleanSellerPhone.startsWith('0')) cleanSellerPhone = '58' + cleanSellerPhone.substring(1);
         if (!cleanSellerPhone.startsWith('58')) cleanSellerPhone = '58' + cleanSellerPhone;
@@ -1227,27 +1241,41 @@
         const lotAmount = Number(data.monto_usd || (typeof currentPlanInfo !== 'undefined' && currentPlanInfo.price) || 125).toFixed(2);
 
         const waMsg = encodeURIComponent(
-          `👋 ¡Hola equipo de ZNexica POS!\n\n` +
-          `Acabo de registrar el pago de mi paquete de facturación electrónica: *${lotName}*.\n` +
+          `🔔 *NUEVO PAGO REGISTRADO — ZNexica POS*\n\n` +
+          `¡Hola equipo administrativo! Acabo de realizar el pago de mi lote de Números de Control y ya subí mi comprobante a la plataforma.\n\n` +
           `👤 *Cliente:* ${fullName}\n` +
-          `📱 *Teléfono / Usuario:* ${phone}\n` +
           `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
+          `📱 *Teléfono / Usuario:* ${phone}\n` +
+          `🧾 *Lote:* ${lotName}\n` +
           `💰 *Monto:* $${lotAmount} USD\n` +
+          `💳 *Método:* ${paymentMethodText}\n` +
           `🔢 *Referencia:* ${referenceLast4}\n\n` +
-          `Por favor verifiquen mi comprobante para habilitar mis Números de Control en ZNexica POS.`
+          `⏳ *Por favor revisen el comprobante en el Panel Administrativo para verificar y aprobar mi acceso a la App.*`
         );
         const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
-        alert(
-          `🎉 ¡Pago registrado exitosamente, ${fullName}!\n\n` +
-          `Tu comprobante para el ${lotName} fue recibido y está en verificación por administración.\n\n` +
-          `Una vez aprobado el pago, podrás ingresar y facturar electrónicamente en ZNexica POS con:\n` +
-          `✉️ Correo: ${email || 'Tu correo registrado'}\n` +
-          `📱 Teléfono: ${phone}\n` +
-          `🔑 Contraseña: La que definiste al registrarte.\n\n` +
-          `Se abrirá WhatsApp para que envíes tu notificación al equipo.`
-        );
-        window.open(waUrl, '_blank');
+        const payForm = document.getElementById('paymentForm');
+        const successBox = document.getElementById('paymentSuccessBox');
+        const waLinkBtn = document.getElementById('paymentSuccessWaLink');
+        const successMsgEl = document.getElementById('paymentSuccessMsg');
+
+        if (payForm && successBox && waLinkBtn) {
+          payForm.style.display = 'none';
+          waLinkBtn.href = waUrl;
+          if (successMsgEl) {
+            successMsgEl.innerHTML = `Tu comprobante para <strong>${lotName} ($${lotAmount} USD)</strong> ya está registrado.<br>Pulsa el botón verde para avisar por WhatsApp al administrador y que verifique tu pago.`;
+          }
+          successBox.style.display = 'block';
+        } else {
+          closeCheckoutModal();
+        }
+
+        // Intentar abrir WhatsApp automáticamente; si el navegador móvil bloquea el popup, queda el botón directo visible
+        try {
+          window.open(waUrl, '_blank', 'noopener,noreferrer');
+        } catch (e) {
+          console.log('Popup bloqueado, el usuario puede pulsar el botón verde.');
+        }
       } catch (err) {
         console.error(err);
         alert('Error de conexión o comunicación con el servidor al registrar el pago.');

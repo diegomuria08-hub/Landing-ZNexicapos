@@ -1028,7 +1028,12 @@ function proceedToCheckout(planCode, planName, planPrice) {
     if (warnPhoneDisp) warnPhoneDisp.textContent = uPhone;
   }
 
-  // Contenedores dedicados
+  // Contenedores dedicados (restaurar formulario si venia de un pago exitoso anterior)
+  const payForm = document.getElementById('paymentForm');
+  const successBox = document.getElementById('paymentSuccessBox');
+  if (payForm) payForm.style.display = 'block';
+  if (successBox) successBox.style.display = 'none';
+
   const freeBox = document.getElementById('freePlanNoticeBox');
   const paidBox = document.getElementById('paidPlanInstructionsBox');
   const submitBtn = document.getElementById('submitPaymentBtn') || document.querySelector('#paymentForm button[type="submit"]');
@@ -1150,27 +1155,46 @@ async function handlePaymentSubmit(event) {
       return;
     }
 
-    closeCheckoutModal();
-
     const cleanSellerPhone = getAdminWhatsAppNumber();
 
     const lotName = data.nombre_plan || currentPlanInfo.name || 'Lote 500 Números de Control ($0.25/fact)';
     const lotAmount = Number(data.monto_usd || currentPlanInfo.price || 125).toFixed(2);
 
     const waMsg = encodeURIComponent(
-      `👋 ¡Hola equipo de ZNexica POS!\n\n` +
-      `Acabo de registrar el pago de mi paquete de facturación electrónica: *${lotName}* ($${lotAmount} USD).\n` +
+      `🔔 *NUEVO PAGO REGISTRADO — ZNexica POS*\n\n` +
+      `¡Hola equipo administrativo! Acabo de realizar el pago de mi lote de Números de Control y ya subí mi comprobante a la plataforma.\n\n` +
       `👤 *Cliente:* ${fullName}\n` +
-      `🏢 *Empresa:* ${companyName || 'Sin especificar'}\n` +
+      `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
       `📱 *Teléfono / Usuario:* ${phone}\n` +
+      `🧾 *Lote:* ${lotName}\n` +
+      `💰 *Monto:* $${lotAmount} USD\n` +
       `💳 *Método:* ${paymentMethodText}\n` +
-      `🧾 *Detalles / Ref:* ${referenceLast4}\n\n` +
-      `Por favor verifiquen mi comprobante para habilitar mis Números de Control en la app ZNexica POS.`
+      `🔢 *Referencia:* ${referenceLast4}\n\n` +
+      `⏳ *Por favor revisen el comprobante en el Panel Administrativo para verificar y aprobar mi acceso a la App.*`
     );
     const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
 
-    alert(`✅ ¡Pago enviado exitosamente!\n\nTu solicitud para el ${lotName} ($${lotAmount} USD) está registrada.\nUna vez aprobado el comprobante por administración, podrás ingresar y facturar electrónicamente en ZNexica POS.\n\nSe abrirá WhatsApp para que notifiques el pago.`);
-    window.open(waUrl, '_blank');
+    const payForm = document.getElementById('paymentForm');
+    const successBox = document.getElementById('paymentSuccessBox');
+    const waLinkBtn = document.getElementById('paymentSuccessWaLink');
+    const successMsgEl = document.getElementById('paymentSuccessMsg');
+
+    if (payForm && successBox && waLinkBtn) {
+      payForm.style.display = 'none';
+      waLinkBtn.href = waUrl;
+      if (successMsgEl) {
+        successMsgEl.innerHTML = `Tu comprobante para <strong>${lotName} ($${lotAmount} USD)</strong> ya está registrado.<br>Pulsa el botón verde para avisar por WhatsApp al administrador y que verifique tu pago.`;
+      }
+      successBox.style.display = 'block';
+    } else {
+      closeCheckoutModal();
+    }
+
+    try {
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      console.log('Popup bloqueado, el usuario puede pulsar el botón verde.');
+    }
 
   } catch (err) {
     console.error(err);
