@@ -741,10 +741,10 @@
 
         <div class="form-group">
           <label class="form-label" for="pmHolder">Nombre del Titular o Beneficiario</label>
-          <input type="text" id="pmHolder" class="form-input" placeholder="Nombre completo o razón social del receptor" required>
+          <input type="text" id="pmHolder" class="form-input" placeholder="Nombre completo o razón social del receptor">
         </div>
 
-        <button type="submit" class="saas-btn-primary" style="width: 100%; justify-content: center; margin-top: 1.25rem; padding: 0.8rem 1rem; font-size: 0.9rem;">
+        <button type="submit" id="btnSavePm" class="saas-btn-primary" style="width: 100%; justify-content: center; margin-top: 1.25rem; padding: 0.8rem 1rem; font-size: 0.9rem;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Guardar Método en Base de Datos
         </button>
@@ -752,7 +752,7 @@
     </div>
   </div>
 
-  <script src="/static/js/admin.js?v=7.1"></script>
+  <script src="/static/js/admin.js?v=7.2"></script>
   <script>
     // Sobrescribir togglePmTypeFields directamente en el HTML para evitar caché agresivo
     window.togglePmTypeFields = function() {
@@ -783,6 +783,8 @@
       grpIdCard.style.display = 'block';
       grpBinance.style.display = 'block';
       grpHolder.style.display = 'block';
+      const holderInput = document.getElementById('pmHolder');
+      if (holderInput) holderInput.required = false;
 
       // Customize based on type
       if (type === 'pago_movil') {

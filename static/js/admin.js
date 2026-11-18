@@ -372,6 +372,8 @@ function togglePmTypeFields() {
   grpIdCard.style.display = 'block';
   grpBinance.style.display = 'block';
   grpHolder.style.display = 'block';
+  const holderInput = document.getElementById('pmHolder');
+  if (holderInput) holderInput.required = false;
 
   // Customize based on type
   if (type === 'pago_movil') {
@@ -453,12 +455,23 @@ function closePmModal() {
 async function handleSavePaymentMethod(event) {
   event.preventDefault();
   const token = getAdminToken();
+  if (!token) {
+    alert('⚠️ Tu sesión de administrador expiró. Por favor inicia sesión nuevamente.');
+    handleAdminLogout();
+    return;
+  }
+
   const methodId = document.getElementById('pmId').value;
   const isEdit = methodId !== '';
+  const titulo = document.getElementById('pmTitle').value.trim();
+  if (!titulo) {
+    alert('⚠️ Por favor ingresa un título visible para el método de pago.');
+    return;
+  }
 
   const payload = {
     tipo_metodo: document.getElementById('pmType').value,
-    titulo: document.getElementById('pmTitle').value.trim(),
+    titulo: titulo,
     nombre_banco: document.getElementById('pmBankName').value.trim(),
     telefono: document.getElementById('pmPhone').value.trim(),
     cedula: document.getElementById('pmIdCard').value.trim(),
@@ -466,6 +479,13 @@ async function handleSavePaymentMethod(event) {
     titular_cuenta: document.getElementById('pmHolder').value.trim(),
     esta_activo: true
   };
+
+  const saveBtn = document.getElementById('btnSavePm') || document.querySelector('#pmForm button[type="submit"]');
+  const originalText = saveBtn ? saveBtn.innerHTML : '';
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '⏳ Guardando método...';
+  }
 
   try {
     const url = isEdit ? `/api/metodos-pago/admin/${methodId}` : '/api/metodos-pago/admin';
@@ -480,17 +500,31 @@ async function handleSavePaymentMethod(event) {
       body: JSON.stringify(payload)
     });
 
+    if (res.status === 401 || res.status === 403) {
+      alert('⚠️ Tu sesión de administrador expiró. Inicia sesión nuevamente para guardar.');
+      handleAdminLogout();
+      return;
+    }
+
+    const data = await res.json().catch(() => ({}));
     if (res.ok) {
       alert(`✅ Método de pago ${isEdit ? 'actualizado' : 'creado'} con éxito.`);
       closePmModal();
       loadAdminPaymentMethods();
     } else {
-      const data = await res.json();
-      alert(data.detail || 'Error al guardar el método de pago.');
+      const msg = Array.isArray(data.detail)
+        ? data.detail.map(d => d.msg || JSON.stringify(d)).join(', ')
+        : (data.detail || `Error al guardar el método de pago (HTTP ${res.status}).`);
+      alert(`⚠️ ${msg}`);
     }
   } catch (err) {
     console.error(err);
-    alert('Error de conexión.');
+    alert('Error de conexión con el servidor al guardar el método de pago.');
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalText;
+    }
   }
 }
 
