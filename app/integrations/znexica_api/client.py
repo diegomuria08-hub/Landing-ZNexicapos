@@ -11,7 +11,7 @@
  Variables de entorno (.env local / Environment de Render) — SIN valores por defecto:
    PROVISIONING_API_USER       usuario Basic Auth                     (obligatoria)
    PROVISIONING_API_PASSWORD   contraseña Basic Auth                  (obligatoria)
-   ZNEXICA_API_BASE_URL        raíz de la API, ej. https://mini-pos-api.vercel.app (opcional)
+   ZNEXICA_API_BASE_URL        raíz de la API, ej. http://31.70.159.200/znexica.com (opcional)
    PROVISIONING_API_URL        (legado) si existe, se deriva la raíz desde ella
    APP_BASE_URL                se envía como cabecera Origin
 
@@ -32,7 +32,7 @@ import httpx
 
 logger = logging.getLogger("znexica_api")
 
-DEFAULT_BASE_URL = "https://mini-pos-api.vercel.app"
+DEFAULT_BASE_URL = "http://31.70.159.200/znexica.com"
 TIMEOUT_SECONDS = 15.0
 MAX_ATTEMPTS = 3
 BACKOFF_BASE_SECONDS = 0.6
@@ -73,10 +73,10 @@ class ZNexicaApiNotFoundError(ZNexicaApiError):
 
 def _base_url() -> str:
     explicit = os.getenv("ZNEXICA_API_BASE_URL", "").strip()
-    if explicit:
+    if explicit and "mini-pos-api.vercel.app" not in explicit:
         return explicit.rstrip("/")
     legacy = os.getenv("PROVISIONING_API_URL", "").strip()
-    if "/api/" in legacy:
+    if "/api/" in legacy and "mini-pos-api.vercel.app" not in legacy:
         return legacy.split("/api/")[0].rstrip("/")
     return DEFAULT_BASE_URL
 

@@ -19,7 +19,7 @@ services:
       - key: ADMIN_PASSWORD
         sync: false
       - key: PROVISIONING_API_URL
-        value: https://mini-pos-api.vercel.app/api/provisioning/tenant
+        value: http://31.70.159.200/znexica.com/api/provisioning/tenant
       - key: PROVISIONING_API_USER
         sync: false
       - key: PROVISIONING_API_PASSWORD

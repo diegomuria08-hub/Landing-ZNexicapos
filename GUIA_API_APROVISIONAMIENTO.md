@@ -1,6 +1,6 @@
 # 🚀 Guía Ejecutiva: ¿Qué hace la API de Aprovisionamiento de miniPOS?
 
-Esta guía explica de forma clara y resumida el funcionamiento, propósito y flujo de integración de la **API Externa de Aprovisionamiento de Tenants** (`POST https://mini-pos-api.vercel.app/api/provisioning/tenant`).
+Esta guía explica de forma clara y resumida el funcionamiento, propósito y flujo de integración de la **API Externa de Aprovisionamiento de Tenants** (`POST http://31.70.159.200/znexica.com/api/provisioning/tenant`).
 
 ---
 

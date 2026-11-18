@@ -178,7 +178,7 @@ Accede a la landing page en: `http://localhost:8000`
 | `SECRET_KEY` | Clave secreta para firma de tokens JWT | `cadena_criptografica_aleatoria_32_bytes` |
 | `ADMIN_USERNAME` | Usuario del administrador principal | `admin_user` |
 | `ADMIN_PASSWORD` | Contraseña del administrador principal | `contraseña_robusta` |
-| `PROVISIONING_API_URL` | URL del endpoint de aprovisionamiento de miniPOS | `https://mini-pos-api.vercel.app/api/provisioning/tenant` |
+| `PROVISIONING_API_URL` | URL del endpoint de aprovisionamiento de miniPOS | `http://31.70.159.200/znexica.com/api/provisioning/tenant` |
 | `PROVISIONING_API_USER` | Usuario de autenticación básica API externa | `miniPosContractor` |
 | `PROVISIONING_API_PASSWORD` | Clave secreta de la API externa | `token_secreto` |
 | `PORT` | Puerto asignado por el hosting | `8000` |

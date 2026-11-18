@@ -23,7 +23,7 @@ Dentro de `client.py` encontrarás los comentarios claros señalando cada endpoi
 En el archivo `.env` local y en el panel de **Environment en Render**:
 
 ```env
-PROVISIONING_API_URL=https://mini-pos-api.vercel.app/api/provisioning/tenant
+PROVISIONING_API_URL=http://31.70.159.200/znexica.com/api/provisioning/tenant
 PROVISIONING_API_USER=dannysmuria
 PROVISIONING_API_PASSWORD=rtdg2049
 ```
@@ -37,7 +37,7 @@ PROVISIONING_API_PASSWORD=rtdg2049
 ### Endpoint 1: Creación de Empresa + Admin + Plan (Aprovisionamiento)
 
 * **Método**: `POST`
-* **URL**: `https://mini-pos-api.vercel.app/api/provisioning/tenant`
+* **URL**: `http://31.70.159.200/znexica.com/api/provisioning/tenant`
 * **Pestaña Authorization**:
   * **Type**: `Basic Auth`
   * **Username**: `dannysmuria`
@@ -73,7 +73,7 @@ PROVISIONING_API_PASSWORD=rtdg2049
 ### Endpoint 2: Activar o Suspender Acceso (Gestión de Pagos / Vencimientos)
 
 * **Método**: `PATCH`
-* **URL**: `https://mini-pos-api.vercel.app/api/provisioning/user-status`
+* **URL**: `http://31.70.159.200/znexica.com/api/provisioning/user-status`
 * **Pestaña Authorization**:
   * **Type**: `Basic Auth`
   * **Username**: `dannysmuria`
