@@ -904,7 +904,7 @@
   <script>
     window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone }}";
   </script>
-  <script src="/static/js/main.js?v=10.2"></script>
+  <script src="/static/js/main.js?v=10.3"></script>
 
   <!-- ANTI-CACHE: Forzando la nueva UI de Métodos de Pago aquí mismo -->
   <style>
@@ -1069,14 +1069,15 @@
       }
 
       const createRow = (label, value) => {
-        // Inyectamos el valor directamente sin escapeHtml que estaba dando fallos
         const val = value || '';
+        const safeHtml = typeof escapeHtml === 'function' ? escapeHtml(val) : String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const safeJs = typeof escapeJs === 'function' ? escapeJs(val) : String(val).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
         return `
           <div class="pm-data-row">
             <span class="pm-data-label">${label}</span>
             <div class="pm-data-value-group">
-              <span class="pm-data-value">${val}</span>
-              <button type="button" class="btn-copy-nice" onclick="copyToClipboard('${val}', this)" title="Copiar al portapapeles">
+              <span class="pm-data-value">${safeHtml}</span>
+              <button type="button" class="btn-copy-nice" onclick="copyToClipboard('${safeJs}', this)" title="Copiar al portapapeles">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -1101,21 +1102,56 @@
       if (selected.binance_id) rows += createRow('Billetera/ID', selected.binance_id);
       if (selected.titular_cuenta) rows += createRow('Titular', selected.titular_cuenta);
 
+      const safeTitle = typeof escapeHtml === 'function' ? escapeHtml(selected.titulo) : String(selected.titulo || '').replace(/</g, '&lt;');
+
       if (!rows) {
-        rows = createRow('Información', selected.titulo);
+        if (selected.tipo_metodo === 'efectivo') {
+          rows = `
+            <div class="pm-data-row">
+              <span class="pm-data-label">Modalidad</span>
+              <div class="pm-data-value-group">
+                <span class="pm-data-value">Pago en Efectivo Físico (${safeTitle})</span>
+              </div>
+            </div>
+          `;
+        } else {
+          rows = createRow('Información', selected.titulo);
+        }
+      }
+
+      let pmIcon = '💸';
+      let pmFooterMsg = 'Complete el pago según los datos indicados y registre su comprobante.';
+      if (selected.tipo_metodo === 'efectivo') {
+        pmIcon = '💵';
+        pmFooterMsg = 'Indique abajo quién entregará el efectivo físico (divisas o bolívares) y la fecha estimada de entrega. No requiere foto de comprobante.';
+      } else if (selected.tipo_metodo === 'pago_movil') {
+        pmIcon = '📱';
+        pmFooterMsg = 'Realice el Pago Móvil exacto en Bolívares a los datos indicados y adjunte la captura del comprobante.';
+      } else if (selected.tipo_metodo === 'transferencia') {
+        pmIcon = '🏦';
+        pmFooterMsg = 'Realice la transferencia bancaria exacta a la cuenta indicada y adjunte el comprobante.';
+      } else if (selected.tipo_metodo === 'binance') {
+        pmIcon = '🟡';
+        pmFooterMsg = 'Envíe el monto exacto en USDT por Binance Pay al ID indicado y adjunte la captura.';
+      } else if (selected.tipo_metodo === 'zelle') {
+        pmIcon = '💵';
+        pmFooterMsg = 'Envíe el monto exacto por Zelle al correo indicado y adjunte la captura de confirmación.';
+      } else if (selected.tipo_metodo === 'zinli' || selected.tipo_metodo === 'paypal') {
+        pmIcon = '💳';
+        pmFooterMsg = 'Envíe el monto exacto a la cuenta indicada y adjunte la captura de la transacción.';
       }
 
       const html = `
         <div class="pm-inst-card">
           <div class="pm-inst-header">
-            <h4>Instrucciones de ${selected.titulo}</h4>
-            <span class="pm-icon">💸</span>
+            <h4>Instrucciones de ${safeTitle}</h4>
+            <span class="pm-icon">${pmIcon}</span>
           </div>
           <div class="pm-inst-body">
             ${rows}
           </div>
           <div class="pm-inst-footer">
-            Realice la transferencia exacta y registre el comprobante.
+            ${pmFooterMsg}
           </div>
         </div>
       `;

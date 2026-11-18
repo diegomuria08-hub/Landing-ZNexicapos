@@ -925,20 +925,53 @@ function onPaymentMethodSelectedChange() {
   if (selected.titular_cuenta) rows += createRow('Titular', selected.titular_cuenta);
 
   if (!rows) {
-    rows = createRow('Información', selected.titulo);
+    if (selected.tipo_metodo === 'efectivo') {
+      rows = `
+        <div class="pm-data-row">
+          <span class="pm-data-label">Modalidad</span>
+          <div class="pm-data-value-group">
+            <span class="pm-data-value">Pago en Efectivo Físico (${escapeHtml(selected.titulo)})</span>
+          </div>
+        </div>
+      `;
+    } else {
+      rows = createRow('Información', selected.titulo);
+    }
+  }
+
+  let pmIcon = '💸';
+  let pmFooterMsg = 'Complete el pago según los datos indicados y registre su comprobante.';
+  if (selected.tipo_metodo === 'efectivo') {
+    pmIcon = '💵';
+    pmFooterMsg = 'Indique abajo quién entregará el efectivo físico (divisas o bolívares) y la fecha estimada de entrega. No requiere foto de comprobante.';
+  } else if (selected.tipo_metodo === 'pago_movil') {
+    pmIcon = '📱';
+    pmFooterMsg = 'Realice el Pago Móvil exacto en Bolívares a los datos indicados y adjunte la captura del comprobante.';
+  } else if (selected.tipo_metodo === 'transferencia') {
+    pmIcon = '🏦';
+    pmFooterMsg = 'Realice la transferencia bancaria exacta a la cuenta indicada y adjunte el comprobante.';
+  } else if (selected.tipo_metodo === 'binance') {
+    pmIcon = '🟡';
+    pmFooterMsg = 'Envíe el monto exacto en USDT por Binance Pay al ID indicado y adjunte la captura.';
+  } else if (selected.tipo_metodo === 'zelle') {
+    pmIcon = '💵';
+    pmFooterMsg = 'Envíe el monto exacto por Zelle al correo indicado y adjunte la captura de confirmación.';
+  } else if (selected.tipo_metodo === 'zinli' || selected.tipo_metodo === 'paypal') {
+    pmIcon = '💳';
+    pmFooterMsg = 'Envíe el monto exacto a la cuenta indicada y adjunte la captura de la transacción.';
   }
 
   const html = `
     <div class="pm-inst-card">
       <div class="pm-inst-header">
         <h4>Instrucciones de ${escapeHtml(selected.titulo)}</h4>
-        <span class="pm-icon">💸</span>
+        <span class="pm-icon">${pmIcon}</span>
       </div>
       <div class="pm-inst-body">
         ${rows}
       </div>
       <div class="pm-inst-footer">
-        Realice la transferencia exacta y registre el comprobante.
+        ${pmFooterMsg}
       </div>
     </div>
   `;
