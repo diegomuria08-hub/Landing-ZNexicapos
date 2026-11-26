@@ -135,8 +135,13 @@ def require_current_user(user: Optional[models.Usuario] = Depends(get_current_us
 
 
 def require_admin(user: Optional[models.Usuario] = Depends(get_current_user)) -> models.Usuario:
-    """Requiere un usuario con rol de administrador. Lanza 403 si no es admin."""
-    if not user or user.rol != "admin":
+    """Requiere un usuario con rol de administrador. Lanza 401 si no hay sesión válida o 403 si no es admin."""
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Tu sesión de administrador ha expirado. Por favor inicia sesión nuevamente."
+        )
+    if user.rol != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acceso denegado. Se requieren privilegios de Administrador."

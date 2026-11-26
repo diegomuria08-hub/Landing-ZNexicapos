@@ -1,8 +1,8 @@
 import os
 import urllib.parse
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas, security
@@ -496,18 +496,21 @@ def reactivate_client_service(
 
 
 @router.delete("/clientes/{user_id}")
+@router.post("/clientes/{user_id}/eliminar")
 def delete_client_permanently(
     user_id: int,
-    payload: schemas.EliminarClienteIn,
+    payload: Optional[schemas.EliminarClienteIn] = Body(default=None),
+    motivo: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
     admin_user: models.Usuario = Depends(security.require_admin)
 ):
     """Eliminar un cliente definitivamente de la base de datos con registro de auditoría del motivo."""
     usuario = db.query(models.Usuario).filter(models.Usuario.id == user_id, models.Usuario.rol == "cliente").first()
     if not usuario:
-        raise HTTPException(status_code=404, detail="Cliente no encontrado o no tiene permisos para eliminar administradores.")
+        raise HTTPException(status_code=404, detail="El cliente ya fue eliminado o no existe en la base de datos.")
 
-    motivo = payload.motivo.strip() if payload.motivo else "Baja solicitada / Ya no utiliza el sistema"
+    raw_motivo = (payload.motivo if payload and payload.motivo else motivo) or ""
+    motivo_clean = raw_motivo.strip() or "Baja administrativa / Solicitud de eliminación"
 
     # Obtener el último lote/plan para el registro de auditoría
     latest_sub = db.query(models.Suscripcion).filter(
@@ -515,7 +518,13 @@ def delete_client_permanently(
     ).order_by(models.Suscripcion.id.desc()).first()
     ultimo_plan = latest_sub.codigo_plan if latest_sub else "NC_500"
 
-    # 1. Registrar en la tabla de auditoría
+    # 1. Desactivar acceso en la App remota si existía (no bloqueante)
+    try:
+        sync_app_access(db, usuario, active=False, reason=f"Cuenta dada de baja: {motivo_clean}")
+    except Exception:
+        pass
+
+    # 2. Registrar en la tabla de auditoría
     baja_audit = models.ClienteBajaAudit(
         cliente_id_original=usuario.id,
         nombre_completo=usuario.nombre_completo,
@@ -523,13 +532,13 @@ def delete_client_permanently(
         nombre_empresa=usuario.nombre_empresa or "",
         email=usuario.email or "",
         ultimo_plan=ultimo_plan,
-        motivo_eliminacion=motivo,
+        motivo_eliminacion=motivo_clean,
         eliminado_por_admin=admin_user.nombre_completo or "Administrador",
         fecha_eliminacion=get_realtime_caracas_now()
     )
     db.add(baja_audit)
 
-    # 2. Eliminar comprobantes en disco
+    # 3. Eliminar comprobantes en disco
     subs = db.query(models.Suscripcion).filter(models.Suscripcion.usuario_id == usuario.id).all()
     for s in subs:
         if s.ruta_comprobante:
@@ -540,23 +549,19 @@ def delete_client_permanently(
                 except Exception:
                     pass
 
-    # 3. Eliminar suscripciones
+    # 4. Eliminar suscripciones, sesiones y registro de acceso local
     db.query(models.Suscripcion).filter(models.Suscripcion.usuario_id == usuario.id).delete(synchronize_session=False)
-
-    # 4. Eliminar sesiones de dispositivo
     db.query(models.SesionDispositivo).filter(models.SesionDispositivo.usuario_id == usuario.id).delete(synchronize_session=False)
-
-    # 5. Eliminar registro de control de acceso miniPOS
     db.query(models.AccesoMiniposApi).filter(models.AccesoMiniposApi.telefono == usuario.telefono).delete(synchronize_session=False)
 
-    # 6. Eliminar usuario
+    # 5. Eliminar usuario
     db.delete(usuario)
     db.commit()
 
     return {
-        "message": f"Cliente '{baja_audit.nombre_completo}' ({baja_audit.telefono}) ha sido eliminado permanentemente de la base de datos.",
+        "message": f"Cliente '{baja_audit.nombre_completo}' ({baja_audit.telefono}) eliminado permanentemente.",
         "cliente_id": user_id,
-        "motivo": motivo
+        "motivo": motivo_clean
     }
 
 
@@ -566,6 +571,7 @@ def delete_client_permanently(
 # ────────────────────────────────────────────────────
 
 @router.delete("/suscripciones/purgar-todo")
+@router.post("/suscripciones/purgar-todo")
 def purge_all_subscriptions(
     db: Session = Depends(get_db),
     admin_user: models.Usuario = Depends(security.require_admin)
@@ -574,10 +580,8 @@ def purge_all_subscriptions(
     all_subs = db.query(models.Suscripcion).all()
     deleted_count = len(all_subs)
 
-    # Limpieza física de archivos de comprobante en disco
     for s in all_subs:
         if s.ruta_comprobante:
-            # Remover el "/" inicial para obtener ruta relativa al proyecto
             file_path = s.ruta_comprobante.lstrip("/")
             if os.path.exists(file_path):
                 try:
@@ -600,7 +604,7 @@ def cleanup_old_subscriptions(
     admin_user: models.Usuario = Depends(security.require_admin)
 ):
     """Eliminar registros de pago rechazados o más antiguos de N días."""
-    cutoff_date = datetime.utcnow() - timedelta(days=days)
+    cutoff_date = get_realtime_caracas_now() - timedelta(days=days)
 
     old_subs = db.query(models.Suscripcion).filter(
         (models.Suscripcion.creado_en < cutoff_date) | (models.Suscripcion.estado == "rechazado")
@@ -625,15 +629,18 @@ def cleanup_old_subscriptions(
 
 
 @router.delete("/suscripciones/{sub_id}")
+@router.post("/suscripciones/{sub_id}/eliminar")
 def delete_subscription(
     sub_id: int,
     db: Session = Depends(get_db),
     admin_user: models.Usuario = Depends(security.require_admin)
 ):
-    """Eliminar un registro de pago/suscripción específico."""
+    """Eliminar un registro de pago/suscripción específico y sincronizar estado del cliente si quedó sin lotes aprobados."""
     sub = db.query(models.Suscripcion).filter(models.Suscripcion.id == sub_id).first()
     if not sub:
-        raise HTTPException(status_code=404, detail="Suscripción no encontrada.")
+        raise HTTPException(status_code=404, detail="El registro de pago ya fue eliminado.")
+
+    target_user_id = sub.usuario_id
 
     if sub.ruta_comprobante:
         file_path = sub.ruta_comprobante.lstrip("/")
@@ -644,8 +651,30 @@ def delete_subscription(
                 pass
 
     db.delete(sub)
+    db.flush()
+
+    # Verificar si el cliente aún posee otra suscripción aprobada
+    usuario = db.query(models.Usuario).filter(models.Usuario.id == target_user_id, models.Usuario.rol == "cliente").first()
+    if usuario:
+        remaining_approved = db.query(models.Suscripcion).filter(
+            models.Suscripcion.usuario_id == usuario.id,
+            models.Suscripcion.estado == "aprobado"
+        ).first()
+        if not remaining_approved:
+            usuario.esta_bloqueado = True
+            usuario.motivo_bloqueo = "Sin lote de Números de Control activo."
+            access_rec = db.query(models.AccesoMiniposApi).filter(
+                models.AccesoMiniposApi.telefono == usuario.telefono
+            ).first()
+            if access_rec:
+                access_rec.acceso_concedido = False
+                access_rec.esta_bloqueado = True
+                access_rec.estado = "pendiente"
+                access_rec.plan_activo = "ninguno"
+                access_rec.mensaje_bloqueo = "Sin lote de Números de Control activo."
+
     db.commit()
-    return {"message": f"Suscripción #{sub_id} eliminada exitosamente."}
+    return {"message": f"Registro de pago #{sub_id} eliminado exitosamente."}
 
 
 # ────────────────────────────────────────────────────

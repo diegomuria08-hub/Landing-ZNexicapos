@@ -202,35 +202,93 @@ function cancel2FA() {
   if (codeInput) codeInput.value = '';
 }
 
-function handleAdminLogout() {
+let isHandlingAuthExpiry = false;
+
+function handleAdminLogout(expiredMessage) {
   localStorage.removeItem('minipos_admin_token');
   checkAdminSession();
+  if (expiredMessage && !isHandlingAuthExpiry) {
+    isHandlingAuthExpiry = true;
+    const errorBox = document.getElementById('adminLoginError');
+    if (errorBox) {
+      errorBox.textContent = expiredMessage;
+      errorBox.style.display = 'block';
+    }
+    setTimeout(() => { isHandlingAuthExpiry = false; }, 1500);
+  }
+}
+
+function extractApiError(data, status) {
+  if (!data) return `Error del servidor (HTTP ${status}).`;
+  if (typeof data.detail === 'string') return data.detail;
+  if (Array.isArray(data.detail)) {
+    return data.detail.map(d => d.msg || JSON.stringify(d)).join(', ');
+  }
+  if (typeof data.message === 'string') return data.message;
+  return `Error del servidor (HTTP ${status}).`;
+}
+
+async function adminApiFetch(url, options = {}) {
+  const token = getAdminToken();
+  if (!token) {
+    handleAdminLogout('Tu sesión ha expirado. Inicia sesión nuevamente.');
+    return { ok: false, status: 401, authExpired: true, data: {}, errorMsg: 'Sesión expirada.' };
+  }
+
+  const headers = Object.assign(
+    {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache'
+    },
+    options.headers || {}
+  );
+
+  const res = await fetch(url, Object.assign({}, options, { headers, cache: 'no-store' }));
+  const data = await res.json().catch(() => ({}));
+
+  if (res.status === 401 || res.status === 403) {
+    handleAdminLogout('⚠️ Tu sesión anterior expiró tras actualizar el sistema. Ingresa nuevamente tus credenciales.');
+    return { ok: false, status: res.status, authExpired: true, data, errorMsg: extractApiError(data, res.status) };
+  }
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    authExpired: false,
+    data,
+    errorMsg: res.ok ? '' : extractApiError(data, res.status)
+  };
+}
+
+function refreshAllAdminTables() {
+  loadSubscriptions();
+  loadAdminClients();
+  loadAdminPaymentMethods();
 }
 
 /* ==========================================================================
    GESTIÓN DE MÚLTIPLES MÉTODOS DE PAGO (SaaS Enterprise)
    ========================================================================== */
 let adminPaymentMethods = [];
+let pmCurrentPage = 1;
+const PM_PAGE_SIZE = 10;
 
 async function loadAdminPaymentMethods() {
-  const token = getAdminToken();
   const tbody = document.getElementById('paymentMethodsTableBody');
-  const infoEl = document.getElementById('pmTableInfo');
   if (!tbody) return;
 
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #64748b;">Cargando métodos de pago configurados...</td></tr>';
 
   try {
-    const res = await fetch('/api/metodos-pago/admin', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
+    const res = await adminApiFetch('/api/metodos-pago/admin');
+    if (res.authExpired) return;
     if (!res.ok) {
-      if (res.status === 401 || res.status === 403) handleAdminLogout();
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #dc2626; padding: 1.5rem;">${escapeHtml(res.errorMsg)}</td></tr>`;
       return;
     }
 
-    adminPaymentMethods = await res.json();
+    adminPaymentMethods = Array.isArray(res.data) ? res.data : [];
     filterPaymentMethods();
     updateDashboardKPIs();
   } catch (err) {
@@ -514,31 +572,19 @@ async function handleSavePaymentMethod(event) {
     const url = isEdit ? `/api/metodos-pago/admin/${methodId}` : '/api/metodos-pago/admin';
     const method = isEdit ? 'PUT' : 'POST';
 
-    const res = await fetch(url, {
+    const res = await adminApiFetch(url, {
       method: method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
-    if (res.status === 401 || res.status === 403) {
-      alert('⚠️ Tu sesión de administrador expiró. Inicia sesión nuevamente para guardar.');
-      handleAdminLogout();
-      return;
-    }
-
-    const data = await res.json().catch(() => ({}));
+    if (res.authExpired) return;
     if (res.ok) {
       alert(`✅ Método de pago ${isEdit ? 'actualizado' : 'creado'} con éxito.`);
       closePmModal();
       loadAdminPaymentMethods();
     } else {
-      const msg = Array.isArray(data.detail)
-        ? data.detail.map(d => d.msg || JSON.stringify(d)).join(', ')
-        : (data.detail || `Error al guardar el método de pago (HTTP ${res.status}).`);
-      alert(`⚠️ ${msg}`);
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
@@ -554,21 +600,21 @@ async function handleSavePaymentMethod(event) {
 async function deletePaymentMethod(methodId) {
   if (!confirm(`¿Estás seguro de eliminar el método de pago #${methodId}?`)) return;
 
-  const token = getAdminToken();
   try {
-    const res = await fetch(`/api/metodos-pago/admin/${methodId}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await adminApiFetch(`/api/metodos-pago/admin/${methodId}/eliminar`, {
+      method: 'POST'
     });
+    if (res.authExpired) return;
 
-    if (res.ok) {
-      alert(`🗑️ Método de pago #${methodId} eliminado.`);
+    if (res.ok || res.status === 404) {
+      alert(`🗑️ Método de pago #${methodId} eliminado correctamente.`);
       loadAdminPaymentMethods();
     } else {
-      alert('Error al eliminar método de pago.');
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
+    alert('Error de conexión al eliminar método de pago.');
   }
 }
 
@@ -576,31 +622,29 @@ async function deletePaymentMethod(methodId) {
    CONTROL Y AUDITORÍA DE SUSCRIPCIONES Y PAGOS (SaaS Enterprise)
    ========================================================================== */
 let adminSubscriptions = [];
+let subCurrentPage = 1;
+const SUB_PAGE_SIZE = 10;
 
 async function loadSubscriptions() {
-  const token = getAdminToken();
   const tbody = document.getElementById('subscriptionsTableBody');
-  const infoEl = document.getElementById('subTableInfo');
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem; color: #64748b;">Cargando registro de transacciones...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: #64748b;">Cargando registro de transacciones...</td></tr>';
 
   try {
-    const res = await fetch('/api/admin/suscripciones', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
+    const res = await adminApiFetch('/api/admin/suscripciones');
+    if (res.authExpired) return;
     if (!res.ok) {
-      if (res.status === 401 || res.status === 403) handleAdminLogout();
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color: #dc2626; padding: 1.5rem;">${escapeHtml(res.errorMsg)}</td></tr>`;
       return;
     }
 
-    adminSubscriptions = await res.json();
+    adminSubscriptions = Array.isArray(res.data) ? res.data : [];
     filterSubscriptions();
     updateDashboardKPIs();
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: #dc2626; padding: 1.5rem;">Error al cargar transacciones.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color: #dc2626; padding: 1.5rem;">Error al cargar transacciones.</td></tr>';
   }
 }
 
@@ -861,14 +905,16 @@ function switchAdminView(view) {
 function handleGlobalSearch(query) {
   const subInput = document.getElementById('subSearchInput');
   const pmInput = document.getElementById('pmSearchInput');
+  const cliInput = document.getElementById('clientSearchInput');
   if (subInput) subInput.value = query;
   if (pmInput) pmInput.value = query;
+  if (cliInput) cliInput.value = query;
   filterSubscriptions();
   filterPaymentMethods();
+  filterClients();
 }
 
 async function togglePaymentMethodStatus(methodId, newStatus) {
-  const token = getAdminToken();
   const method = adminPaymentMethods.find(m => m.id === methodId);
   if (!method) return;
 
@@ -884,21 +930,21 @@ async function togglePaymentMethodStatus(methodId, newStatus) {
   };
 
   try {
-    const res = await fetch(`/api/metodos-pago/admin/${methodId}`, {
+    const res = await adminApiFetch(`/api/metodos-pago/admin/${methodId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+    if (res.authExpired) return;
 
     if (res.ok) {
       method.esta_activo = newStatus;
       filterPaymentMethods();
       updateDashboardKPIs();
+    } else if (res.status === 404) {
+      loadAdminPaymentMethods();
     } else {
-      alert('Error al actualizar el estado del método de pago.');
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
@@ -1019,18 +1065,15 @@ function escapeJs(str) {
 }
 
 async function updateSubStatus(subId, newStatus) {
-  const token = getAdminToken();
   try {
-    const res = await fetch(`/api/admin/suscripciones/${subId}/estado`, {
+    const res = await adminApiFetch(`/api/admin/suscripciones/${subId}/estado`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
     });
+    if (res.authExpired) return;
 
-    const data = await res.json().catch(() => ({}));
+    const data = res.data || {};
     if (res.ok) {
       if (newStatus === 'aprobado' && (data.sync_ok === false || data.tenant_provisioning_status !== 'exitoso')) {
         const remoteDetail = data.sync_message || data.tenant_error_detail || 'El servidor remoto rechazó la sincronización.';
@@ -1044,8 +1087,12 @@ async function updateSubStatus(subId, newStatus) {
       }
       loadSubscriptions();
       loadAdminClients();
+    } else if (res.status === 404) {
+      alert('ℹ️ Este registro de pago ya había sido eliminado. Actualizando lista.');
+      loadSubscriptions();
+      loadAdminClients();
     } else {
-      alert(`⚠️ Error al cambiar estado: ${data.detail || 'Error del servidor.'}`);
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
@@ -1056,83 +1103,89 @@ async function updateSubStatus(subId, newStatus) {
 async function deleteSubscription(subId) {
   if (!confirm(`¿Deseas eliminar permanentemente el registro de pago #${subId}?`)) return;
 
-  const token = getAdminToken();
   try {
-    const res = await fetch(`/api/admin/suscripciones/${subId}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await adminApiFetch(`/api/admin/suscripciones/${subId}/eliminar`, {
+      method: 'POST'
     });
+    if (res.authExpired) return;
 
-    if (res.ok) {
-      alert(`🗑️ Registro de pago #${subId} eliminado exitosamente.`);
+    if (res.ok || res.status === 404) {
+      alert(`🗑️ Registro de pago #${subId} eliminado correctamente.`);
       loadSubscriptions();
+      loadAdminClients();
     } else {
-      alert('Error al eliminar registro.');
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
+    alert('Error de conexión al eliminar el registro de pago.');
   }
 }
 
 async function triggerAutoCleanup7Days() {
   if (!confirm('¿Deseas ejecutar el borrado automático de pagos viejos (más de 7 días) o rechazados?')) return;
 
-  const token = getAdminToken();
   try {
-    const res = await fetch('/api/admin/suscripciones/limpiar-antiguos?days=7', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await adminApiFetch('/api/admin/suscripciones/limpiar-antiguos?days=7', {
+      method: 'POST'
     });
+    if (res.authExpired) return;
 
-    const data = await res.json();
     if (res.ok) {
-      alert(`🧹 ${data.message}`);
+      alert(`🧹 ${res.data.message}`);
       loadSubscriptions();
+      loadAdminClients();
     } else {
-      alert('Error al ejecutar la limpieza automática.');
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
+    alert('Error de conexión al ejecutar la limpieza.');
   }
 }
 
 async function triggerPurgeAllSubscriptions() {
   if (!confirm('⚠️ ATENCIÓN: ¿Estás completamente seguro de borrar TODOS los registros de pagos? Esta acción no se puede deshacer.')) return;
 
-  const token = getAdminToken();
   try {
-    const res = await fetch('/api/admin/suscripciones/purgar-todo', {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await adminApiFetch('/api/admin/suscripciones/purgar-todo', {
+      method: 'POST'
     });
+    if (res.authExpired) return;
 
-    const data = await res.json();
     if (res.ok) {
-      alert(`⚠️ ${data.message}`);
+      alert(`🧹 ${res.data.message}`);
       loadSubscriptions();
+      loadAdminClients();
     } else {
-      alert('Error al purgar los registros de pago.');
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
+    alert('Error de conexión al purgar los registros de pago.');
   }
 }
 
 async function notifyWhatsApp(subId) {
-  const token = getAdminToken();
   try {
-    const res = await fetch(`/api/admin/whatsapp-link/${subId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await adminApiFetch(`/api/admin/whatsapp-link/${subId}`);
+    if (res.authExpired) return;
 
-    const data = await res.json();
-    if (res.ok && data.whatsapp_url) {
-      window.open(data.whatsapp_url, '_blank');
+    if (res.ok && res.data.whatsapp_url) {
+      const win = window.open(res.data.whatsapp_url, '_blank');
+      if (!win) {
+        window.location.href = res.data.whatsapp_url;
+      }
+    } else if (res.status === 404) {
+      alert('ℹ️ Este registro o su cliente ya no existe. Actualizando tabla.');
+      loadSubscriptions();
+      loadAdminClients();
     } else {
-      alert('Error al generar enlace de WhatsApp.');
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
+    alert('Error de conexión al generar enlace de WhatsApp.');
   }
 }
 
@@ -1150,16 +1203,10 @@ async function loadAdminProfile() {
   if (errorAlert) errorAlert.style.display = 'none';
 
   try {
-    const res = await fetch('/api/admin/perfil', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await adminApiFetch('/api/admin/perfil');
+    if (res.authExpired) return;
 
-    if (res.status === 401) {
-      handleAdminLogout();
-      return;
-    }
-
-    const data = await res.json();
+    const data = res.data || {};
     if (res.ok) {
       const nameInput = document.getElementById('profileFullName');
       const userInput = document.getElementById('profileUsername');
@@ -1171,7 +1218,6 @@ async function loadAdminProfile() {
       if (badgeName) badgeName.textContent = data.nombre_completo || data.username || 'Admin';
       if (avatar) avatar.textContent = (data.nombre_completo || data.username || 'A').charAt(0).toUpperCase();
 
-      // Limpiar campos de contraseña
       const curPass = document.getElementById('profileCurrentPass');
       const newPass = document.getElementById('profileNewPass');
       const confPass = document.getElementById('profileConfirmPass');
@@ -1239,30 +1285,24 @@ async function handleAdminProfileSubmit(event) {
   }
 
   try {
-    const res = await fetch('/api/admin/perfil', {
+    const res = await adminApiFetch('/api/admin/perfil', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+    if (res.authExpired) return;
 
-    const data = await res.json();
-
+    const data = res.data || {};
     if (res.ok) {
-      // Guardar el nuevo token emitido
       if (data.token) {
         localStorage.setItem('minipos_admin_token', data.token);
       }
 
-      // Actualizar visualmente la barra superior
       const badgeName = document.getElementById('adminUserBadgeName');
       const avatar = document.getElementById('adminUserAvatar');
       if (badgeName && data.user) badgeName.textContent = data.user.nombre_completo || data.user.username;
       if (avatar && data.user) avatar.textContent = (data.user.nombre_completo || data.user.username || 'A').charAt(0).toUpperCase();
 
-      // Limpiar campos de contraseña
       const curPass = document.getElementById('profileCurrentPass');
       const newP = document.getElementById('profileNewPass');
       const confP = document.getElementById('profileConfirmPass');
@@ -1271,12 +1311,12 @@ async function handleAdminProfileSubmit(event) {
       if (confP) confP.value = '';
 
       if (successAlert) {
-        successAlert.innerHTML = `✅ <strong>${data.message}</strong> Los cambios ya están activos en la base de datos sin necesidad de reiniciar el servidor.`;
+        successAlert.innerHTML = `✅ <strong>${escapeHtml(data.message)}</strong> Los cambios ya están activos en la base de datos sin necesidad de reiniciar el servidor.`;
         successAlert.style.display = 'block';
       }
     } else {
       if (errorAlert) {
-        errorAlert.textContent = data.detail || 'Ocurrió un error al actualizar el perfil.';
+        errorAlert.textContent = res.errorMsg;
         errorAlert.style.display = 'block';
       }
     }
@@ -1301,21 +1341,18 @@ async function handlePurgeTestData() {
   const confirmMsg = '⚠️ ATENCIÓN: Esta acción eliminará permanentemente todos los clientes y suscripciones de prueba de la base de datos.\n\nLas 2 cuentas de administrador autorizadas se conservarán 100% seguras e intactas.\n\n¿Deseas continuar?';
   if (!confirm(confirmMsg)) return;
 
-  const token = getAdminToken();
-  if (!token) return;
-
   try {
-    const res = await fetch('/api/admin/limpiar-datos-prueba', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await adminApiFetch('/api/admin/limpiar-datos-prueba', {
+      method: 'POST'
     });
+    if (res.authExpired) return;
 
-    const data = await res.json();
     if (res.ok) {
-      alert(`✅ ${data.message}`);
+      alert(`✅ ${res.data.message}`);
       loadSubscriptions();
+      loadAdminClients();
     } else {
-      alert(`Error al limpiar datos: ${data.detail || 'Error en el servidor.'}`);
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
@@ -1330,29 +1367,21 @@ async function handlePurgeTestData() {
 let adminClients = [];
 
 async function loadAdminClients() {
-  const token = getAdminToken();
   const tbody = document.getElementById('clientsTableBody');
-  const infoEl = document.getElementById('clientsTableInfo');
-  if (!token || !tbody) return;
+  if (!tbody) return;
 
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #64748b;">Cargando directorio de clientes...</td></tr>';
 
   try {
-    const res = await fetch('/api/admin/clientes', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (res.status === 401) {
-      handleAdminLogout();
-      return;
-    }
+    const res = await adminApiFetch('/api/admin/clientes');
+    if (res.authExpired) return;
 
     if (!res.ok) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: #dc2626; padding: 1.5rem;">Error al cargar directorio de clientes.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #dc2626; padding: 1.5rem;">${escapeHtml(res.errorMsg)}</td></tr>`;
       return;
     }
 
-    adminClients = await res.json();
+    adminClients = Array.isArray(res.data) ? res.data : [];
     renderClientsTable(adminClients);
   } catch (err) {
     console.error(err);
@@ -1528,24 +1557,25 @@ function renderClientsTable(clients) {
 }
 
 async function handleSuspendClient(userId, clientName) {
-  const msg = `⚠️ ATENCIÓN: ¿Deseas SUSPENDER temporalmente el servicio a ${clientName}?\n\nAl suspender el servicio:\n1. La app móvil miniPOS cerrará la sesión de forma inmediata.\n2. Se denegará el acceso al punto de venta hasta la regularización del pago.\n3. El cliente verá en pantalla la indicación para renovar su suscripción.`;
+  const msg = `⚠️ ATENCIÓN: ¿Deseas SUSPENDER temporalmente el servicio a ${clientName}?\n\nAl suspender el servicio:\n1. La app móvil ZNexica POS denegará el acceso hasta regularizar el lote.\n2. El estado quedará marcado como suspendido.`;
   if (!confirm(msg)) return;
 
-  const token = getAdminToken();
-  if (!token) return;
-
   try {
-    const res = await fetch(`/api/admin/clientes/${userId}/suspender-servicio`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await adminApiFetch(`/api/admin/clientes/${userId}/suspender-servicio`, {
+      method: 'POST'
     });
+    if (res.authExpired) return;
 
-    const data = await res.json();
     if (res.ok) {
-      alert(`⛔ ${data.message}`);
+      alert(`⛔ ${res.data.message}`);
       loadAdminClients();
+      loadSubscriptions();
+    } else if (res.status === 404) {
+      alert('ℹ️ Este cliente ya no existe. Actualizando lista.');
+      loadAdminClients();
+      loadSubscriptions();
     } else {
-      alert(`Error al suspender servicio: ${data.detail || 'Error en el servidor.'}`);
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
@@ -1554,21 +1584,22 @@ async function handleSuspendClient(userId, clientName) {
 }
 
 async function handleReactivateClient(userId, clientName) {
-  const token = getAdminToken();
-  if (!token) return;
-
   try {
-    const res = await fetch(`/api/admin/clientes/${userId}/reactivar-servicio`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await adminApiFetch(`/api/admin/clientes/${userId}/reactivar-servicio`, {
+      method: 'POST'
     });
+    if (res.authExpired) return;
 
-    const data = await res.json();
     if (res.ok) {
-      alert(`✅ ${data.message}`);
+      alert(`✅ ${res.data.message}`);
       loadAdminClients();
+      loadSubscriptions();
+    } else if (res.status === 404) {
+      alert('ℹ️ Este cliente ya no existe. Actualizando lista.');
+      loadAdminClients();
+      loadSubscriptions();
     } else {
-      alert(`Error al reactivar servicio: ${data.detail || 'Error en el servidor.'}`);
+      alert(`⚠️ ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);
@@ -1589,47 +1620,82 @@ function sendClientWhatsAppReminder(phone, clientName, planName, expiryDate) {
   );
 
   const url = `https://wa.me/${cleanPhone}?text=${text}`;
-  window.open(url, '_blank');
+  const win = window.open(url, '_blank');
+  if (!win) window.location.href = url;
 }
 
 /* ==========================================================================
-   BORRADO DIRECTO DE CLIENTE CON CONTEXTO/MOTIVO (SIN MODALES COMPLICADOS)
+   BORRADO TÁCTIL DE CLIENTE CON MODAL PROPIO (100% COMPATIBLE MÓVIL Y PC)
    ========================================================================== */
-async function handleDeleteClient(userId, clientName) {
-  const motivo = prompt(
-    `🗑️ Eliminar cliente "${clientName}" de la base de datos:\n\n` +
-    `Escribe el contexto o motivo por el cual se da de baja este cliente:\n` +
-    `(Ejemplo: "Ya no usará el sistema", "Baja voluntaria", "Mora prolongada")`
-  );
+function handleDeleteClient(userId, clientName) {
+  const modal = document.getElementById('deleteClientModal');
+  const idInput = document.getElementById('deleteClientIdInput');
+  const descEl = document.getElementById('deleteClientModalDesc');
+  const reasonInput = document.getElementById('deleteClientReasonInput');
 
-  // Si presiona cancelar
-  if (motivo === null) return;
-
-  const contextText = motivo.trim() || 'Baja solicitada / Ya no utiliza el sistema';
-
-  const token = getAdminToken();
-  if (!token) {
-    alert('Debes iniciar sesión como administrador.');
+  if (!modal || !idInput) {
+    // Fallback por si hubiese caché de HTML
+    if (!confirm(`¿Eliminar permanentemente al cliente "${clientName}" y todos sus registros?`)) return;
+    executeDeleteClientRequest(userId, 'Baja administrativa');
     return;
   }
 
-  try {
-    const res = await fetch(`/api/admin/clientes/${userId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ motivo: contextText })
-    });
+  idInput.value = String(userId);
+  if (descEl) {
+    descEl.innerHTML = `Estás por eliminar permanentemente a <strong>${escapeHtml(clientName)}</strong> junto con su historial de pagos y accesos.`;
+  }
+  if (reasonInput) {
+    reasonInput.value = 'Baja administrativa / Limpieza de cuenta';
+  }
+  modal.classList.add('active');
+}
 
-    const data = await res.json();
-    if (res.ok) {
-      alert(`✅ Cliente eliminado de la base de datos correctamente.\n\nMotivo guardado: "${contextText}"`);
+function closeDeleteClientModal() {
+  const modal = document.getElementById('deleteClientModal');
+  if (modal) modal.classList.remove('active');
+}
+
+async function confirmDeleteClientSubmit(event) {
+  event.preventDefault();
+  const userId = parseInt(document.getElementById('deleteClientIdInput')?.value || '0', 10);
+  const motivo = (document.getElementById('deleteClientReasonInput')?.value || '').trim() || 'Baja administrativa';
+  if (!userId) {
+    closeDeleteClientModal();
+    return;
+  }
+
+  const btn = document.getElementById('btnConfirmDeleteClient');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Eliminando...';
+  }
+
+  await executeDeleteClientRequest(userId, motivo);
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+  }
+  closeDeleteClientModal();
+}
+
+async function executeDeleteClientRequest(userId, motivo) {
+  try {
+    const res = await adminApiFetch(`/api/admin/clientes/${userId}/eliminar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ motivo })
+    });
+    if (res.authExpired) return;
+
+    if (res.ok || res.status === 404) {
+      alert(res.ok ? `✅ ${res.data.message}` : 'ℹ️ El cliente ya había sido eliminado. Actualizando listas.');
       loadAdminClients();
+      loadSubscriptions();
       updateDashboardKPIs();
     } else {
-      alert(`⚠️ No se pudo eliminar el cliente: ${data.detail || 'Error en el servidor.'}`);
+      alert(`⚠️ No se pudo eliminar el cliente: ${res.errorMsg}`);
     }
   } catch (err) {
     console.error(err);

@@ -84,6 +84,7 @@ def actualizar_metodo_pago(
 
 
 @router.delete("/admin/{method_id}")
+@router.post("/admin/{method_id}/eliminar")
 def eliminar_metodo_pago(
     method_id: int,
     db: Session = Depends(get_db),
@@ -92,7 +93,7 @@ def eliminar_metodo_pago(
     """Eliminar un método de pago permanentemente de la base de datos."""
     metodo = db.query(models.MetodoPago).filter(models.MetodoPago.id == method_id).first()
     if not metodo:
-        raise HTTPException(status_code=404, detail="Método de pago no encontrado.")
+        raise HTTPException(status_code=404, detail="El método de pago ya fue eliminado.")
 
     db.delete(metodo)
     db.commit()
