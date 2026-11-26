@@ -15,10 +15,14 @@ function checkAdminSession() {
   const loginView = document.getElementById('adminLoginView');
   const dashboardView = document.getElementById('adminDashboardView');
   const logoutBtn = document.getElementById('logoutBtn');
+  const topHeader = document.getElementById('adminTopHeader');
+  const mainContainer = document.getElementById('adminMainContainer');
 
   if (token) {
     loginView.style.display = 'none';
     dashboardView.style.display = 'block';
+    if (topHeader) topHeader.style.display = 'none';
+    if (mainContainer) mainContainer.classList.add('dashboard-mode');
     if (logoutBtn) logoutBtn.style.display = 'inline-block';
     loadAdminProfile();
     loadAdminPaymentMethods();
@@ -27,6 +31,8 @@ function checkAdminSession() {
   } else {
     loginView.style.display = 'block';
     dashboardView.style.display = 'none';
+    if (topHeader) topHeader.style.display = 'block';
+    if (mainContainer) mainContainer.classList.remove('dashboard-mode');
     if (logoutBtn) logoutBtn.style.display = 'none';
   }
 }
@@ -278,8 +284,20 @@ function renderPaymentMethodsTable(methods) {
       typeIcon = '🟡';
       typeLabel = 'Binance Pay (USDT)';
     } else if (m.tipo_metodo === 'zelle') {
-      typeIcon = '🏦';
+      typeIcon = '💵';
       typeLabel = 'Zelle';
+    } else if (m.tipo_metodo === 'zinli') {
+      typeIcon = '💳';
+      typeLabel = 'Zinli / Wally';
+    } else if (m.tipo_metodo === 'paypal') {
+      typeIcon = '🌐';
+      typeLabel = 'PayPal';
+    } else if (m.tipo_metodo === 'efectivo') {
+      typeIcon = '💶';
+      typeLabel = 'Efectivo / Divisas';
+    } else if (m.tipo_metodo === 'otro') {
+      typeIcon = '✨';
+      typeLabel = 'Método Personalizado';
     }
 
     // Datos de cuenta limpios con tipografía Parclgo
@@ -294,10 +312,15 @@ function renderPaymentMethodsTable(methods) {
         <div class="parclgo-cell-bold">Binance Pay ID</div>
         <span class="parclgo-cell-sub">ID: <strong>${escapeHtml(m.binance_id || '-')}</strong> (USDT)</span>
       `;
+    } else if (m.tipo_metodo === 'efectivo') {
+      accountHtml = `
+        <div class="parclgo-cell-bold">Entrega Presencial</div>
+        <span class="parclgo-cell-sub">${escapeHtml(m.titulo)}</span>
+      `;
     } else {
       accountHtml = `
-        <div class="parclgo-cell-bold">${escapeHtml(m.nombre_banco || 'Cuenta Bancaria')}</div>
-        <span class="parclgo-cell-sub">Ref/Tel: <strong>${escapeHtml(m.telefono || m.binance_id || '-')}</strong></span>
+        <div class="parclgo-cell-bold">${escapeHtml(m.nombre_banco || typeLabel)}</div>
+        <span class="parclgo-cell-sub">Cuenta/ID: <strong>${escapeHtml(m.telefono || m.binance_id || '-')}</strong></span>
       `;
     }
 
@@ -677,10 +700,16 @@ function renderSubscriptionsTable(subs) {
       }
     }
 
-    // Badge de estado dot estilo Parclgo
+    // Badge de estado dot estilo Parclgo + estado real de sincronización con la App AWS
     let statusBadge = '';
     if (sub.estado === 'aprobado') {
       statusBadge = '<span class="parclgo-badge parclgo-badge-active"><span class="parclgo-badge-dot"></span>Aprobado</span>';
+      if (sub.tenant_provisioning_status !== 'exitoso') {
+        const errTip = escapeHtml(sub.tenant_error_detail || 'Pendiente sincronizar cuenta en el servidor de la App');
+        statusBadge += `<div class="parclgo-cell-sub" style="color:#d97706; font-weight:700; margin-top:4px;" title="${errTip}">⚠️ Falta Sync App AWS</div>`;
+      } else {
+        statusBadge += `<div class="parclgo-cell-sub" style="color:#059669; font-weight:600; margin-top:3px;">✓ Cuenta en App</div>`;
+      }
     } else if (sub.estado === 'pendiente') {
       statusBadge = '<span class="parclgo-badge parclgo-badge-pending"><span class="parclgo-badge-dot"></span>Pendiente</span>';
     } else {
@@ -1001,14 +1030,26 @@ async function updateSubStatus(subId, newStatus) {
       body: JSON.stringify({ status: newStatus })
     });
 
+    const data = await res.json().catch(() => ({}));
     if (res.ok) {
-      alert(`✅ Suscripción #${subId} marcada como ${newStatus.toUpperCase()}. Acceso a la app actualizado.`);
+      if (newStatus === 'aprobado' && (data.sync_ok === false || data.tenant_provisioning_status !== 'exitoso')) {
+        const remoteDetail = data.sync_message || data.tenant_error_detail || 'El servidor remoto rechazó la sincronización.';
+        alert(
+          `⚠️ Pago #${subId} marcado como APROBADO en el panel, PERO la App ZNexica POS respondió con error al activar la cuenta:\n\n` +
+          `"${remoteDetail}"\n\n` +
+          `Una vez habilitado el servicio de aprovisionamiento en el servidor AWS, pulsa nuevamente Aprobar (✓) o Reactivar en Clientes para crear y activar la cuenta al instante.`
+        );
+      } else {
+        alert(`✅ Suscripción #${subId} marcada como ${newStatus.toUpperCase()} y sincronizada con la App ZNexica POS.`);
+      }
       loadSubscriptions();
+      loadAdminClients();
     } else {
-      alert('Error al cambiar estado.');
+      alert(`⚠️ Error al cambiar estado: ${data.detail || 'Error del servidor.'}`);
     }
   } catch (err) {
     console.error(err);
+    alert('Error de conexión con el servidor.');
   }
 }
 
@@ -1257,7 +1298,7 @@ async function handleAdminProfileSubmit(event) {
 }
 
 async function handlePurgeTestData() {
-  const confirmMsg = '⚠️ ATENCIÓN: Esta acción eliminará permanentemente todos los clientes y suscripciones de prueba de la base de datos.\n\nLas 3 cuentas de administrador y los métodos de pago se conservarán 100% seguros e intactos.\n\n¿Deseas continuar?';
+  const confirmMsg = '⚠️ ATENCIÓN: Esta acción eliminará permanentemente todos los clientes y suscripciones de prueba de la base de datos.\n\nLas 2 cuentas de administrador autorizadas se conservarán 100% seguras e intactas.\n\n¿Deseas continuar?';
   if (!confirm(confirmMsg)) return;
 
   const token = getAdminToken();
@@ -1383,6 +1424,9 @@ function renderClientsTable(clients) {
     if (c.estado_servicio === 'pendiente_aprobacion') {
       serviceBadge = `<span class="parclgo-badge parclgo-badge-pending"><span class="parclgo-badge-dot"></span>Pendiente Aprobación</span>`;
       statusMsgColor = '#b45309';
+    } else if (c.estado_servicio === 'error_sync_app') {
+      serviceBadge = `<span class="parclgo-badge" style="background:#fef3c7; color:#92400e;"><span class="parclgo-badge-dot" style="background:#d97706;"></span>Pago OK • Falta Sync App</span>`;
+      statusMsgColor = '#b45309';
     } else if (c.esta_vencido || c.estado_servicio === 'vencido') {
       serviceBadge = `<span class="parclgo-badge parclgo-badge-rejected"><span class="parclgo-badge-dot"></span>Vencido (Servicio Suspendido)</span>`;
       statusMsgColor = '#dc2626';
@@ -1403,6 +1447,15 @@ function renderClientsTable(clients) {
       serviceActionBtn = `
         <button type="button" class="saas-btn-primary" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleReactivateClient(${c.id}, '${escapeJs(c.nombre_completo)}')" title="Restablecer acceso y renovar ciclo por 30 días">
           ✅ Reactivar (30d)
+        </button>
+      `;
+    } else if (c.estado_servicio === 'error_sync_app') {
+      serviceActionBtn = `
+        <button type="button" class="saas-btn-primary" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleReactivateClient(${c.id}, '${escapeJs(c.nombre_completo)}')" title="Reintentar creación y activación de cuenta en el servidor de la App">
+          🔄 Sincronizar en App
+        </button>
+        <button type="button" class="saas-btn-danger" style="padding: 0.38rem 0.7rem; font-size: 0.78rem;" onclick="handleSuspendClient(${c.id}, '${escapeJs(c.nombre_completo)}')">
+          ⏸️ Suspender
         </button>
       `;
     } else if (c.esta_vencido) {

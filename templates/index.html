@@ -9,7 +9,7 @@
   <meta name="author" content="ZNexica POS">
   <link rel="icon" type="image/png" href="/static/images/logo_icon.png">
   <link rel="apple-touch-icon" href="/static/images/logo.jpg">
-  <link rel="stylesheet" href="/static/css/styles.css?v=5.2">
+  <link rel="stylesheet" href="/static/css/styles.css?v=8.0">
 </head>
 <body>
 
@@ -21,16 +21,10 @@
       <a href="#" class="logo-brand">
         <img src="/static/images/logo_icon.png" alt="Logo ZNexica POS" class="logo-img">
         <div class="logo-text">
-          ZNexica <span>POS</span>
+          <div>ZNexica <span>POS</span></div>
           <span class="logo-subtitle">Vende • Controla • Crece</span>
         </div>
       </a>
-
-      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir Menú">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
 
       <nav class="nav-menu" id="navMenu">
         <a href="#inicio" class="nav-link active">Inicio</a>
@@ -41,9 +35,17 @@
         <a href="#planes" class="nav-cta-btn">🧾 Adquirir Números de Control</a>
       </nav>
 
-      <div class="navbar-crown-badge" title="Tecnología de Grado Empresarial">
-        <div class="crown-icon">👑</div>
-        <div class="crown-stars">⭐⭐⭐</div>
+      <div class="navbar-right-actions">
+        <div class="navbar-crown-badge" title="Tecnología de Grado Empresarial">
+          <div class="crown-icon">👑</div>
+          <div class="crown-stars">⭐⭐⭐</div>
+        </div>
+
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir Menú" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </div>
   </header>
@@ -57,7 +59,7 @@
         ✨ Modelo Pago por Uso • Solo Pagas por lo que Consumes
       </div>
       <h1 class="hero-title">
-        Controla tu Negocio <br><highlight>— Solo Pagas por lo que Consumes</highlight>
+        Controla tu Negocio <highlight>— Solo Pagas por lo que Consumes</highlight>
       </h1>
       <p class="hero-description">
         Transforma tu teléfono, tablet o PC en un potente Punto de Venta con Facturación Electrónica y Reportes. <strong>Sin mensualidades fijas</strong>: adquiere tus lotes de <strong>Números de Control</strong> bajo modalidad <strong>Pago por Uso</strong>.
@@ -245,7 +247,7 @@
             </div>
 
             <div class="showcase-action-wrap">
-              <button type="button" onclick="openCheckoutModal('NC_500', 'Lote 500 Números de Control ($0.25/fact)', 125)" class="btn-primary" style="max-width: 310px; font-size: 0.92rem; padding: 0.75rem 1.5rem; cursor: pointer; border: none;">
+              <button type="button" onclick="openCheckoutModal('NC_500', 'Lote 500 Números de Control ($0.25/fact)', 125)" class="btn-primary showcase-cta-btn">
                 🧾 Adquirir Números de Control
               </button>
             </div>
@@ -417,23 +419,23 @@
       </div>
 
       <!-- Bloque Explicativo Destacado ("Pago por Uso & Números de Control") -->
-      <div class="reveal" style="background: #ffffff; border: 1px solid #cbd5e1; border-left: 5px solid var(--green-primary, #10b981); border-radius: 14px; padding: 1.5rem 1.75rem; margin: 0 auto 2.5rem; max-width: 980px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
-          <div>
-            <h4 style="margin: 0 0 0.4rem; font-size: 1rem; color: #0f172a; font-weight: 800;">💡 Pago por Uso Inteligente</h4>
-            <p style="margin: 0; font-size: 0.88rem; color: #475569; line-height: 1.5;">
+      <div class="pricing-explainer-box reveal">
+        <div class="pricing-explainer-grid">
+          <div class="pricing-explainer-item">
+            <h4>💡 Pago por Uso Inteligente</h4>
+            <p>
               Olvídate de mensualidades fijas o contratos forzosos. Inviertes únicamente en los comprobantes que tu negocio realmente emite, adaptándose al ritmo real de tus ventas.
             </p>
           </div>
-          <div>
-            <h4 style="margin: 0 0 0.4rem; font-size: 1rem; color: #0f172a; font-weight: 800;">🧾 1 Factura = 1 Número de Control</h4>
-            <p style="margin: 0; font-size: 0.88rem; color: #475569; line-height: 1.5;">
+          <div class="pricing-explainer-item">
+            <h4>🧾 1 Factura = 1 Número de Control</h4>
+            <p>
               Cada documento electrónico o comprobante fiscal emitido consume un Número de Control correlativo y auditable. Para ingresar y facturar es indispensable contar con un lote activo.
             </p>
           </div>
-          <div>
-            <h4 style="margin: 0 0 0.4rem; font-size: 1rem; color: #0f172a; font-weight: 800;">📉 Mientras Mayor el Lote, Más Económico</h4>
-            <p style="margin: 0; font-size: 0.88rem; color: #475569; line-height: 1.5;">
+          <div class="pricing-explainer-item">
+            <h4>📉 Mientras Mayor el Lote, Más Económico</h4>
+            <p>
               Aprovecha nuestra economía de escala: el precio por factura baja progresivamente desde <strong>$0.25</strong> hasta <strong>$0.18 USD</strong> conforme eliges un lote más grande.
             </p>
           </div>
@@ -441,11 +443,11 @@
       </div>
 
       <!-- Rejilla de 3 Paquetes de Números de Control -->
-      <div class="plans-grid reveal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 2rem; align-items: stretch;">
+      <div class="plans-grid reveal">
 
         <!-- Paquete 1: Lote Básico 500 ($0.25 por factura = $125) -->
-        <div class="plan-card" style="width: 100%;">
-          <div class="plan-badge" style="background: #f1f5f9; color: #0f172a;">LOTE INICIAL • TARIFA BASE</div>
+        <div class="plan-card">
+          <div class="plan-badge plan-badge-neutral">LOTE INICIAL • TARIFA BASE</div>
           <div class="plan-header">
             <h3 class="plan-name">LOTE BÁSICO • 500 NÚMEROS</h3>
             <div class="plan-price-box">
@@ -468,7 +470,7 @@
         </div>
 
         <!-- Paquete 2: Lote PyME 1.000 ($0.21 por factura = $210) -->
-        <div class="plan-card featured" style="width: 100%;">
+        <div class="plan-card featured">
           <div class="plan-badge">MÁS POPULAR • AHORRAS 16%</div>
           <div class="plan-header">
             <h3 class="plan-name">LOTE PYME • 1.000 NÚMEROS</h3>
@@ -486,14 +488,14 @@
             <li><span class="check-icon">✓</span> Múltiples cajeros y auditoría de caja</li>
             <li><span class="check-icon">✓</span> Soporte técnico prioritario</li>
           </ul>
-          <button class="btn-select-plan" style="background:var(--green-primary); color:#fff;" onclick="openCheckoutModal('NC_1000', 'Lote 1.000 Números de Control ($0.21/fact)', 210)">
+          <button class="btn-select-plan btn-select-featured" onclick="openCheckoutModal('NC_1000', 'Lote 1.000 Números de Control ($0.21/fact)', 210)">
             🚀 Comprar Lote de 1.000 ($210)
           </button>
         </div>
 
         <!-- Paquete 3: Lote Empresarial 2.500 ($0.18 por factura = $450) -->
-        <div class="plan-card" style="width: 100%;">
-          <div class="plan-badge" style="background: #0f172a; color: #fff;">MÁXIMO AHORRO • AHORRAS 28%</div>
+        <div class="plan-card">
+          <div class="plan-badge plan-badge-dark">MÁXIMO AHORRO • AHORRAS 28%</div>
           <div class="plan-header">
             <h3 class="plan-name">LOTE EMPRESARIAL • 2.500 NÚMEROS</h3>
             <div class="plan-price-box">
@@ -748,9 +750,9 @@
       
       <!-- Ficha de Sesión del Cliente -->
       <div class="checkout-user-badge">
-        <div>
-          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">Sesión Verificada</div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem; margin-top: 2px;">
+        <div class="checkout-user-info">
+          <div class="checkout-micro-label">Sesión Verificada</div>
+          <div class="checkout-user-name-line">
             👤 <span id="checkoutUserDisplay">Cliente</span> (<span id="checkoutPhoneDisplay">0412...</span>)
           </div>
         </div>
@@ -759,19 +761,19 @@
 
       <!-- Resumen del Lote -->
       <div class="checkout-plan-summary">
-        <div>
-          <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">Lote de Números de Control Seleccionado</span>
-          <h4 id="modalPlanTitle" style="margin: 2px 0 0; font-size: 1.15rem; color: var(--text-primary); font-weight: 800;">Lote ZNexica POS</h4>
+        <div class="checkout-plan-info">
+          <span class="checkout-micro-label">Lote Seleccionado</span>
+          <h4 id="modalPlanTitle" class="checkout-plan-title-text">Lote ZNexica POS</h4>
         </div>
-        <div style="text-align: right;">
-          <div id="modalPlanPrice" style="font-size: 1.3rem; font-weight: 900; color: var(--green-primary);">$0</div>
-          <span id="modalPlanStatusBadge" class="status-badge status-pending" style="font-size: 0.72rem;">Pendiente de Pago</span>
+        <div class="checkout-plan-price-col">
+          <div id="modalPlanPrice" class="checkout-plan-price-big">$0</div>
+          <span id="modalPlanStatusBadge" class="status-badge status-pending">Pendiente de Pago</span>
         </div>
       </div>
 
       <!-- Aviso recordatorio de credenciales para la app móvil -->
-      <div class="app-credential-warning-banner" id="checkoutPhoneNotice" style="margin-bottom: 1.2rem; font-size: 0.82rem; padding: 0.75rem 1rem;">
-        <div class="warning-icon" style="font-size: 1.2rem;">📱</div>
+      <div class="app-credential-warning-banner" id="checkoutPhoneNotice">
+        <div class="warning-icon">📱</div>
         <div class="warning-text">
           <strong>Importante:</strong> Para entrar a ZNexica POS y emitir facturas electrónicas necesitas que tu lote de Números de Control esté aprobado. Usa tu <strong>correo registrado (en minúsculas)</strong> y tu contraseña. Teléfono: <strong id="warnPhoneDisplay">0412...</strong>.
         </div>
@@ -790,9 +792,9 @@
             </select>
           </div>
 
-          <!-- Recuadro con Datos Oficiales Dinámicos de Pago -->
-          <div class="payment-details-box" id="paymentDetailsDisplay">
-            <h4 id="pmDisplayTitle">💳 Datos Oficiales para Realizar el Pago</h4>
+          <!-- Recuadro con Datos Oficiales Dinámicos de Pago (Sin doble borde) -->
+          <div class="payment-details-wrapper" id="paymentDetailsDisplay">
+            <h4 id="pmDisplayTitle" class="pm-fallback-heading">💳 Datos Oficiales para Realizar el Pago</h4>
             <div id="pmDynamicDetails">
               <!-- Cargado dinámicamente según el método seleccionado -->
             </div>
@@ -804,7 +806,7 @@
           </div>
         </div>
 
-        <button type="submit" id="submitPaymentBtn" class="btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.9rem 1.5rem; font-size: 1rem;">
+        <button type="submit" id="submitPaymentBtn" class="btn-primary modal-submit-btn">
           📲 Registrar Pago y Notificar por WhatsApp
         </button>
       </form>
@@ -902,426 +904,8 @@
   </footer>
 
   <script>
-    window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone }}";
-  </script>
-  <script src="/static/js/main.js?v=10.4"></script>
-
-  <!-- ANTI-CACHE: Forzando la nueva UI de Métodos de Pago aquí mismo -->
-  <style>
-    .pm-inst-card {
-      background: #eafff5 !important;
-      border: 1px solid #cbf4dd !important;
-      border-radius: 12px !important;
-      padding: 1.25rem !important;
-      margin-bottom: 1.25rem !important;
-      box-shadow: inset 0 2px 4px rgba(16, 185, 129, 0.03) !important;
-    }
-    .pm-inst-header {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      margin-bottom: 1rem !important;
-      color: #059669 !important;
-    }
-    .pm-inst-header h4 {
-      font-size: 1.05rem !important;
-      font-weight: 800 !important;
-      margin: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 0.4rem !important;
-    }
-    .pm-data-row {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      background: #fdfdfd !important;
-      border: 1px solid #e2e8f0 !important;
-      border-radius: 8px !important;
-      padding: 0.65rem 0.85rem !important;
-      margin-bottom: 0.5rem !important;
-    }
-    .pm-data-label {
-      font-size: 0.85rem !important;
-      color: #64748b !important;
-      font-weight: 500 !important;
-      margin-right: 0.5rem !important;
-    }
-    .pm-data-value-group {
-      display: flex !important;
-      align-items: center !important;
-      gap: 0.75rem !important;
-    }
-    .pm-data-value {
-      font-size: 0.95rem !important;
-      font-weight: 800 !important;
-      color: #0f172a !important;
-    }
-    .btn-copy-nice {
-      width: 32px !important;
-      height: 32px !important;
-      border-radius: 8px !important;
-      background: #e0f2fe !important;
-      color: #0284c7 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      border: none !important;
-      cursor: pointer !important;
-    }
-    .btn-copy-nice.copied {
-      background: #dcfce7 !important;
-      color: #16a34a !important;
-    }
-    .pm-inst-footer {
-      text-align: center !important;
-      margin-top: 1rem !important;
-      font-size: 0.8rem !important;
-      color: #64748b !important;
-    }
-  </style>
-  <script>
     window.ADMIN_WHATSAPP_PHONE = "{{ admin_whatsapp_phone or '584243580005' }}";
-
-    window.onPaymentMethodSelectedChange = function() {
-      const select = document.getElementById('paymentMethodSelect');
-      const container = document.getElementById('pmDynamicDetails');
-      const titleHeading = document.getElementById('pmDisplayTitle');
-      const dynamicInputsContainer = document.getElementById('dynamicClientInputs');
-
-      if (!select || !container || !dynamicInputsContainer) return;
-
-      const methodId = parseInt(select.value);
-      const selected = typeof availablePaymentMethods !== 'undefined' ? availablePaymentMethods.find(m => m.id === methodId) : null;
-
-      if (!selected) {
-        container.innerHTML = '<p style="color:#64748b;">Selecciona un método de pago válido.</p>';
-        dynamicInputsContainer.innerHTML = '';
-        if (titleHeading) titleHeading.style.display = 'block';
-        return;
-      }
-
-      // 1. Generar campos dinámicos para el usuario (Validación Condicional del PDF)
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const todayDate = `${yyyy}-${mm}-${dd}`;
-
-      let clientInputsHtml = '';
-      const t = selected.tipo_metodo;
-
-      if (t === 'pago_movil') {
-        clientInputsHtml = `
-          <div class="form-group"><label>Referencia (Últimos 4 o 6 dígitos)</label><input type="text" id="dynRef" class="form-input dyn-input" placeholder="Ej. 123456" required></div>
-          <div class="form-group"><label>Banco Origen</label><input type="text" id="dynBank" class="form-input dyn-input" placeholder="Ej. Banesco, Mercantil" required></div>
-          <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
-          <div class="form-group"><label>Monto Exacto Enviado (Bs)</label><input type="number" step="0.01" id="dynAmount" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Adjuntar Foto / Captura del Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
-        `;
-      } else if (t === 'transferencia') {
-        clientInputsHtml = `
-          <div class="form-group"><label>Número de Referencia Completo</label><input type="text" id="dynRef" class="form-input dyn-input" placeholder="Ej. 0012345678" required></div>
-          <div class="form-group"><label>Banco Origen</label><input type="text" id="dynBank" class="form-input dyn-input" placeholder="Ej. Banesco, Provincial" required></div>
-          <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
-          <div class="form-group"><label>Cédula/RIF del titular origen (Opcional)</label><input type="text" id="dynIdCard" class="form-input dyn-input"></div>
-          <div class="form-group"><label>Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
-        `;
-      } else if (t === 'binance') {
-        clientInputsHtml = `
-          <div class="form-group"><label>Pay ID / Order ID</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Nombre de Usuario Binance</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Monto Enviado (USDT)</label><input type="number" step="0.01" id="dynAmount" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
-        `;
-      } else if (t === 'zelle') {
-        clientInputsHtml = `
-          <div class="form-group"><label>Nombre Titular Cuenta Origen</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Número de Confirmación</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
-          <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
-        `;
-      } else if (t === 'zinli' || t === 'paypal') {
-        clientInputsHtml = `
-          <div class="form-group"><label>Correo / Teléfono de Origen</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Número de Referencia</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
-        `;
-      } else if (t === 'efectivo') {
-        clientInputsHtml = `
-          <div class="form-group"><label>Persona que Entregará (Nombre y Apellido)</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Denominación / Billetes (Ej. 2 de $20)</label><input type="text" id="dynDetails" class="form-input dyn-input" required></div>
-          <div class="form-group"><label>Fecha Estimada de Entrega</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" required></div>
-          <input type="file" id="proofFile" class="dyn-input" style="display:none;">
-        `;
-      } else {
-        clientInputsHtml = `
-          <div class="form-group"><label>Detalles del Pago</label><textarea id="dynDetails" class="form-input dyn-input" required></textarea></div>
-          <div class="form-group"><label>Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
-        `;
-      }
-      
-      dynamicInputsContainer.innerHTML = clientInputsHtml;
-
-      // Ocultamos el heading original porque usaremos el nuevo header dentro del recuadro
-      if (titleHeading) {
-        titleHeading.style.display = 'none';
-      }
-
-      const createRow = (label, value) => {
-        const val = value || '';
-        const safeHtml = typeof escapeHtml === 'function' ? escapeHtml(val) : String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        const safeJs = typeof escapeJs === 'function' ? escapeJs(val) : String(val).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-        return `
-          <div class="pm-data-row">
-            <span class="pm-data-label">${label}</span>
-            <div class="pm-data-value-group">
-              <span class="pm-data-value">${safeHtml}</span>
-              <button type="button" class="btn-copy-nice" onclick="copyToClipboard('${safeJs}', this)" title="Copiar al portapapeles">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        `;
-      };
-
-      let rows = '';
-      let telLabel = 'Teléfono';
-      if (selected.tipo_metodo === 'zelle' || selected.tipo_metodo === 'zinli' || selected.tipo_metodo === 'paypal') {
-        telLabel = 'Correo / ID';
-      } else if (selected.tipo_metodo === 'transferencia') {
-        telLabel = 'Número de Cuenta';
-      }
-
-      if (selected.telefono) rows += createRow(telLabel, selected.telefono);
-      if (selected.cedula) rows += createRow('Cédula/RIF', selected.cedula);
-      if (selected.nombre_banco) rows += createRow('Banco/Plataforma', selected.nombre_banco);
-      if (selected.binance_id) rows += createRow('Billetera/ID', selected.binance_id);
-      if (selected.titular_cuenta) rows += createRow('Titular', selected.titular_cuenta);
-
-      const safeTitle = typeof escapeHtml === 'function' ? escapeHtml(selected.titulo) : String(selected.titulo || '').replace(/</g, '&lt;');
-
-      if (!rows) {
-        if (selected.tipo_metodo === 'efectivo') {
-          rows = `
-            <div class="pm-data-row">
-              <span class="pm-data-label">Modalidad</span>
-              <div class="pm-data-value-group">
-                <span class="pm-data-value">Pago en Efectivo (${safeTitle})</span>
-              </div>
-            </div>
-          `;
-        } else {
-          rows = createRow('Información', selected.titulo);
-        }
-      }
-
-      let pmIcon = '💸';
-      let pmFooterMsg = 'Complete el pago según los datos indicados y registre su comprobante.';
-      if (selected.tipo_metodo === 'efectivo') {
-        pmIcon = '💵';
-        pmFooterMsg = 'Indique abajo quién entregará el efectivo (divisas o bolívares) y la fecha estimada de entrega. No requiere foto de comprobante.';
-      } else if (selected.tipo_metodo === 'pago_movil') {
-        pmIcon = '📱';
-        pmFooterMsg = 'Realice el Pago Móvil exacto en Bolívares a los datos indicados y adjunte la captura del comprobante.';
-      } else if (selected.tipo_metodo === 'transferencia') {
-        pmIcon = '🏦';
-        pmFooterMsg = 'Realice la transferencia bancaria exacta a la cuenta indicada y adjunte el comprobante.';
-      } else if (selected.tipo_metodo === 'binance') {
-        pmIcon = '🟡';
-        pmFooterMsg = 'Envíe el monto exacto en USDT por Binance Pay al ID indicado y adjunte la captura.';
-      } else if (selected.tipo_metodo === 'zelle') {
-        pmIcon = '💵';
-        pmFooterMsg = 'Envíe el monto exacto por Zelle al correo indicado y adjunte la captura de confirmación.';
-      } else if (selected.tipo_metodo === 'zinli' || selected.tipo_metodo === 'paypal') {
-        pmIcon = '💳';
-        pmFooterMsg = 'Envíe el monto exacto a la cuenta indicada y adjunte la captura de la transacción.';
-      }
-
-      const html = `
-        <div class="pm-inst-card">
-          <div class="pm-inst-header">
-            <h4>Instrucciones de ${safeTitle}</h4>
-            <span class="pm-icon">${pmIcon}</span>
-          </div>
-          <div class="pm-inst-body">
-            ${rows}
-          </div>
-          <div class="pm-inst-footer">
-            ${pmFooterMsg}
-          </div>
-        </div>
-      `;
-
-      container.innerHTML = html;
-    };
-
-    window.copyToClipboard = function(text, btnElement) {
-      navigator.clipboard.writeText(text).then(() => {
-        const originalHTML = btnElement.innerHTML;
-        btnElement.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-        btnElement.classList.add('copied');
-        setTimeout(() => {
-          btnElement.innerHTML = originalHTML;
-          btnElement.classList.remove('copied');
-        }, 2000);
-      }).catch(err => {
-        console.error('Error al copiar al portapapeles: ', err);
-      });
-    };
-
-    // Override handlePaymentSubmit to gather dynamic fields without modifying DB
-    window.handlePaymentSubmit = async function(event) {
-      event.preventDefault();
-
-      const session = getClientSession();
-      if (!session) {
-        alert('Tu sesión ha expirado o no estás autenticado. Por favor identifícate.');
-        closeCheckoutModal();
-        openClientAuthModal();
-        return;
-      }
-
-      const planCode = document.getElementById('selectedPlanCode').value || 'NC_500';
-      const isFree = false;
-
-      let paymentMethodText = 'Pago Móvil';
-      let referenceLast4 = 'PAGO-WEB';
-      let proofFile = null;
-
-      if (!isFree) {
-        const select = document.getElementById('paymentMethodSelect');
-        const methodId = parseInt(select ? select.value : 0);
-        
-        const availableMethods = typeof availablePaymentMethods !== 'undefined' ? availablePaymentMethods : [];
-        const selectedMethodObj = availableMethods.find(m => m.id === methodId);
-        paymentMethodText = selectedMethodObj ? selectedMethodObj.titulo : 'Pago Móvil';
-
-        // RECOLECCION DE DATOS DINÁMICOS
-        const dynInputs = document.querySelectorAll('.dyn-input');
-        let referenceArray = [];
-
-        dynInputs.forEach(input => {
-          if (input.type === 'file') {
-            if (input.files.length > 0) proofFile = input.files[0];
-          } else if (input.value) {
-            // Extraer la etiqueta para formar el string ("Banco Origen: Banesco")
-            const labelEl = input.previousElementSibling;
-            let labelText = labelEl ? labelEl.textContent.split('(')[0].trim() : input.id;
-            referenceArray.push(`${labelText}: ${input.value.trim()}`);
-          }
-        });
-
-        referenceLast4 = referenceArray.join(' | ');
-
-        if (!referenceLast4 && referenceArray.length === 0 && selectedMethodObj && selectedMethodObj.tipo_metodo !== 'efectivo') {
-          alert('Por favor completa todos los campos de pago requeridos.');
-          return;
-        }
-
-        const requiresProof = ['pago_movil', 'transferencia', 'binance', 'zelle', 'zinli', 'paypal', 'otro'].includes(selectedMethodObj ? selectedMethodObj.tipo_metodo : '');
-        
-        if (!proofFile && requiresProof && selectedMethodObj && selectedMethodObj.tipo_metodo !== 'efectivo') {
-          alert('Por favor adjunta el comprobante de pago. Es obligatorio para este método.');
-          return;
-        }
-      }
-
-      const fullName = session.user.full_name || 'Cliente';
-      const phone = session.user.phone || '';
-      const companyName = session.user.company_name || '';
-      const email = session.user.email || '';
-      const password = session.user.temp_password || '';
-
-      const formData = new FormData();
-      formData.append('plan_code', planCode);
-      formData.append('full_name', fullName);
-      formData.append('phone', phone);
-      if (companyName) formData.append('company_name', companyName);
-      if (email) formData.append('email', email);
-      if (password) formData.append('password', password);
-      formData.append('payment_method', paymentMethodText);
-      formData.append('reference_last4', referenceLast4);
-      if (proofFile) formData.append('proof_file', proofFile);
-
-      const submitBtn = document.querySelector('#paymentForm button[type="submit"]') || event.target.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = isFree ? '⏳ Aprovisionando tu cuenta gratis...' : '⏳ Registrando pago...';
-      }
-
-      try {
-        const res = await fetch('/api/suscripciones/submit', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.token}`
-          },
-          body: formData
-        });
-
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          alert(`⚠️ ${data.detail || 'Ocurrió un error en el servidor al procesar la suscripción.'}`);
-          return;
-        }
-
-        let cleanSellerPhone = (window.ADMIN_WHATSAPP_PHONE || "584243580005").toString().replace(/[^0-9]/g, '');
-        if (cleanSellerPhone.startsWith('0')) cleanSellerPhone = '58' + cleanSellerPhone.substring(1);
-        if (!cleanSellerPhone.startsWith('58')) cleanSellerPhone = '58' + cleanSellerPhone;
-
-        const lotName = data.nombre_plan || (typeof currentPlanInfo !== 'undefined' && currentPlanInfo.name) || 'Lote 500 Números de Control ($0.25/fact)';
-        const lotAmount = Number(data.monto_usd || (typeof currentPlanInfo !== 'undefined' && currentPlanInfo.price) || 125).toFixed(2);
-
-        const waMsg = encodeURIComponent(
-          `🔔 *NUEVO PAGO REGISTRADO — ZNexica POS*\n\n` +
-          `¡Hola equipo administrativo! Acabo de realizar el pago de mi lote de Números de Control y ya subí mi comprobante a la plataforma.\n\n` +
-          `👤 *Cliente:* ${fullName}\n` +
-          `🏢 *Empresa:* ${companyName || 'Mi Negocio'}\n` +
-          `📱 *Teléfono / Usuario:* ${phone}\n` +
-          `🧾 *Lote:* ${lotName}\n` +
-          `💰 *Monto:* $${lotAmount} USD\n` +
-          `💳 *Método:* ${paymentMethodText}\n` +
-          `🔢 *Referencia:* ${referenceLast4}\n\n` +
-          `⏳ *Por favor revisen el comprobante en el Panel Administrativo para verificar y aprobar mi acceso a la App.*`
-        );
-        const waUrl = `https://wa.me/${cleanSellerPhone}?text=${waMsg}`;
-
-        const payForm = document.getElementById('paymentForm');
-        const successBox = document.getElementById('paymentSuccessBox');
-        const waLinkBtn = document.getElementById('paymentSuccessWaLink');
-        const successMsgEl = document.getElementById('paymentSuccessMsg');
-
-        if (payForm && successBox && waLinkBtn) {
-          payForm.style.display = 'none';
-          waLinkBtn.href = waUrl;
-          if (successMsgEl) {
-            successMsgEl.innerHTML = `Tu comprobante para <strong>${lotName} ($${lotAmount} USD)</strong> ya está registrado.<br>Pulsa el botón verde para avisar por WhatsApp al administrador y que verifique tu pago.`;
-          }
-          successBox.style.display = 'block';
-        } else {
-          closeCheckoutModal();
-        }
-
-        // Intentar abrir WhatsApp automáticamente; si el navegador móvil bloquea el popup, queda el botón directo visible
-        try {
-          window.open(waUrl, '_blank', 'noopener,noreferrer');
-        } catch (e) {
-          console.log('Popup bloqueado, el usuario puede pulsar el botón verde.');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Error de conexión o comunicación con el servidor al registrar el pago.');
-      } finally {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalBtnText;
-        }
-      }
-    };
   </script>
+  <script src="/static/js/main.js?v=12.0"></script>
 </body>
 </html>

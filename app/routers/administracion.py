@@ -52,19 +52,27 @@ def update_subscription_status(
 
     # Actualizar estado de acceso del usuario
     usuario = db.query(models.Usuario).filter(models.Usuario.id == sub.usuario_id).first()
+    sync_ok_flag = True
+    sync_msg_detail = ""
+
     if usuario:
         if new_status == "aprobado":
             usuario.esta_bloqueado = False
             usuario.motivo_bloqueo = ""
-            
-            # Disparar o actualizar aprovisionamiento en la API externa enviando la contraseña original exacta del usuario
-            # (solo si existe la contraseña real; nunca se inventa una contraseña que bloquee al cliente)
-            has_real_pw = bool(usuario.password_hash and not usuario.password_hash.startswith("$2"))
-            if (sub.tenant_provisioning_status != "exitoso" or not sub.tenant_company_id) and has_real_pw:
+
+            # Reintentar aprovisionamiento en la API externa descifrando AES-256-GCM en RAM si antes falló o faltaba tenant_company_id
+            decrypted_pw = security.decrypt_provisioning_secret(usuario.prov_cipher)
+            legacy_plain_pw = (
+                usuario.password_hash
+                if (usuario.password_hash and not usuario.password_hash.startswith("$2"))
+                else None
+            )
+            admin_pass = decrypted_pw or legacy_plain_pw
+
+            if (sub.tenant_provisioning_status != "exitoso" or not sub.tenant_company_id) and admin_pass:
                 from app.services.provisioning import provision_tenant_sync, ProvisioningConflictError
                 empresa = usuario.nombre_empresa or f"Negocio de {usuario.nombre_completo}"
                 email_admin = usuario.email or f"{usuario.telefono}@minipos-user.com"
-                admin_pass = usuario.password_hash
                 plan_to_provision = (sub.codigo_plan or "PRO").strip().upper()
                 if plan_to_provision not in ("FREE", "BASIC", "PRO"):
                     plan_to_provision = "PRO"
@@ -90,6 +98,8 @@ def update_subscription_status(
                 except Exception as e:
                     sub.tenant_provisioning_status = "fallido"
                     sub.tenant_error_detail = str(e)
+                    sync_ok_flag = False
+                    sync_msg_detail = str(e)
         elif new_status == "rechazado":
             usuario.esta_bloqueado = True
             usuario.motivo_bloqueo = "Pago del lote de Números de Control rechazado por el administrador. Regulariza tu recarga."
@@ -129,10 +139,19 @@ def update_subscription_status(
     # Sincronizar estado en la API de la App (PATCH /api/provisioning/user-status)
     if usuario and usuario.rol == "cliente":
         if new_status == "aprobado":
-            sync_app_access(db, usuario, active=True, reason="Lote de Números de Control aprobado por administración")
+            ok_s, msg_s = sync_app_access(db, usuario, active=True, reason="Lote de Números de Control aprobado por administración")
+            if not ok_s:
+                sync_ok_flag = False
+                sync_msg_detail = sub.tenant_error_detail or msg_s
+            elif sub.tenant_provisioning_status == "exitoso":
+                sync_msg_detail = msg_s
         elif new_status in ["rechazado", "pendiente"]:
-            sync_app_access(db, usuario, active=False, reason=f"Lote de Números de Control en estado '{new_status}' por administración")
+            ok_s, msg_s = sync_app_access(db, usuario, active=False, reason=f"Lote de Números de Control en estado '{new_status}' por administración")
+            sync_ok_flag = ok_s
+            sync_msg_detail = msg_s
 
+    sub.sync_ok = sync_ok_flag and (sub.tenant_provisioning_status == "exitoso" if new_status == "aprobado" else True)
+    sub.sync_message = sync_msg_detail or (sub.tenant_error_detail or "")
     return sub
 
 
@@ -253,6 +272,9 @@ def get_all_clients(
                 access_rec.ultima_sincronizacion = now_caracas
                 db_dirty = True
 
+        prov_status = latest_sub.tenant_provisioning_status if latest_sub else "pendiente"
+        prov_err = (latest_sub.tenant_error_detail or "") if latest_sub else ""
+
         # Determinación transparente del estado del cliente en el flujo de negocio:
         if sub_estado == "pendiente":
             estado_servicio = "pendiente_aprobacion"
@@ -268,6 +290,11 @@ def get_all_clients(
             estado_servicio = "suspendido"
             badge_label = "Servicio Suspendido"
             mensaje_servicio = c.motivo_bloqueo or "Sin Números de Control activos o servicio suspendido. Requiere recarga de lote."
+            servicio_activo = False
+        elif prov_status != "exitoso":
+            estado_servicio = "error_sync_app"
+            badge_label = "Pago OK • Falta Sync App"
+            mensaje_servicio = f"Pendiente crear en servidor App: {prov_err or 'Reintenta activar el servicio.'}"
             servicio_activo = False
         elif dias_restantes <= 5:
             estado_servicio = "por_vencer"
@@ -291,6 +318,8 @@ def get_all_clients(
             "plan_codigo": plan_code,
             "plan_nombre": plan_name,
             "sub_estado": sub_estado,
+            "provisioning_status": prov_status,
+            "provisioning_error": prov_err,
             "estado_servicio": estado_servicio,
             "badge_label": badge_label,
             "mensaje_servicio": mensaje_servicio,
@@ -393,13 +422,18 @@ def reactivate_client_service(
         plan_code = (latest_sub.codigo_plan or "NC_500").strip().upper()
         remote_plan_code = plan_code if plan_code in ("FREE", "BASIC", "PRO") else "PRO"
 
-        # Garantizar que el cliente esté aprovisionado en la App si no lo estaba
-        has_real_pw = bool(usuario.password_hash and not usuario.password_hash.startswith("$2"))
-        if (latest_sub.tenant_provisioning_status != "exitoso" or not latest_sub.tenant_company_id) and has_real_pw:
+        # Garantizar que el cliente esté aprovisionado en la App si no lo estaba (usando AES-256-GCM en RAM)
+        decrypted_pw = security.decrypt_provisioning_secret(usuario.prov_cipher)
+        legacy_plain_pw = (
+            usuario.password_hash
+            if (usuario.password_hash and not usuario.password_hash.startswith("$2"))
+            else None
+        )
+        admin_pass = decrypted_pw or legacy_plain_pw
+        if (latest_sub.tenant_provisioning_status != "exitoso" or not latest_sub.tenant_company_id) and admin_pass:
             from app.services.provisioning import provision_tenant_sync, ProvisioningConflictError
             empresa = usuario.nombre_empresa or f"Negocio de {usuario.nombre_completo}"
             email_admin = usuario.email or f"{usuario.telefono}@minipos-user.com"
-            admin_pass = usuario.password_hash
             try:
                 remote_resp = provision_tenant_sync(
                     company_name=empresa,
@@ -420,6 +454,7 @@ def reactivate_client_service(
                 latest_sub.tenant_error_detail = f"Cuenta ya existente en el producto: {ce.message}"
                 latest_sub.tenant_provisioned_at = now_caracas
             except Exception as e:
+                latest_sub.tenant_provisioning_status = "fallido"
                 latest_sub.tenant_error_detail = str(e)
 
     # Sincronizar en AccesoMiniposApi
@@ -743,7 +778,10 @@ def purge_test_data(
     db: Session = Depends(get_db),
     admin_user: models.Usuario = Depends(security.require_admin)
 ):
-    """Eliminar todos los clientes y suscripciones de prueba, preservando los 3 administradores."""
+    """Eliminar todos los clientes y suscripciones de prueba, preservando únicamente los 2 administradores oficiales."""
+    from app.routers.autenticacion import ensure_admin_exists
+    ensure_admin_exists(db)
+
     clientes = db.query(models.Usuario).filter(models.Usuario.rol != "admin").all()
     client_ids = [c.id for c in clientes]
     client_phones = [c.telefono for c in clientes]
@@ -759,7 +797,7 @@ def purge_test_data(
 
     admins_count = db.query(models.Usuario).filter(models.Usuario.rol == "admin").count()
     return {
-        "message": f"Purga completada exitosamente. Se eliminaron {u_count} cuentas de prueba. Las {admins_count} cuentas de administradores y métodos de pago se preservan intactos.",
+        "message": f"Purga completada exitosamente. Se eliminaron {u_count} cuentas de prueba. Las {admins_count} cuentas de administradores se preservan intactas.",
         "eliminados": u_count,
         "admins_activos": admins_count
     }

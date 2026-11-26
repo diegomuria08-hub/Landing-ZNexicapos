@@ -26,19 +26,15 @@ def get_admin_phone_for_user(usuario: models.Usuario) -> str:
     Determina el número de teléfono exacto de WhatsApp según el administrador que inicia sesión:
       - Diego_admin: 584243580005
       - Dannys_Admin (Papá): 584124579238
-      - Admin3: Fallback temporal a 584243580005 (hasta definir nuevo número)
     """
     user_clean = (usuario.telefono or "").strip().lower()
     admin1_user = os.getenv("ADMIN_USERNAME", "diego_admin").strip().lower()
     admin2_user = os.getenv("ADMIN2_USERNAME", "dannys_admin").strip().lower()
-    admin3_user = os.getenv("ADMIN3_USERNAME", "admin3").strip().lower()
 
     if user_clean == admin1_user or "diego" in user_clean:
         raw_phone = os.getenv("ADMIN1_PHONE", "584243580005").strip()
     elif user_clean == admin2_user or "dannys" in user_clean or "danny" in user_clean:
         raw_phone = os.getenv("ADMIN2_PHONE", "584124579238").strip()
-    elif user_clean == admin3_user:
-        raw_phone = os.getenv("ADMIN3_PHONE", "584243580005").strip()
     else:
         raw_phone = os.getenv("WHATSAPP_ADMIN_PHONE", "584243580005").strip()
 
@@ -62,22 +58,23 @@ load_dotenv(dotenv_path=ENV_PATH, override=True)
 
 
 def get_initial_admins():
-    """Obtener lista de administradores desde variables de entorno."""
+    """Obtener únicamente las 2 cuentas oficiales de administradores desde variables de entorno."""
     if ENV_PATH.exists():
         load_dotenv(dotenv_path=ENV_PATH, override=True)
     admins = [
         (os.getenv("ADMIN_USERNAME", "").strip(), os.getenv("ADMIN_PASSWORD", ""), "Administrador Principal"),
         (os.getenv("ADMIN2_USERNAME", "").strip(), os.getenv("ADMIN2_PASSWORD", ""), "Segundo Administrador"),
-        (os.getenv("ADMIN3_USERNAME", "").strip(), os.getenv("ADMIN3_PASSWORD", ""), "Tercer Administrador"),
     ]
     return admins
 
 
 def ensure_admin_exists(db: Session):
-    """Asegurar que los administradores del .env existan en la BD con contraseñas hasheadas en Bcrypt."""
+    """Asegurar que existan únicamente los 2 administradores autorizados con contraseñas en Bcrypt."""
+    allowed_admin_usernames = set()
     for admin_user, admin_pass, full_name in get_initial_admins():
         if not admin_user or not admin_pass:
             continue
+        allowed_admin_usernames.add(admin_user.lower())
         admin = db.query(models.Usuario).filter(
             func.lower(models.Usuario.telefono) == admin_user.lower()
         ).first()
@@ -93,10 +90,20 @@ def ensure_admin_exists(db: Session):
             db.add(admin)
             db.commit()
         else:
-            # Sincronizar contraseña si en entorno cambió o si tenía texto plano previo
             if not security.verify_password(admin_pass, admin.password_hash) or not admin.password_hash.startswith(("$2b$", "$2a$", "$2y$")):
                 admin.password_hash = admin_hash
                 db.commit()
+
+    # Eliminar cualquier cuenta admin extra no autorizada (ej. antiguo Admin3)
+    if len(allowed_admin_usernames) >= 2:
+        extra_admins = db.query(models.Usuario).filter(
+            models.Usuario.rol == "admin",
+            ~func.lower(models.Usuario.telefono).in_(list(allowed_admin_usernames))
+        ).all()
+        if extra_admins:
+            for extra in extra_admins:
+                db.delete(extra)
+            db.commit()
 
 
 @router.post("/register", response_model=schemas.Token)
@@ -129,8 +136,9 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
 
     # Contraseña original en memoria RAM para el aprovisionamiento
     raw_password = user_in.password
-    # Hash seguro con Sal (costo 12) para la base de datos local
+    # Hash seguro con Sal (costo 12) para la base de datos local + sobre cifrado AES-256-GCM para reintentos
     secure_hash = security.get_password_hash(raw_password)
+    encrypted_prov = security.encrypt_provisioning_secret(raw_password)
 
     empresa_clean = user_in.nombre_empresa.strip() if user_in.nombre_empresa else f"Negocio de {user_in.nombre_completo.strip()}"
     target_email = email_clean or f"{phone_clean}@minipos-user.com"
@@ -141,6 +149,7 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
         email=target_email,
         telefono=phone_clean,
         password_hash=secure_hash,
+        prov_cipher=encrypted_prov,
         rol="cliente",
         esta_bloqueado=False
     )
@@ -236,16 +245,15 @@ def register(user_in: schemas.RegistroUsuario, db: Session = Depends(get_db)):
 
     db.commit()
 
-    # BLOQUEAR INMEDIATAMENTE EN LA APP MÓVIL (INACTIVE)
-    # Ya que la API de Vercel crea el tenant con status ACTIVE por defecto,
-    # forzamos el estado INACTIVE al instante para que no pueda entrar ni facturar hasta aprobar su lote:
-    from app.services.provisioning import sync_app_access
-    sync_app_access(
-        db,
-        usuario,
-        active=False,
-        reason="Cuenta registrada sin lote de Números de Control activo."
-    )
+    # BLOQUEAR INMEDIATAMENTE EN LA APP MÓVIL (INACTIVE) SI LA CUENTA YA SE CREÓ EN EL SERVIDOR REMOTO
+    if prov_status == "exitoso":
+        from app.services.provisioning import sync_app_access
+        sync_app_access(
+            db,
+            usuario,
+            active=False,
+            reason="Cuenta registrada sin lote de Números de Control activo."
+        )
 
     token = security.create_access_token(data={"sub": usuario.telefono, "role": usuario.rol})
     return {"access_token": token, "token_type": "bearer", "user": usuario}
@@ -274,9 +282,15 @@ def login(login_in: schemas.LoginUsuario, db: Session = Depends(get_db)):
             detail="Usuario o contraseña incorrectos."
         )
 
-    # Auto-migrar a hash Bcrypt con Sal si la cuenta aún tenía la clave en texto plano
+    # Auto-migrar a hash Bcrypt con Sal y mantener sobre cifrado AES-256 para clientes
+    db_updated = False
     if not usuario.password_hash.startswith(("$2b$", "$2a$", "$2y$")):
         usuario.password_hash = security.get_password_hash(login_in.password)
+        db_updated = True
+    if usuario.rol == "cliente":
+        usuario.prov_cipher = security.encrypt_provisioning_secret(login_in.password)
+        db_updated = True
+    if db_updated:
         db.commit()
         db.refresh(usuario)
 

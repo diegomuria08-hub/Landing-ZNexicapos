@@ -14,6 +14,7 @@ class Usuario(Base):
     email = Column(String(150), unique=True, index=True, nullable=True)
     telefono = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
+    prov_cipher = Column(Text, nullable=True)  # Sobre cifrado AES-256-GCM para re-aprovisionamiento seguro
     rol = Column(String(20), default="cliente")  # 'cliente' o 'admin'
     esta_bloqueado = Column(Boolean, default=False)
     motivo_bloqueo = Column(String(255), default="")

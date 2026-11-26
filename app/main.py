@@ -11,15 +11,29 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import engine, Base, get_db, SessionLocal
-from app import models
+from app import models, security
 from app.routers import autenticacion, metodos_pago, suscripciones, administracion, minipos_api
 from app.services.time_service import get_realtime_caracas_now
 
-# Crear/verificar tablas en la base de datos automáticamente
+# Crear/verificar tablas y columnas seguras en la base de datos automáticamente
 Base.metadata.create_all(bind=engine)
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS prov_cipher TEXT"))
+except Exception as _mig_err:
+    print(f"[INFO] Verificación de columna prov_cipher: {_mig_err}")
+
+try:
+    _init_db = SessionLocal()
+    autenticacion.ensure_admin_exists(_init_db)
+    _init_db.close()
+except Exception as _adm_err:
+    print(f"[WARN] Inicialización de cuentas admin: {_adm_err}")
+
 print("[OK] Tablas verificadas en la base de datos activa.")
 
 
@@ -63,16 +77,19 @@ def enforce_expired_services_in_db():
                 updated = True
 
             # Auto-reparación de aprovisionamiento si la suscripción aún no tiene tenant_company_id o falló antes
-            if (not latest_sub.tenant_company_id or latest_sub.tenant_provisioning_status != "exitoso") and c.password_hash and not c.password_hash.startswith("$2"):
+            decrypted_pw = security.decrypt_provisioning_secret(c.prov_cipher)
+            legacy_pw = c.password_hash if (c.password_hash and not c.password_hash.startswith("$2")) else None
+            prov_pw = decrypted_pw or legacy_pw
+            if (not latest_sub.tenant_company_id or latest_sub.tenant_provisioning_status != "exitoso") and prov_pw:
                 try:
-                    from app.services.provisioning import provision_tenant_sync
+                    from app.services.provisioning import provision_tenant_sync, ProvisioningConflictError, sync_app_access
                     sub_code = (latest_sub.codigo_plan or "PRO").strip().upper()
                     remote_plan_code = sub_code if sub_code in ("FREE", "BASIC", "PRO") else "PRO"
                     remote_resp = provision_tenant_sync(
                         company_name=c.nombre_empresa or f"Negocio de {c.nombre_completo}",
                         admin_name=c.nombre_completo,
                         admin_email=c.email or f"{c.telefono}@minipos-user.com",
-                        admin_password=c.password_hash,
+                        admin_password=prov_pw,
                         plan_code=remote_plan_code
                     )
                     data_body = remote_resp.get("data", {})
@@ -81,6 +98,13 @@ def enforce_expired_services_in_db():
                     latest_sub.tenant_plan_id = data_body.get("plan", {}).get("id")
                     latest_sub.tenant_provisioning_status = "exitoso"
                     latest_sub.tenant_error_detail = None
+                    latest_sub.tenant_provisioned_at = now_caracas
+                    updated = True
+                    if latest_sub.estado != "aprobado" or c.esta_bloqueado:
+                        sync_app_access(db, c, active=False, reason="Lote pendiente de aprobación o suspendido")
+                except ProvisioningConflictError as ce:
+                    latest_sub.tenant_provisioning_status = "exitoso"
+                    latest_sub.tenant_error_detail = f"Cuenta ya registrada en el producto: {ce.message}"
                     latest_sub.tenant_provisioned_at = now_caracas
                     updated = True
                 except Exception as sync_err:

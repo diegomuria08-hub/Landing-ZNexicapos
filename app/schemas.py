@@ -120,6 +120,8 @@ class SuscripcionOut(BaseModel):
     tenant_provisioning_status: Optional[str] = "pendiente"
     tenant_error_detail: Optional[str] = None
     tenant_provisioned_at: Optional[datetime] = None
+    sync_ok: Optional[bool] = None
+    sync_message: Optional[str] = None
 
     creado_en: datetime
     usuario: Optional[UsuarioOut] = None

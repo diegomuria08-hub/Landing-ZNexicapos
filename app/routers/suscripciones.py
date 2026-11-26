@@ -106,20 +106,21 @@ async def submit_payment(
                 func.lower(models.Usuario.email) == clean_email
             ).first()
 
-    # Determinar la contraseña original exacta del usuario (sin encriptar, sin recortar ni alterar)
+    # Determinar la contraseña original exacta del usuario (desde solicitud o sobre cifrado AES-256)
     supplied_pw = password if (password and password.strip() and not password.startswith("$2")) else None
+    decrypted_pw = security.decrypt_provisioning_secret(current_user.prov_cipher) if current_user else None
     stored_plain_pw = (
         current_user.password_hash
         if (current_user and current_user.password_hash and not current_user.password_hash.startswith("$2"))
         else None
     )
 
-    # Nunca inventar contraseñas: si no hay una contraseña real del cliente, no se sobrescribe nada en la App
-    raw_password = supplied_pw or stored_plain_pw
+    # Nunca inventar contraseñas: si no hay credencial real del cliente, pedir re-autenticación limpia
+    raw_password = supplied_pw or decrypted_pw or stored_plain_pw
     if not raw_password:
         raise HTTPException(
             status_code=400,
-            detail="Tu sesión no contiene tu contraseña. Cierra sesión ('Cambiar Cuenta'), vuelve a ingresar y repite el pago."
+            detail="Tu sesión requiere revalidar tu contraseña para vincular ZNexica POS. Pulsa 'Cambiar Cuenta', inicia sesión de nuevo y confirma el pago."
         )
 
     if not clean_email:
@@ -128,7 +129,7 @@ async def submit_payment(
         else:
             clean_email = f"{phone.strip()}@minipos-user.com"
 
-    # Crear o sincronizar datos del usuario en nuestra BD (guardando hash seguro con Bcrypt)
+    # Crear o sincronizar datos del usuario en nuestra BD (Bcrypt + sobre AES-256-GCM)
     if not current_user:
         current_user = models.Usuario(
             nombre_completo=full_name.strip(),
@@ -136,6 +137,7 @@ async def submit_payment(
             email=clean_email,
             telefono=phone.strip(),
             password_hash=security.get_password_hash(raw_password),
+            prov_cipher=security.encrypt_provisioning_secret(raw_password),
             rol="cliente",
             esta_bloqueado=False
         )
@@ -149,9 +151,10 @@ async def submit_payment(
             current_user.nombre_empresa = company_name.strip()
         if clean_email and not current_user.email:
             current_user.email = clean_email
-        # Asegurar que la contraseña guardada en BD esté hasheada con Bcrypt + Sal
+        # Asegurar que la contraseña guardada en BD esté hasheada con Bcrypt + Sal y respaldada en AES-256
         if supplied_pw or not current_user.password_hash.startswith(("$2b$", "$2a$", "$2y$")):
             current_user.password_hash = security.get_password_hash(raw_password)
+        current_user.prov_cipher = security.encrypt_provisioning_secret(raw_password)
         db.commit()
         db.refresh(current_user)
 
@@ -263,19 +266,18 @@ async def submit_payment(
     db.refresh(suscripcion)
 
     # BLOQUEAR ACCESO EN LA APP (INACTIVE) HASTA QUE EL ADMINISTRADOR APRUEBE EL PAGO
-    # La API de Vercel crea el tenant en ACTIVE; lo ponemos en INACTIVE de inmediato
-    # para que el cliente quede detenido en la puerta hasta que se valide su comprobante:
     if initial_status != "aprobado":
         current_user.esta_bloqueado = True
         current_user.motivo_bloqueo = "Lote de Números de Control pendiente de verificación y aprobación por el administrador."
         db.commit()
-        from app.services.provisioning import sync_app_access
-        sync_app_access(
-            db,
-            current_user,
-            active=False,
-            reason="Lote de Números de Control pendiente de aprobación."
-        )
+        if suscripcion.tenant_provisioning_status == "exitoso":
+            from app.services.provisioning import sync_app_access
+            sync_app_access(
+                db,
+                current_user,
+                active=False,
+                reason="Lote de Números de Control pendiente de aprobación."
+            )
 
     return suscripcion
 

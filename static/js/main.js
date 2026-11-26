@@ -24,15 +24,28 @@ function initMobileMenu() {
 
   if (btn && menu) {
     btn.addEventListener('click', () => {
-      menu.classList.toggle('active');
-      btn.classList.toggle('active');
+      const isOpen = menu.classList.toggle('active');
+      btn.classList.toggle('active', isOpen);
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      document.body.style.overflow = isOpen ? 'hidden' : '';
     });
 
     document.querySelectorAll('.nav-link, .nav-cta-btn').forEach(link => {
       link.addEventListener('click', () => {
         menu.classList.remove('active');
         btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
       });
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1024 && menu.classList.contains('active')) {
+        menu.classList.remove('active');
+        btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
     });
   }
 }
@@ -553,12 +566,19 @@ function openClientAuthModal() {
   if (regCompanyName) regCompanyName.value = '';
   if (regEmail) regEmail.value = '';
 
-  if (modal) modal.classList.add('active');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
 }
 
 function closeClientAuthModal() {
   const modal = document.getElementById('clientAuthModal');
   if (modal) modal.classList.remove('active');
+  const checkout = document.getElementById('checkoutModal');
+  if (!checkout || !checkout.classList.contains('active')) {
+    document.body.style.overflow = '';
+  }
 }
 
 // Alternar entre pestañas de Registro y Login
@@ -817,13 +837,18 @@ function onPaymentMethodSelectedChange() {
   const selected = availablePaymentMethods ? availablePaymentMethods.find(m => m.id === methodId) : null;
 
   if (!selected) {
-    container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:1rem;">Selecciona un método de pago válido.</p>';
+    if (availablePaymentMethods && availablePaymentMethods.length === 0) {
+      if (titleHeading) titleHeading.style.display = 'none';
+      if (dynamicInputsContainer) dynamicInputsContainer.innerHTML = '';
+      return;
+    }
+    container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:0.85rem;">Selecciona un método de pago válido.</p>';
     if (dynamicInputsContainer) dynamicInputsContainer.innerHTML = '';
     if (titleHeading) titleHeading.style.display = 'block';
     return;
   }
 
-  // Generar campos dinámicos para el usuario según el tipo de método
+  // Generar campos dinámicos optimizados para teclado móvil (inputmode)
   if (dynamicInputsContainer) {
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -836,57 +861,56 @@ function onPaymentMethodSelectedChange() {
 
     if (t === 'pago_movil') {
       clientInputsHtml = `
-        <div class="form-group"><label>Referencia (Últimos 4 o 6 dígitos)</label><input type="text" id="dynRef" class="form-input dyn-input" placeholder="Ej. 123456" required></div>
-        <div class="form-group"><label>Banco Origen</label><input type="text" id="dynBank" class="form-input dyn-input" placeholder="Ej. Banesco, Mercantil" required></div>
-        <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
-        <div class="form-group"><label>Monto Exacto Enviado (Bs)</label><input type="number" step="0.01" id="dynAmount" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Adjuntar Foto / Captura del Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        <div class="form-group"><label for="dynRef">Referencia (Últimos 4 o 6 dígitos)</label><input type="text" id="dynRef" inputmode="numeric" class="form-input dyn-input" placeholder="Ej. 123456" required></div>
+        <div class="form-group"><label for="dynBank">Banco Origen</label><input type="text" id="dynBank" class="form-input dyn-input" placeholder="Ej. Banesco, Mercantil, Venezuela" required></div>
+        <div class="form-group"><label for="dynDate">Fecha de Transacción</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
+        <div class="form-group"><label for="dynAmount">Monto Exacto Enviado (Bs)</label><input type="number" step="0.01" inputmode="decimal" id="dynAmount" class="form-input dyn-input" placeholder="0.00" required></div>
+        <div class="form-group"><label for="proofFile">Foto / Captura del Comprobante</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
       `;
     } else if (t === 'transferencia') {
       clientInputsHtml = `
-        <div class="form-group"><label>Número de Referencia Completo</label><input type="text" id="dynRef" class="form-input dyn-input" placeholder="Ej. 0012345678" required></div>
-        <div class="form-group"><label>Banco Origen</label><input type="text" id="dynBank" class="form-input dyn-input" placeholder="Ej. Banesco, Provincial" required></div>
-        <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
-        <div class="form-group"><label>Cédula/RIF del titular origen (Opcional)</label><input type="text" id="dynIdCard" class="form-input dyn-input"></div>
-        <div class="form-group"><label>Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        <div class="form-group"><label for="dynRef">Número de Referencia Completo</label><input type="text" id="dynRef" inputmode="numeric" class="form-input dyn-input" placeholder="Ej. 0012345678" required></div>
+        <div class="form-group"><label for="dynBank">Banco Origen</label><input type="text" id="dynBank" class="form-input dyn-input" placeholder="Ej. Banesco, Provincial" required></div>
+        <div class="form-group"><label for="dynDate">Fecha de Transacción</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
+        <div class="form-group"><label for="dynIdCard">Cédula/RIF del titular origen (Opcional)</label><input type="text" id="dynIdCard" class="form-input dyn-input" placeholder="Ej. V-12345678"></div>
+        <div class="form-group"><label for="proofFile">Foto / Captura del Comprobante</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
       `;
     } else if (t === 'binance') {
       clientInputsHtml = `
-        <div class="form-group"><label>Pay ID / Order ID</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Nombre de Usuario Binance</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Monto Enviado (USDT)</label><input type="number" step="0.01" id="dynAmount" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        <div class="form-group"><label for="dynRef">Pay ID / Order ID</label><input type="text" id="dynRef" class="form-input dyn-input" placeholder="ID de la orden Binance" required></div>
+        <div class="form-group"><label for="dynUser">Nombre de Usuario / Correo Binance</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
+        <div class="form-group"><label for="dynAmount">Monto Enviado (USDT)</label><input type="number" step="0.01" inputmode="decimal" id="dynAmount" class="form-input dyn-input" placeholder="0.00" required></div>
+        <div class="form-group"><label for="proofFile">Captura de Pantalla del Pago</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
       `;
     } else if (t === 'zelle') {
       clientInputsHtml = `
-        <div class="form-group"><label>Nombre Titular Cuenta Origen</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Número de Confirmación</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Fecha de Transacción (Hoy por defecto)</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
-        <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        <div class="form-group"><label for="dynUser">Nombre del Titular de la Cuenta Origen</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
+        <div class="form-group"><label for="dynRef">Número de Confirmación Zelle</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
+        <div class="form-group"><label for="dynDate">Fecha de Transacción</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" max="${todayDate}" required></div>
+        <div class="form-group"><label for="proofFile">Captura de Confirmación</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
       `;
     } else if (t === 'zinli' || t === 'paypal') {
       clientInputsHtml = `
-        <div class="form-group"><label>Correo / Teléfono de Origen</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Número de Referencia</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Captura de Pantalla (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        <div class="form-group"><label for="dynUser">Correo / Teléfono de Origen</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
+        <div class="form-group"><label for="dynRef">Número de Referencia</label><input type="text" id="dynRef" class="form-input dyn-input" required></div>
+        <div class="form-group"><label for="proofFile">Captura de la Transacción</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
       `;
     } else if (t === 'efectivo') {
       clientInputsHtml = `
-        <div class="form-group"><label>Persona que Entregará (Nombre y Apellido)</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Denominación / Billetes (Ej. 2 de $20)</label><input type="text" id="dynDetails" class="form-input dyn-input" required></div>
-        <div class="form-group"><label>Fecha Estimada de Entrega</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" required></div>
+        <div class="form-group"><label for="dynUser">Persona que Entregará (Nombre y Apellido)</label><input type="text" id="dynUser" class="form-input dyn-input" required></div>
+        <div class="form-group"><label for="dynDetails">Denominación / Billetes (Ej. 2 de $50 y 1 de $25)</label><input type="text" id="dynDetails" class="form-input dyn-input" required></div>
+        <div class="form-group"><label for="dynDate">Fecha Estimada de Entrega</label><input type="date" id="dynDate" class="form-input dyn-input" value="${todayDate}" required></div>
         <input type="file" id="proofFile" class="dyn-input" style="display:none;">
       `;
     } else {
       clientInputsHtml = `
-        <div class="form-group"><label>Detalles del Pago</label><textarea id="dynDetails" class="form-input dyn-input" required></textarea></div>
-        <div class="form-group"><label>Comprobante (Requerido)</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
+        <div class="form-group"><label for="dynDetails">Detalles del Pago / Referencia</label><textarea id="dynDetails" class="form-input dyn-input" rows="2" required></textarea></div>
+        <div class="form-group"><label for="proofFile">Comprobante de Pago</label><input type="file" id="proofFile" class="form-input dyn-input" accept="image/*" required></div>
       `;
     }
     dynamicInputsContainer.innerHTML = clientInputsHtml;
   }
 
-  // Ocultamos el heading original porque usaremos el nuevo header dentro del recuadro
   if (titleHeading) {
     titleHeading.style.display = 'none';
   }
@@ -896,16 +920,16 @@ function onPaymentMethodSelectedChange() {
     const jsVal = escapeJs(val);
     return `
       <div class="pm-data-row">
-        <span class="pm-data-label">${label}</span>
-        <div class="pm-data-value-group">
+        <div class="pm-data-info">
+          <span class="pm-data-label">${escapeHtml(label)}</span>
           <span class="pm-data-value">${escapeHtml(val)}</span>
-          <button type="button" class="btn-copy-nice" onclick="copyToClipboard('${jsVal}', this)" title="Copiar al portapapeles">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          </button>
         </div>
+        <button type="button" class="btn-copy-nice" onclick="copyToClipboard('${jsVal}', this)" aria-label="Copiar ${escapeHtml(label)}" title="Copiar ${escapeHtml(label)}">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
       </div>
     `;
   };
@@ -918,18 +942,18 @@ function onPaymentMethodSelectedChange() {
     telLabel = 'Número de Cuenta';
   }
 
+  if (selected.nombre_banco) rows += createRow('Banco / Plataforma', selected.nombre_banco);
   if (selected.telefono) rows += createRow(telLabel, selected.telefono);
-  if (selected.cedula) rows += createRow('Cédula/RIF', selected.cedula);
-  if (selected.nombre_banco) rows += createRow('Banco/Plataforma', selected.nombre_banco);
-  if (selected.binance_id) rows += createRow('Billetera/ID', selected.binance_id);
-  if (selected.titular_cuenta) rows += createRow('Titular', selected.titular_cuenta);
+  if (selected.cedula) rows += createRow('Cédula / RIF', selected.cedula);
+  if (selected.binance_id) rows += createRow('Billetera / Pay ID', selected.binance_id);
+  if (selected.titular_cuenta) rows += createRow('Titular / Beneficiario', selected.titular_cuenta);
 
   if (!rows) {
     if (selected.tipo_metodo === 'efectivo') {
       rows = `
         <div class="pm-data-row">
-          <span class="pm-data-label">Modalidad</span>
-          <div class="pm-data-value-group">
+          <div class="pm-data-info">
+            <span class="pm-data-label">Modalidad</span>
             <span class="pm-data-value">Pago en Efectivo (${escapeHtml(selected.titulo)})</span>
           </div>
         </div>
@@ -946,7 +970,7 @@ function onPaymentMethodSelectedChange() {
     pmFooterMsg = 'Indique abajo quién entregará el efectivo (divisas o bolívares) y la fecha estimada de entrega. No requiere foto de comprobante.';
   } else if (selected.tipo_metodo === 'pago_movil') {
     pmIcon = '📱';
-    pmFooterMsg = 'Realice el Pago Móvil exacto en Bolívares a los datos indicados y adjunte la captura del comprobante.';
+    pmFooterMsg = 'Toca el botón azul al lado de cada dato para copiarlo sin errores. Luego adjunta la captura del Pago Móvil.';
   } else if (selected.tipo_metodo === 'transferencia') {
     pmIcon = '🏦';
     pmFooterMsg = 'Realice la transferencia bancaria exacta a la cuenta indicada y adjunte el comprobante.';
@@ -964,7 +988,7 @@ function onPaymentMethodSelectedChange() {
   const html = `
     <div class="pm-inst-card">
       <div class="pm-inst-header">
-        <h4>Instrucciones de ${escapeHtml(selected.titulo)}</h4>
+        <h4>Instrucciones: ${escapeHtml(selected.titulo)}</h4>
         <span class="pm-icon">${pmIcon}</span>
       </div>
       <div class="pm-inst-body">
@@ -980,24 +1004,49 @@ function onPaymentMethodSelectedChange() {
 }
 
 function copyToClipboard(text, btnElement) {
-  navigator.clipboard.writeText(text).then(() => {
-    const originalHTML = btnElement.innerHTML;
-    btnElement.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  const markCopied = () => {
+    if (!btnElement) return;
+    const originalHTML = btnElement.dataset.origHtml || btnElement.innerHTML;
+    btnElement.dataset.origHtml = originalHTML;
+    btnElement.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
     btnElement.classList.add('copied');
     setTimeout(() => {
       btnElement.innerHTML = originalHTML;
       btnElement.classList.remove('copied');
-    }, 2000);
-  }).catch(err => {
+    }, 1800);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(markCopied).catch(() => {
+      fallbackCopyText(text, markCopied);
+    });
+  } else {
+    fallbackCopyText(text, markCopied);
+  }
+}
+
+function fallbackCopyText(text, onSuccess) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    if (onSuccess) onSuccess();
+  } catch (err) {
     console.error('Error al copiar al portapapeles: ', err);
-  });
+  }
 }
 
 function getAdminWhatsAppNumber() {
-  let cleanPhone = (window.ADMIN_WHATSAPP_PHONE || '').toString().replace(/[^0-9]/g, '');
+  let cleanPhone = (window.ADMIN_WHATSAPP_PHONE || '584243580005').toString().replace(/[^0-9]/g, '');
   if (cleanPhone.startsWith('0')) cleanPhone = '58' + cleanPhone.substring(1);
   if (cleanPhone && !cleanPhone.startsWith('58')) cleanPhone = '58' + cleanPhone;
-  return cleanPhone;
+  return cleanPhone || '584243580005';
 }
 
 // Solicitar cotización de Plan Personalizado de alto volumen vía WhatsApp oficial
@@ -1080,12 +1129,16 @@ function proceedToCheckout(planCode, planName, planPrice) {
 
   loadAvailablePaymentMethods();
 
-  if (modal) modal.classList.add('active');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
 }
 
 function closeCheckoutModal() {
   const modal = document.getElementById('checkoutModal');
   if (modal) modal.classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 /* ==========================================================================

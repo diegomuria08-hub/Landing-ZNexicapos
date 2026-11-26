@@ -6,7 +6,7 @@
   <title>Panel de Administración — ZNexica POS</title>
   <meta name="description" content="Panel de administración y gestión de suscripciones y pagos de ZNexica POS.">
   <link rel="icon" type="image/png" href="/static/images/logo_icon.png">
-  <link rel="stylesheet" href="/static/css/styles.css?v=4.1">
+  <link rel="stylesheet" href="/static/css/styles.css?v=8.0">
   <style>
     /* Estilos específicos para armonizar el dashboard en light-mode */
     .admin-header-bar {
@@ -108,28 +108,28 @@
 </head>
 <body class="bg-soft">
 
-  <!-- Header / Barra de Navegación Admin -->
-  <header class="navbar">
+  <!-- Header / Barra de Navegación Admin (Solo en Login) -->
+  <header class="navbar" id="adminTopHeader">
     <div class="container navbar-inner">
       <a href="/" class="logo-brand">
         <img src="/static/images/logo_icon.png" alt="Logo ZNexica POS" class="logo-img">
         <div class="logo-text">
-          ZNexica <span>POS</span>
+          <div>ZNexica <span>POS</span></div>
           <span class="logo-subtitle">Panel Administrativo</span>
         </div>
       </a>
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <a href="/" class="btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;">
+      <div class="admin-top-nav-btns">
+        <a href="/" class="btn-secondary admin-back-btn">
           ← Volver al Sitio
         </a>
-        <button id="logoutBtn" class="btn-secondary" style="display:none; padding: 0.45rem 1rem; font-size: 0.85rem; color: #dc2626; border-color: #fca5a5;" onclick="handleAdminLogout()">
+        <button id="logoutBtn" class="btn-secondary admin-logout-top-btn" style="display:none;" onclick="handleAdminLogout()">
           Cerrar Sesión
         </button>
       </div>
     </div>
   </header>
 
-  <main class="container admin-container">
+  <main class="container admin-container" id="adminMainContainer">
 
     <!-- Vista 1: Login de Administrador -->
     <div id="adminLoginView" class="login-container-card">
@@ -570,7 +570,7 @@
 
             <!-- Formulario de Actualización de Perfil -->
             <form id="adminProfileForm" onsubmit="handleAdminProfileSubmit(event)" style="max-width: 800px;">
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+              <div class="admin-profile-cards-grid">
                 
                 <!-- Tarjeta 1: Información de Usuario -->
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;">
@@ -650,7 +650,7 @@
                     </h4>
                     <p style="margin: 0; font-size: 0.85rem; color: #78350f; max-width: 600px; line-height: 1.5;">
                       Elimina de forma segura todos los datos de prueba, suscripciones ficticias y clientes de ensayo acumulados. 
-                      <strong>Las 3 cuentas de administrador y los métodos de pago bancarios configurados se preservan intactos.</strong>
+                      <strong>Las 2 cuentas de administrador autorizadas y los métodos de pago activos se preservan intactos.</strong>
                     </p>
                   </div>
                   <button type="button" class="saas-btn-danger" onclick="handlePurgeTestData()" style="padding: 0.75rem 1.25rem; font-size: 0.88rem; font-weight: 700; white-space: nowrap;">
@@ -752,7 +752,7 @@
     </div>
   </div>
 
-  <script src="/static/js/admin.js?v=7.2"></script>
+  <script src="/static/js/admin.js?v=8.0"></script>
   <script>
     // Sobrescribir togglePmTypeFields directamente en el HTML para evitar caché agresivo
     window.togglePmTypeFields = function() {

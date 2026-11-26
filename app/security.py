@@ -1,4 +1,6 @@
 import os
+import base64
+import hashlib
 import unicodedata
 from datetime import datetime, timedelta
 from typing import Optional
@@ -7,6 +9,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 import bcrypt
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -20,6 +23,40 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "4320
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/autenticacion/login", auto_error=False)
+
+
+def _aes256_key() -> bytes:
+    """Deriva una clave simétrica de 256 bits (32 bytes) a partir de SECRET_KEY."""
+    return hashlib.sha256(SECRET_KEY.encode("utf-8")).digest()
+
+
+def encrypt_provisioning_secret(plain_password: str) -> Optional[str]:
+    """
+    Cifra simétricamente con AES-256-GCM la credencial de aprovisionamiento
+    para permitir reintentos seguros hacia la API del producto sin almacenar texto plano.
+    """
+    if not plain_password:
+        return None
+    aesgcm = AESGCM(_aes256_key())
+    nonce = os.urandom(12)
+    ct = aesgcm.encrypt(nonce, plain_password.encode("utf-8"), None)
+    blob = base64.urlsafe_b64encode(nonce + ct).decode("ascii")
+    return f"aes256:{blob}"
+
+
+def decrypt_provisioning_secret(cipher_text: Optional[str]) -> Optional[str]:
+    """Descifra en memoria RAM la credencial AES-256-GCM para aprovisionamiento remoto."""
+    if not cipher_text or not cipher_text.startswith("aes256:"):
+        return None
+    try:
+        raw = base64.urlsafe_b64decode(cipher_text[len("aes256:"):].encode("ascii"))
+        if len(raw) <= 12:
+            return None
+        nonce, ct = raw[:12], raw[12:]
+        aesgcm = AESGCM(_aes256_key())
+        return aesgcm.decrypt(nonce, ct, None).decode("utf-8")
+    except Exception:
+        return None
 
 
 def _normalize_password_bytes(password: str) -> bytes:
